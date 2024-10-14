@@ -35,18 +35,17 @@ namespace Hazel {
 	public:
 		WindowCloseEvent() = default;
 
-
 		EVENT_CLASS_TYPE(WindowClose)
-			EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
+		EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
 
-	};
+	}; 
 
 	class AppTickEvent : public Event {
 	public:
 		AppTickEvent() = default;
 
 		EVENT_CLASS_TYPE(AppTick)
-			EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
+		EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
 	};
 
 	class AppUpdateEvent : public Event {
@@ -54,7 +53,7 @@ namespace Hazel {
 		AppUpdateEvent() = default;
 
 		EVENT_CLASS_TYPE(AppUpdate)
-			EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
+		EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
 	};
 
 	class AppRenderEvent : public Event {
@@ -62,7 +61,7 @@ namespace Hazel {
 		AppRenderEvent() = default;
 
 		EVENT_CLASS_TYPE(AppRender)
-			EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
+		EVENT_CLASS_CATEGORY(EventCategory::EventCategoryApplication)
 	};
 
 }

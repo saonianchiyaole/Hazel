@@ -79,11 +79,12 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>hzpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_BUILD_DLL;HZ_ENABLE_ASSERTS;HZ_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)vendor\GLFW\include;..\vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_BUILD_DLL;HZ_ENABLE_ASSERTS;GLFW_INCLUDE_NONE;HZ_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)vendor\GLFW\include;..\vendor\GLFW\include;..\vendor\GLAD\include;..\vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalOptions>/MDd %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -93,20 +94,24 @@
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)bin\Debug-x86_64\Hazel\Hazel.lib</ImportLibrary>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /F "$(TargetDir)$(TargetName).dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\SandBox\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>hzpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_BUILD_DLL;HZ_ENABLE_ASSERTS;HZ_Release;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)vendor\GLFW\include;..\vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_BUILD_DLL;HZ_ENABLE_ASSERTS;GLFW_INCLUDE_NONE;HZ_Release;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)vendor\GLFW\include;..\vendor\GLFW\include;..\vendor\GLAD\include;..\vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -117,20 +122,24 @@
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)bin\Release-x86_64\Hazel\Hazel.lib</ImportLibrary>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /F "$(TargetDir)$(TargetName).dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\SandBox\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>hzpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_BUILD_DLL;HZ_ENABLE_ASSERTS;HZ_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)vendor\GLFW\include;..\vendor\GLFW\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_BUILD_DLL;HZ_ENABLE_ASSERTS;GLFW_INCLUDE_NONE;HZ_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)vendor\GLFW\include;..\vendor\GLFW\include;..\vendor\GLAD\include;..\vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -141,6 +150,9 @@
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(SolutionDir)bin\Dist-x86_64\Hazel\Hazel.lib</ImportLibrary>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /F "$(TargetDir)$(TargetName).dll" "$(SolutionDir)bin\$(Configuration)-$(LlvmPlatformName)\SandBox\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Hazel.h" />
@@ -151,22 +163,44 @@
     <ClInclude Include="..\src\Hazel\Event\Event.h" />
     <ClInclude Include="..\src\Hazel\Event\KeyEvent.h" />
     <ClInclude Include="..\src\Hazel\Event\MouseEvent.h" />
+    <ClInclude Include="..\src\Hazel\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="..\src\Hazel\Input.h" />
+    <ClInclude Include="..\src\Hazel\KeyCodes.h" />
+    <ClInclude Include="..\src\Hazel\Layer.h" />
+    <ClInclude Include="..\src\Hazel\LayerStack.h" />
     <ClInclude Include="..\src\Hazel\Log.h" />
+    <ClInclude Include="..\src\Hazel\MouseButtonCodes.h" />
     <ClInclude Include="..\src\Hazel\Window.h" />
+    <ClInclude Include="..\src\Platform\OpenGL\ImGuiOpenGLLoader.h" />
+    <ClInclude Include="..\src\Platform\OpenGL\ImGuiOpenGLRenderer.h" />
+    <ClInclude Include="..\src\Platform\OpenGL\imgui_impl_glfw.h" />
+    <ClInclude Include="..\src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="..\src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="..\src\hzpch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Hazel\Application.cpp" />
+    <ClCompile Include="..\src\Hazel\ImGui\ImGuiLayer.cpp" />
+    <ClCompile Include="..\src\Hazel\Layer.cpp" />
+    <ClCompile Include="..\src\Hazel\LayerStack.cpp" />
     <ClCompile Include="..\src\Hazel\Log.cpp" />
+    <ClCompile Include="..\src\Platform\OpenGL\ImGuiOpenGLRenderer.cpp" />
+    <ClCompile Include="..\src\Platform\OpenGL\imgui_impl_glfw.cpp" />
     <ClCompile Include="..\src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="..\src\hzpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\src\Platform\Windows\WindowsInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\vendor\GLFW\GLFW.vcxproj">
       <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\vendor\GLAD\GLAD.vcxproj">
+      <Project>{5D4A857C-4981-860D-F26D-6C10DE83020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\vendor\imgui\imgui.vcxproj">
+      <Project>{0098A80F-6CAC-D0C0-352E-7420A101CDF1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
