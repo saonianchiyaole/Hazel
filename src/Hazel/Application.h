@@ -5,7 +5,8 @@
 #include "Window.h"
 #include "Hazel/Event/ApplicationEvent.h"
 #include "Hazel/LayerStack.h"
-
+#include "Hazel/ImGui/ImGuiLayer.h"
+#include "Hazel/Core/Timestep.h"
 
 namespace Hazel {
 
@@ -33,13 +34,23 @@ namespace Hazel {
 	private:
 
 		bool OnWindowClose(WindowCloseEvent& e);
-		std::unique_ptr<Window> m_Window;
+		bool OnWindowResize(WindowResizeEvent& e);
+	
+	private:
+		
+		Scope<Window> m_Window;
+	
+		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		
 		static Application* s_Instance;
 
+		Timestep m_Timestep;
+		float m_LastFrameTime = 0.0f;
+
 		LayerStack m_LayerStack;
 
+		bool m_Minimized = false;
 	};
 	// To be define in Client
 	Application* CreateApplication();

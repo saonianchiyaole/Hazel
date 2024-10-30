@@ -10,4 +10,13 @@ namespace Hazel {
 	Layer::~Layer() {
 
 	}
+
+
+	void Layer::Begin() {
+
+	}
+
+	void Layer::End() {
+
+	}
 }

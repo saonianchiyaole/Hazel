@@ -16,16 +16,19 @@ IncludeDir["GLFW"] = "vendor/GLFW/include"
 IncludeDir["GLAD"] = "vendor/GLAD/include"
 IncludeDir["imgui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
+IncludeDir["stb_image"] = "vendor/stb_image"
+
 
 include "vendor/GLFW"
 include "vendor/GLAD"
 include "vendor/imgui"
-include "vendor/glm"
 
 project "Hazel"
 	location "Hazel"
-	kind "SharedLib"
+	kind "StaticLib"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("$(SolutionDir)bin/" .. outputDir .. "/%{prj.name}")
 	objdir ("$(SolutionDir)bin-int/" .. outputDir .. "/%{prj.name}")
@@ -36,7 +39,9 @@ project "Hazel"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"vendor/stb_image/**.h",
+		"vendor/stb_image/**.cpp",
 	}
 
 	includedirs
@@ -47,7 +52,8 @@ project "Hazel"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.GLAD}",
 		"%{IncludeDir.imgui}",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.stb_image}"
 	}
 
 	links
@@ -59,7 +65,6 @@ project "Hazel"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
 
@@ -73,24 +78,24 @@ project "Hazel"
 
 
 		postbuildcommands {
-			"xcopy /Y /F \"$(TargetDir)$(TargetName).dll\" \"$(SolutionDir)bin\\$(Configuration)-$(LlvmPlatformName)\\SandBox\\\""
+			"xcopy /Y /F \"$(TargetDir)$(TargetName).lib\" \"$(SolutionDir)bin\\$(Configuration)-$(LlvmPlatformName)\\SandBox\\\""
 		}
 		
 
 	filter "configurations:Debug"
 		defines "HZ_DEBUG"
-		buildoptions "/MDd"
-		symbols "On"
+		runtime "Debug"
+		symbols "on"
 
 	filter "configurations:Release"
-		defines "HZ_Release"
-		buildoptions "/MD"
-		optimize "On"
+		defines "HZ_RELEASE"
+		runtime "Release"
+		optimize "on"
 
 	filter "configurations:Dist"
-		defines "HZ_DEBUG"
-		buildoptions "/MD"
-		optimize "On"
+		defines "HZ_DIST"
+		runtime "Release"
+		optimize "on"
 
 
 project "SandBox"
@@ -98,6 +103,8 @@ project "SandBox"
 	location "SandBox"
 	kind "ConsoleApp"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("$(SolutionDir)bin/" .. outputDir .. "/%{prj.name}")
 	objdir ("$(SolutionDir)bin-int/" .. outputDir .. "/%{prj.name}")
@@ -112,7 +119,9 @@ project "SandBox"
 	{
 		"$(SolutionDir)vendor/spdlog/include",
 		"$(SolutionDir)src/",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"$(SolutionDir)vendor/imgui",
+		"$(SolutionDir)vendor/GLAD/include"
 	}
 
 
@@ -122,7 +131,6 @@ project "SandBox"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
 
@@ -134,15 +142,15 @@ project "SandBox"
 
 	filter "configurations:Debug"
 		defines "HZ_DEBUG"
-		buildoptions "/MDd"
-		symbols "On"
+		runtime "Debug"
+		symbols "on"
 
 	filter "configurations:Release"
-		defines "HZ_Release"
-		buildoptions "/MD"
-		optimize "On"
+		defines "HZ_RELEASE"
+		runtime "Release"
+		optimize "on"
 
 	filter "configurations:Dist"
-		defines "HZ_DEBUG"
-		buildoptions "/MD"
-		optimize "On"
+		defines "HZ_DIST"
+		runtime "Release"
+		optimize "on"
