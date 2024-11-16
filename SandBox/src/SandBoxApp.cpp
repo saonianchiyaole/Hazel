@@ -1,5 +1,5 @@
 #include "Hazel.h"
-#include "Hazel/EntryPoint.h"
+#include "Hazel/Core/EntryPoint.h"
 #include "Hazel/Event/ApplicationEvent.h"
 
 #include "imgui.h"
@@ -34,7 +34,7 @@ public:
 		};
 
 		std::shared_ptr<Hazel::VertexBuffer> vertexBuffer;
-		vertexBuffer.reset(Hazel::VertexBuffer::Create(vertices, sizeof(vertices)));
+		vertexBuffer = Hazel::VertexBuffer::Create(vertices, sizeof(vertices));
 
 
 		Hazel::BufferLayout layout = std::vector<Hazel::BufferElement>{
@@ -49,7 +49,7 @@ public:
 
 		unsigned int indices[6] = { 0, 1, 3, 3, 2, 1 };
 		std::shared_ptr<Hazel::IndexBuffer> indexBuffer;
-		indexBuffer.reset(Hazel::IndexBuffer::Create(indices, sizeof(indices) / sizeof(unsigned int)));
+		indexBuffer = Hazel::IndexBuffer::Create(indices, sizeof(indices) / sizeof(unsigned int));
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 
 		Hazel::ShaderLibrary::Load("assets/Shaders/Shader.glsl");
@@ -136,7 +136,7 @@ class Sandbox :public Hazel::Application {
 public:
 	Sandbox() {
 		//PushOverlay(new ExampleLayer());
-		PushLayer(new SandBox2D());
+		//PushLayer(new SandBox2D());
 	}
 	~Sandbox() {
 
