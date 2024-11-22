@@ -6,7 +6,7 @@
 namespace Hazel {
 	class Entity {
 	public:
-		Entity() = default;
+		Entity();
 		Entity(entt::entity entityHandle, Scene* scene);
 		Entity(const Entity& other) = default;
 
@@ -16,25 +16,29 @@ namespace Hazel {
 
 		template<class T, class... Args>
 		T& AddComponent(Args&&... args) {
-			HZ_CORE_ASSERT(!HasComponent<T>(), "Entity already has this component!")
-			return m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+			HZ_CORE_ASSERT(!HasComponent<T>(), "Entity already has this component!");
+			auto& component = m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+			m_Scene->OnAddComponent(*this, component);
+			return component;
 		}
 
 		template<class T>
 		T& GetComponent() {
-			
-			HZ_CORE_ASSERT(HasComponent<T>(), "Entity dose not have this component!")
+
+			HZ_CORE_ASSERT(HasComponent<T>(), "Entity dose not have this component!");
 			return m_Scene->GetRegistry().get<T>(m_EntityHandle);
 		}
 
 		template<class T>
 		bool HasComponent() {
-			return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
+			if (m_Scene)
+				return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
+			return false;
 		}
 
 		template<class T>
 		T RemoveComponent() {
-			HZ_CORE_ASSERT(HasComponent<T>(), "Entity dose not have this component!")
+			HZ_CORE_ASSERT(HasComponent<T>(), "Entity dose not have this component!");
 			return m_Scene->GetRegistry().remove<T>(m_EntityHandle);
 		}
 
@@ -46,12 +50,21 @@ namespace Hazel {
 			return !(*this == other);
 		}
 
-		
+		operator bool() {
+			return m_EntityHandle != entt::null;
+		}
+		operator uint32_t() {
+			return (uint32_t)m_EntityHandle;
+		}
+		operator entt::entity() {
+			return m_EntityHandle;
+		}
+
 
 	private:
-		entt::entity m_EntityHandle{ 0 };
+		entt::entity m_EntityHandle{ entt::null };
 		Scene* m_Scene = nullptr;
 	};
 
-	
+
 }

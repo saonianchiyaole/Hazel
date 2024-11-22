@@ -18,10 +18,13 @@ IncludeDir["imgui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
 IncludeDir["stb_image"] = "vendor/stb_image"
 IncludeDir["entt"] = "vendor/entt"
+IncludeDir["yaml"] = "vendor/yaml-cpp/include"
+IncludeDir["ImGuizmo"] = "vendor/ImGuizmo"
 
 include "vendor/GLFW"
 include "vendor/GLAD"
 include "vendor/imgui"
+include "vendor/yaml-cpp"
 
 project "Hazel"
 	location "Hazel"
@@ -42,6 +45,8 @@ project "Hazel"
 		"Hazel/src/**.cpp",
 		"vendor/stb_image/**.h",
 		"vendor/stb_image/**.cpp",
+		"vendor/ImGuizmo/ImGuizmo.h",
+		"vendor/ImGuizmo/ImGuizmo.cpp",
 	}
 
 	includedirs
@@ -54,7 +59,9 @@ project "Hazel"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.yaml}",
+		"%{IncludeDir.ImGuizmo}",
 	}
 
 	links
@@ -62,8 +69,12 @@ project "Hazel"
 		"GLFW",
 		"GLAD",
 		"imgui",
-		"opengl32.lib"
+		"opengl32.lib",
+		"yaml-cpp"
 	}
+
+	filter "files:vendor/ImGuizmo/**.cpp"
+	flags { "NoPCH" }
 
 	filter "system:windows"
 		staticruntime "On"
@@ -74,7 +85,8 @@ project "Hazel"
 			"HZ_PLATFORM_WINDOWS",
 			"HZ_BUILD_DLL",
 			"HZ_ENABLE_ASSERTS",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"YAML_CPP_STATIC_DEFINE"
 		}
 
 
@@ -181,7 +193,9 @@ project "Editor"
 			"%{IncludeDir.glm}",
 			"$(SolutionDir)vendor/imgui",
 			"$(SolutionDir)vendor/GLAD/include",
-			"%{IncludeDir.entt}"
+			"%{IncludeDir.entt}",
+			"%{IncludeDir.yaml}",
+			"%{IncludeDir.ImGuizmo}",
 		}
 	
 	

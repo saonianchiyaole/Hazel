@@ -34,11 +34,20 @@
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vendor\ImGuizmo">
+      <UniqueIdentifier>{73BF7F4C-DF4A-ED10-E85B-700554664911}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Hazel\Math">
+      <UniqueIdentifier>{cea51289-3bb7-474f-ac8d-e8da795071fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\vendor\ImGuizmo\ImGuizmo.h">
+      <Filter>vendor\ImGuizmo</Filter>
+    </ClInclude>
     <ClInclude Include="..\vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
@@ -132,6 +141,9 @@
     <ClInclude Include="src\Hazel\Renderer\Renderer2D.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\Renderer3D.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\RendererAPI.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
@@ -151,6 +163,9 @@
       <Filter>src\Hazel\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Scene\Scene.h">
+      <Filter>src\Hazel\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Scene\SceneSerializer.h">
       <Filter>src\Hazel\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Scene\ScriptableEntity.h">
@@ -188,6 +203,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
+      <Filter>vendor\ImGuizmo</Filter>
+    </ClCompile>
     <ClCompile Include="..\vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
@@ -251,6 +269,9 @@
     <ClCompile Include="src\Hazel\Renderer\Renderer2D.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\Renderer\Renderer3D.cpp">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\RendererAPI.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
@@ -267,6 +288,9 @@
       <Filter>src\Hazel\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Scene\Scene.cpp">
+      <Filter>src\Hazel\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Scene\SceneSerializer.cpp">
       <Filter>src\Hazel\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Scene\ScriptableEntity.cpp">

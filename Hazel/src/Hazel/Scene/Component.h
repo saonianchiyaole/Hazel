@@ -16,21 +16,20 @@ namespace Hazel {
 		std::string tag;
 		TagComponent() = default;
 		TagComponent(const TagComponent& other) = default;
-		TagComponent(const std::string &tagValue) : tag(tagValue) {}
+		TagComponent(const std::string& tagValue) : tag(tagValue) {}
 	};
 
 	struct TransformComponent {
 		glm::mat4 transform = glm::mat4(1.0f);
-		glm::vec3 translate = {0.f, 0.f, 0.f};
-		glm::vec3 scale = {1.f, 1.f, 1.f};
-		glm::vec3 rotation = {0.f, 0.f, 0.f};
+		glm::vec3 translate = { 0.f, 0.f, 0.f };
+		glm::vec3 scale = { 1.f, 1.f, 1.f };
+		glm::vec3 rotation = { 0.f, 0.f, 0.f };
 
 		TransformComponent() {
-			transform = glm::mat4(1.0f);
 		}
 		TransformComponent(const TransformComponent& other) = default;
-		TransformComponent(const glm::mat4& value): transform(value){}
-		TransformComponent(const glm::vec3& translateVal, const glm::vec3& scaleVal, const glm::vec3& rotationVal)
+		TransformComponent(const glm::mat4& value) : transform(value) {}
+		TransformComponent(const glm::vec3& translateVal, const glm::vec3& rotationVal, const glm::vec3& scaleVal)
 			: translate(translateVal), scale(scaleVal), rotation(rotationVal)
 		{
 			RecalculateTransform();
@@ -49,13 +48,15 @@ namespace Hazel {
 			RecalculateTransform();
 		}
 
-		glm::mat4 GetTransform(){
+		glm::mat4 GetTransform() {
 			return transform;
 		}
 		void RecalculateTransform() {
+
 			glm::mat4 rotationMat = glm::toMat4(glm::quat(rotation));
-			transform = glm::translate(glm::mat4(1.0f), translate)*
-				rotationMat*
+
+			transform = glm::translate(glm::mat4(1.0f), translate) *
+				rotationMat *
 				glm::scale(glm::mat4(1.0f), scale);
 		}
 		operator const glm::mat4& const() {
@@ -65,15 +66,15 @@ namespace Hazel {
 
 	struct SpriteComponent {
 		glm::vec4 color;
-		SpriteComponent():color(glm::vec4(1.0f, 0.5f, 0.5f, 1.0f)){}
+		SpriteComponent() :color(glm::vec4(1.0f, 0.5f, 0.5f, 1.0f)) {}
 		SpriteComponent(const glm::vec4& colorVal) : color(colorVal) {}
-		SpriteComponent(const SpriteComponent& other): color(other.color) {}
+		SpriteComponent(const SpriteComponent& other) : color(other.color) {}
 	};
 
 	struct CameraComponent {
 		Camera* camera;
 		bool primary = false;
-		CameraComponent() = default;
+		CameraComponent() { camera = new Camera; }
 		CameraComponent(Camera& cameraVal) : camera(&cameraVal) {}
 		CameraComponent(Ref<Camera> camera) : camera(camera.get()) {}
 		CameraComponent(const CameraComponent& other) = default;
@@ -94,7 +95,7 @@ namespace Hazel {
 		void Bind() {
 			InstantiateScript = [this]() { return new T(); };
 			DestroyScript = [this]() { delete (T*)instance; instance = nullptr; };
-			
+
 		}
 	};
 

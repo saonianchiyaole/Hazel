@@ -16,9 +16,5 @@ namespace Hazel {
 		virtual void RecalculateProjectionMatrix() override;
 		virtual void RecalculateViewProjectionMatrix() override;
 
-		float m_Fovy;
-		float m_AspectRatio;
-		float m_ZNear;
-		float m_ZFar;
 	};
 }

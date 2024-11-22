@@ -1,3 +1,4 @@
+G:\Project\visualStudio\Hazel\vendor\ImGuizmo\ImGuizmo.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuizmo.obj
 G:\Project\visualStudio\Hazel\vendor\stb_image\stb_image.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\stb_image.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Application.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Application.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Layer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Layer.obj
@@ -19,12 +20,14 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\PerspectiveCamera.cpp;G:\
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RenderCommand.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RenderCommand.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer2D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer2D.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer3D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer3D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RendererAPI.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Shader.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Shader.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Texture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Texture.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\VertexArray.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VertexArray.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\Entity.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Entity.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\Scene.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Scene.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\SceneSerializer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\SceneSerializer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\ScriptableEntity.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ScriptableEntity.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLBuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLBuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLContext.obj

@@ -6,6 +6,8 @@
 #include "Hazel/Renderer/ParticleSystem.h"
 #include "Panels/SceneHierarchyPanel.h"
 
+#include "ImGuizmo.h"
+
 namespace Hazel {
 	class Editor : public Hazel::Layer {
 	public:
@@ -19,10 +21,12 @@ namespace Hazel {
 
 		bool OnMoustLeftButtonClicked(Hazel::MouseButtonPressedEvent& event);
 		bool OnWindowResized(Hazel::WindowResizeEvent& event);
+		bool OnKeyPressed(KeyPressedEvent& e);
+
+
 
 	private:
 		Hazel::Ref<Hazel::OrthographicCameraController> m_CameraController;
-		Hazel::Ref<Hazel::OrthographicCamera> m_Camera;
 		Hazel::Ref<Hazel::Shader> m_Shader;
 		Hazel::Ref<Hazel::VertexArray> m_VertexArray;
 		glm::vec4 m_SquareColor;
@@ -37,8 +41,7 @@ namespace Hazel {
 		Hazel::FramebufferSpecification m_FramebufferSpecification;
 
 		Ref<Scene> m_Scene;
-		Hazel::Entity square;
-		Hazel::Entity m_MainCamera;
+		Hazel::Ref<Hazel::Camera> m_Camera;
 
 		SceneHierarchyPanel m_HierarchyPanel;
 
@@ -48,5 +51,7 @@ namespace Hazel {
 		Hazel::ParticleSystem m_ParticleSystem;
 
 		glm::vec2 m_ViewportSize;
+
+		ImGuizmo::OPERATION m_ImGuizmoMode = ImGuizmo::OPERATION::TRANSLATE;
 	};
 }

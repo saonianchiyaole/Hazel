@@ -1,8 +1,8 @@
 #include "Editor.h"
 
+#include <imgui.h>
 #include "Hazel/Event/ApplicationEvent.h"
 
-#include "imgui.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 
 #include "glm/gtc/matrix_transform.hpp"
@@ -20,8 +20,12 @@ namespace Hazel {
 
 	void Editor::OnAttach()
 	{
-		m_Camera = std::make_shared<Hazel::OrthographicCamera>(-1.6f, 1.6f, -1.0f, 1.0f);
-		m_CameraController = std::make_shared<Hazel::OrthographicCameraController>(m_Camera, 1280.f / 720.f);
+		m_Camera = std::make_shared<Hazel::Camera>();
+		auto windowWidth = Hazel::Application::GetInstance().GetWindow().GetWidth();
+		auto windowHeight = Hazel::Application::GetInstance().GetWindow().GetHeight();
+
+		m_Camera->SetOrthographicProjection(1.0f, windowWidth / windowHeight, 0.1, 10000);
+		//m_CameraController = std::make_shared<Hazel::OrthographicCameraController>(m_Camera, 1280.f / 720.f);
 
 		m_Texture2 = Hazel::Texture2D::Create("assets/code.png");
 		m_Texture1 = Hazel::Texture2D::Create("assets/Checkboard.png");
@@ -34,20 +38,6 @@ namespace Hazel {
 
 
 		m_Scene.reset(new Scene);
-		auto entity = m_Scene->CreateEntity("GreenSquare");
-		square = entity;
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.0f, 1.0f)) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(0.f), glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0));
-		square.AddComponent<Hazel::TransformComponent>(transform);
-		square.AddComponent<Hazel::SpriteComponent>(m_SquareColor);
-
-		m_MainCamera = m_Scene->CreateEntity("MainCamera");
-		m_MainCamera.AddComponent<Hazel::CameraComponent>(m_Camera);
-		m_MainCamera.AddComponent<Hazel::TransformComponent>(glm::translate(glm::mat4(1.0f), m_Camera->GetPosition()));
-		m_MainCamera.GetComponent<Hazel::CameraComponent>().primary = true;
-
-
 
 		class CameraContorller : public Hazel::ScriptableEntity {
 		public:
@@ -59,24 +49,27 @@ namespace Hazel {
 
 			}
 			void OnUpdate(Timestep ts) {
-				auto& transform = GetComponent<Hazel::TransformComponent>().transform;
+				auto& transform = GetComponent<Hazel::TransformComponent>();
 				float speed = 5.0f;
 
 				if (Input::IsKeyPressed(HZ_KEY_A))
-					transform[3][0] -= speed * ts;
+					transform.SetTranslate(glm::vec3{ transform.translate[0] - speed * ts, transform.translate[1], transform.translate[2] });
 				if (Input::IsKeyPressed(HZ_KEY_D))
-					transform[3][0] += speed * ts;
+					transform.SetTranslate(glm::vec3{ transform.translate[0] + speed * ts, transform.translate[1], transform.translate[2] });
 				if (Input::IsKeyPressed(HZ_KEY_W))
-					transform[3][1] -= speed * ts;
+					transform.SetTranslate(glm::vec3{ transform.translate[0], transform.translate[1] - speed * ts, transform.translate[2] });
 				if (Input::IsKeyPressed(HZ_KEY_S))
-					transform[3][1] += speed * ts;
+					transform.SetTranslate(glm::vec3{ transform.translate[0] , transform.translate[1] + speed * ts, transform.translate[2] });
+
 			}
 		};
 
-		m_MainCamera.AddComponent<NativeScriptComponent>().Bind<CameraContorller>();
-
 
 		m_HierarchyPanel.SetContext(m_Scene);
+
+
+		SceneSerializer sceneSerializer(m_Scene);
+		sceneSerializer.Deserialize("assets\\Data\\data.yaml");
 
 		// Init here
 		m_Particle.ColorBegin = { 254 / 255.0f, 212 / 255.0f, 123 / 255.0f, 1.0f };
@@ -99,8 +92,7 @@ namespace Hazel {
 		Hazel::PROFILE_SCOPE("Editor : OnUpdate");
 
 		float deltaTime = ts;
-		if (0)
-			m_CameraController->OnUpdate(ts);
+
 		m_Framebuffer->Bind();
 		Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		Hazel::RenderCommand::Clear();
@@ -110,8 +102,11 @@ namespace Hazel {
 
 		m_Scene->OnUpdate(ts);
 
-		m_ParticleSystem.OnUpdate(ts);
+		/*m_ParticleSystem.OnUpdate(ts);
 		m_ParticleSystem.OnRender(*m_Camera.get());
+		*/
+	
+		
 		m_Framebuffer->Unbind();
 
 		Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -119,16 +114,7 @@ namespace Hazel {
 
 	}
 
-	void Editor::OnEvent(Hazel::Event& event)
-	{
-		if (0)
-			m_CameraController->OnEvent(event);
 
-		Hazel::EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<Hazel::MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(Editor::OnMoustLeftButtonClicked));
-		dispatcher.Dispatch<Hazel::WindowResizeEvent>(HZ_BIND_EVENT_FN(Editor::OnWindowResized));
-
-	}
 
 	void Editor::OnImGuiRender()
 	{
@@ -195,16 +181,20 @@ namespace Hazel {
 				ImGui::MenuItem("Padding", NULL, &opt_padding);
 				ImGui::Separator();
 
-				if (ImGui::MenuItem("Flag: NoDockingOverCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingOverCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingOverCentralNode; }
-				if (ImGui::MenuItem("Flag: NoDockingSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingSplit; }
-				if (ImGui::MenuItem("Flag: NoUndocking", "", (dockspace_flags & ImGuiDockNodeFlags_NoUndocking) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoUndocking; }
-				if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-				if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-				if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
-				ImGui::Separator();
+				if (ImGui::MenuItem("Save")) {
+					SceneSerializer sceneSerializer(m_Scene);
+					sceneSerializer.Serialize("assets\\Data\\data.yaml");
+				}
+				if (ImGui::MenuItem("SaveAndClose")) {
+					SceneSerializer sceneSerializer(m_Scene);
+					sceneSerializer.Serialize("assets\\Data\\data.yaml");
+					Application::GetInstance().Close();
+				}
 
-				if (ImGui::MenuItem("Close", NULL, false, m_Open != NULL))
-					m_Open = false;
+				if (ImGui::MenuItem("Close")) {
+					Application::GetInstance().Close();
+				}
+
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
@@ -212,27 +202,13 @@ namespace Hazel {
 
 		ImGui::End();
 
-		ImGui::Begin("Setting");
-		ImGui::Text("%s", square.GetComponent<Hazel::TagComponent>().tag.c_str());
-
-		auto& squareColor = square.GetComponent<Hazel::SpriteComponent>().color;
-		ImGui::ColorEdit4("Squre Color", glm::value_ptr(squareColor));
-		ImGui::Separator();
-		for (auto& result : m_ProfileResults) {
-			char label[50];
-			strcpy_s(label, result.name);
-			strcat(label, " %.3fms");
-			ImGui::Text(label, result.time);
-
-		}
+		ImGui::Begin("States");
 		auto rendererState = Hazel::Renderer2D::GetState();
 
 		ImGui::Text("DrawCall : %d", rendererState->drawCall);
 		ImGui::Text("QuadAmount : %d", rendererState->quadAmount);
 		ImGui::Text("VertexAmount : %d", rendererState->vertexAmount);
 		ImGui::Text("IndexAmount : %d", rendererState->indexAmount);
-
-
 
 		ImGui::End();
 
@@ -243,18 +219,72 @@ namespace Hazel {
 		if (viewportSize.x != 0 && viewportSize.y != 0) {
 			if (m_ViewportSize != *(glm::vec2*)&viewportSize) {
 				m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
-				m_CameraController->SetAspectRatio(viewportSize.x / viewportSize.y);
+				m_Camera->SetAspectRatio(viewportSize.x / viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
+				m_Scene->m_ViewPortSize = m_ViewportSize;
 			}
-			ImGui::Image((void*)m_Framebuffer->GetColorAttachment(), { (float)m_ViewportSize.x, (float)m_ViewportSize.y });
-			ImGui::End();
+			ImGui::Image((void*)m_Framebuffer->GetColorAttachment(), { (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
 		}
+
+
+		auto seletedEntity = m_HierarchyPanel.GetSelectedEntity();
+		// ImGuizmo
+		if (seletedEntity) {
+
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetDrawlist();
+
+
+			float posx = ImGui::GetWindowPos().x;
+			float posy = ImGui::GetWindowPos().y;
+			float width = (float)ImGui::GetWindowWidth();
+			float height = (float)ImGui::GetWindowHeight();
+
+
+			ImGuizmo::SetRect(posx, posy, width, height);
+
+			glm::vec3 translate, rotation, scale;
+
+			auto primaryCamera = m_Scene->GetPrimaryCamera();
+			if (primaryCamera) {
+
+				auto view = primaryCamera->GetViewMatrix();
+				auto projection = primaryCamera->GetProjectionMatrix();
+
+
+				if (seletedEntity.HasComponent<TransformComponent>())
+				{
+					glm::mat4& transform = seletedEntity.GetComponent<TransformComponent>().transform;
+					ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), m_ImGuizmoMode, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
+				}
+			}
+
+
+
+
+		}
+
+
+
+		ImGui::End();
+
 
 		m_HierarchyPanel.OnImGuiRender();
 
 		m_ProfileResults.clear();
 		Hazel::Renderer2D::ResetState();
 	}
+
+
+	void Editor::OnEvent(Hazel::Event& event)
+	{
+		Hazel::EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<Hazel::MouseButtonPressedEvent>(HZ_BIND_EVENT_FN(Editor::OnMoustLeftButtonClicked));
+		dispatcher.Dispatch<Hazel::WindowResizeEvent>(HZ_BIND_EVENT_FN(Editor::OnWindowResized));
+		dispatcher.Dispatch<KeyPressedEvent>(HZ_BIND_EVENT_FN(Editor::OnKeyPressed));
+	}
+
 
 	bool Editor::OnMoustLeftButtonClicked(Hazel::MouseButtonPressedEvent& event)
 	{
@@ -281,6 +311,27 @@ namespace Hazel {
 	bool Editor::OnWindowResized(Hazel::WindowResizeEvent& event)
 	{
 		return true;
+	}
+
+	bool Editor::OnKeyPressed(KeyPressedEvent& e)
+	{
+
+		switch (e.GetKeyCode())
+		{
+		case HZ_KEY_Q:
+			m_ImGuizmoMode = (ImGuizmo::OPERATION)-1;
+			break;
+		case HZ_KEY_W:
+			m_ImGuizmoMode = ImGuizmo::OPERATION::TRANSLATE;
+			break;
+		case HZ_KEY_E:
+			m_ImGuizmoMode = ImGuizmo::OPERATION::ROTATE;
+			break;
+		case HZ_KEY_R:
+			m_ImGuizmoMode = ImGuizmo::OPERATION::SCALE;
+			break;
+		}
+		return false;
 	}
 
 }

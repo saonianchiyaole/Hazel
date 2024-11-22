@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;$(SolutionDir)vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -96,7 +96,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -117,7 +117,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -145,6 +145,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Hazel\Hazel.vcxproj">
       <Project>{99294D0D-053E-75BE-CEBF-181E3A9371EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\vendor\imgui\imgui.vcxproj">
+      <Project>{0098a80f-6cac-d0c0-352e-7420a101cdf1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

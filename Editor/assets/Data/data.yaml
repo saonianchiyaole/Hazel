@@ -1,0 +1,44 @@
+Scene: Untitled
+Entities:
+  - Entity: 463782467832
+    TagComponent:
+      Tag: HelloWorld
+    TransformComponent:
+      Translate: [0, 0, -19]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+  - Entity: 463782467832
+    TagComponent:
+      Tag: MainCamera
+    TransformComponent:
+      Translate: [0, 0, 7.2]
+      Rotation: [0, -0.05235988, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      ProjectionType: 0
+      Primary: true
+      Fovy: 45
+      ZoomLevel: 1
+      AspectRatio: 1.087087
+      NearClip: 0.1
+      FarClip: 10000
+  - Entity: 463782467832
+    TagComponent:
+      Tag: GreenSquare
+    TransformComponent:
+      Translate: [1.7, 0, -2.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 0]
+    SpriteComponent:
+      Color: [1, 1, 1, 1]
+  - Entity: 463782467832
+    TagComponent:
+      Tag: Plane
+    TransformComponent:
+      Translate: [1, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Color: [0.41445595, 0.784031, 0.9607843, 1]

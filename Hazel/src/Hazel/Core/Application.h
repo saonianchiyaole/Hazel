@@ -21,8 +21,12 @@ namespace Hazel {
 
 		void OnEvent(Event& e);
 
+		void Close();
+
+
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
+
 
 		static inline Application& GetInstance() {
 			if (s_Instance == nullptr)

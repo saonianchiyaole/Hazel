@@ -21,6 +21,26 @@ namespace Hazel {
 		return entity;
 	}
 
+	void Scene::DestroyEntity(Entity entity)
+	{
+		m_Registry.destroy(entity);
+	}
+
+	Ref<Camera> Scene::GetPrimaryCamera()
+	{
+
+		auto view = m_Registry.view<CameraComponent>();
+		for (auto entityID : view) {
+			Entity entity = { entityID, this };
+			auto& cameraComponent = entity.GetComponent<CameraComponent>();
+			if (cameraComponent.primary) {
+				return MakeRef<Camera>(*(entity.GetComponent<CameraComponent>().camera));
+			}
+		}
+
+		return nullptr;
+	}
+
 	void Scene::OnUpdate(Timestep ts)
 	{
 		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
@@ -44,8 +64,9 @@ namespace Hazel {
 
 			if (camera.primary == true) {
 				mainCamera = camera.camera;
-				mainCamera->SetPosition(glm::vec3(transform.transform[3][0], transform.transform[3][1], transform.transform[3][2]));
+				mainCamera->SetTransform(transform.translate, transform.rotation);
 			}
+			break;
 		}
 
 		if (mainCamera != nullptr) {
@@ -65,6 +86,33 @@ namespace Hazel {
 	Scene* Scene::Raw()
 	{
 		return this;
+	}
+
+	template<class T>
+	void Scene::OnAddComponent(Entity& entity, T& component) {
+		static_assert(false);
+	}
+
+	template<>
+	void Scene::OnAddComponent<TransformComponent>(Entity& entity, TransformComponent& transformComponent) {
+
+	}
+
+	template<>
+	void Scene::OnAddComponent<CameraComponent>(Entity& entity, CameraComponent& cameraComponent) {
+		cameraComponent.camera->SetAspectRatio(m_ViewPortSize.x / m_ViewPortSize.y);
+	}
+	template<>
+	void Scene::OnAddComponent<TagComponent>(Entity& entity, TagComponent& tagComponent) {
+
+	}
+	template<>
+	void Scene::OnAddComponent<SpriteComponent>(Entity& entity, SpriteComponent& spriteComponent) {
+
+	}
+	template<>
+	void Scene::OnAddComponent<NativeScriptComponent>(Entity& entity, NativeScriptComponent& nativeScriptComponent) {
+
 	}
 
 }
