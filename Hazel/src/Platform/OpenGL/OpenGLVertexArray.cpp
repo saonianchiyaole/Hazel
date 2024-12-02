@@ -55,7 +55,19 @@ namespace Hazel {
 
 		for (const auto& element : vertexBuffer->GetLayout()) {
 			glEnableVertexAttribArray(index);
-			if (!IsIntType(element.Type))
+			
+			
+			
+			
+			switch (element.Type)
+			{
+			case Hazel::ShaderDataType::None: 
+				break;
+
+			case Hazel::ShaderDataType::Float:		
+			case Hazel::ShaderDataType::Float2:		
+			case Hazel::ShaderDataType::Float3:		
+			case Hazel::ShaderDataType::Float4:		
 				glVertexAttribPointer(index,
 					element.GetComponentCount(),
 					ShaderDataTypeToOpenGLBaseType(element.Type),
@@ -63,7 +75,16 @@ namespace Hazel {
 					vertexBuffer->GetLayout().GetStride(),
 					(const void*)element.Offset
 				);
-			else
+				break;
+
+			case Hazel::ShaderDataType::Mat3:		
+			case Hazel::ShaderDataType::Mat4:		
+				break;
+			case Hazel::ShaderDataType::Int:		
+			case Hazel::ShaderDataType::Int2:		
+			case Hazel::ShaderDataType::Int3:		
+			case Hazel::ShaderDataType::Int4:		
+			case Hazel::ShaderDataType::Bool:		
 				glVertexAttribIPointer(
 					index,
 					element.GetComponentCount(),
@@ -71,6 +92,9 @@ namespace Hazel {
 					vertexBuffer->GetLayout().GetStride(),
 					(const void*)element.Offset
 				);
+				break;
+			}
+		
 			index++;
 		}
 

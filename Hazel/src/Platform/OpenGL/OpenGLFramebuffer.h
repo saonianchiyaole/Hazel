@@ -14,7 +14,10 @@ namespace Hazel {
 		virtual void Resize(const FramebufferSpecification& spec) override;
 		virtual void Resize(const glm::vec2 size) override;
 
-		virtual const uint32_t GetColorAttachment() override;
+		virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
+		virtual void ClearAttachment(uint32_t attachmentIndex, const void* value) override;
+
+		virtual const uint32_t GetColorAttachment(int index = 0) override;
 		virtual const uint32_t GetDpethAttachment() override;
 
 
@@ -22,7 +25,12 @@ namespace Hazel {
 		virtual void Unbind() override;
 	private:
 		uint32_t m_RendererID;
-		uint32_t m_ColorAttachment, m_DepthAttachment;
+		
 		FramebufferSpecification m_Specification;
+
+		std::vector<FramebufferTextureFormat> m_ColorAttachmentFormats;
+		std::vector<uint32_t> m_ColorAttachments; 
+		uint32_t m_DepthAttachment = 0;
+		FramebufferTextureFormat m_DepthAttachmentFormat = FramebufferTextureFormat::None;
 	};
 }

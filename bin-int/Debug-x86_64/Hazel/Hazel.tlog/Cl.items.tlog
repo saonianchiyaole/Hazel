@@ -9,8 +9,10 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timer.cpp;G:\Project\visualSt
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timestep.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Timestep.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiBuild.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiBuild.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiLayer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiLayer.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Math\Math.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Math.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Buffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Buffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Camera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Camera.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\EditorCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\EditorCamera.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Framebuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Framebuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\GraphicsContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\GraphicsContext.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\OrthographicCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OrthographicCamera.obj

@@ -3,12 +3,15 @@
 #include "glm/glm.hpp"
 
 #include "Hazel/Renderer/Camera.h"
+#include "Hazel/Renderer/Texture.h"
 #include "Hazel/Scene/ScriptableEntity.h"
 #include "Hazel/Core/Timestep.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/quaternion.hpp"
+
+#include "box2d/b2_body.h"
 
 namespace Hazel {
 
@@ -32,6 +35,13 @@ namespace Hazel {
 		TransformComponent(const glm::vec3& translateVal, const glm::vec3& rotationVal, const glm::vec3& scaleVal)
 			: translate(translateVal), scale(scaleVal), rotation(rotationVal)
 		{
+			RecalculateTransform();
+		}
+
+		void SetTransform(glm::vec3 translationVal, glm::vec3 rotationVal, glm::vec3 scaleVal) {
+			translate = translationVal;
+			rotation = rotationVal;
+			scale = scaleVal;
 			RecalculateTransform();
 		}
 
@@ -66,15 +76,16 @@ namespace Hazel {
 
 	struct SpriteComponent {
 		glm::vec4 color;
+		Ref<Texture2D> texture;
 		SpriteComponent() :color(glm::vec4(1.0f, 0.5f, 0.5f, 1.0f)) {}
 		SpriteComponent(const glm::vec4& colorVal) : color(colorVal) {}
 		SpriteComponent(const SpriteComponent& other) : color(other.color) {}
 	};
 
 	struct CameraComponent {
-		Camera* camera;
+		Ref<Camera> camera;
 		bool primary = false;
-		CameraComponent() { camera = new Camera; }
+		CameraComponent() { camera = MakeRef<Camera>(); }
 		CameraComponent(Camera& cameraVal) : camera(&cameraVal) {}
 		CameraComponent(Ref<Camera> camera) : camera(camera.get()) {}
 		CameraComponent(const CameraComponent& other) = default;
@@ -99,4 +110,31 @@ namespace Hazel {
 		}
 	};
 
+	struct Rigidbody2DComponent {
+		enum class BodyType { Static = 0, Dynamic = 1 , Kinematic = 2};
+		BodyType type = BodyType::Static;
+		bool fixedRotation = false;
+
+		void* runtimeBody = nullptr;
+		Rigidbody2DComponent() = default;
+		Rigidbody2DComponent(const Rigidbody2DComponent& other) = default;
+		void SetPhysicsPosition(glm::vec2 position, float rotation) {
+			((b2Body*)runtimeBody)->SetTransform({ position.x, position.y }, rotation);
+		}
+	};
+
+	struct BoxCollider2DComponent {
+		glm::vec2 offset = { 0.0f, 0.0f };
+		glm::vec2 size = { 0.5f, 0.5f };
+
+		float density = 1.0f;
+		float friction = 0.5f;
+		float restitution = 0.5f;
+		float restitutionThreshold = 0.5f;
+
+
+		void* runtimeFixture = nullptr;
+		BoxCollider2DComponent() = default;
+		BoxCollider2DComponent(const BoxCollider2DComponent& other) = default;
+	};
 }

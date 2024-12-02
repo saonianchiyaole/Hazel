@@ -20,11 +20,14 @@ IncludeDir["stb_image"] = "vendor/stb_image"
 IncludeDir["entt"] = "vendor/entt"
 IncludeDir["yaml"] = "vendor/yaml-cpp/include"
 IncludeDir["ImGuizmo"] = "vendor/ImGuizmo"
+IncludeDir["box2d"] = "vendor/box2d/include"
+
 
 include "vendor/GLFW"
 include "vendor/GLAD"
 include "vendor/imgui"
 include "vendor/yaml-cpp"
+include "vendor/box2d"
 
 project "Hazel"
 	location "Hazel"
@@ -62,6 +65,7 @@ project "Hazel"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.box2d}",
 	}
 
 	links
@@ -70,7 +74,8 @@ project "Hazel"
 		"GLAD",
 		"imgui",
 		"opengl32.lib",
-		"yaml-cpp"
+		"yaml-cpp",
+		"box2d"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -191,11 +196,13 @@ project "Editor"
 			"$(SolutionDir)vendor/spdlog/include",
 			"$(SolutionDir)Hazel/src/",
 			"%{IncludeDir.glm}",
+			"%{IncludeDir.GLFW}",
 			"$(SolutionDir)vendor/imgui",
 			"$(SolutionDir)vendor/GLAD/include",
 			"%{IncludeDir.entt}",
 			"%{IncludeDir.yaml}",
 			"%{IncludeDir.ImGuizmo}",
+			"%{IncludeDir.box2d}",
 		}
 	
 	

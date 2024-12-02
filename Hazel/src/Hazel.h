@@ -17,12 +17,13 @@
 #include "Hazel/Core/KeyCodes.h"
 #include "Hazel/Core/MouseButtonCodes.h"
 #include "Hazel/ImGui/ImGuiLayer.h"
+#include "Hazel/Math/Math.h"
+
 #include "Hazel/Scene/Scene.h"
 #include "Hazel/Scene/Entity.h"
 #include "Hazel/Scene/Component.h"
 #include "Hazel/Scene/ScriptableEntity.h"
 #include "Hazel/Scene/SceneSerializer.h"
-
 
 //-------------------------- Renderer ---------------------------
 #include "Hazel/Renderer/Shader.h"
@@ -30,5 +31,6 @@
 #include "Hazel/Renderer/VertexArray.h"
 #include "Hazel/Renderer/Renderer.h"
 #include "Hazel/Renderer/Camera.h"
+#include "Hazel/Renderer/EditorCamera.h"
 #include "Hazel/Renderer/Texture.h"
 #include "Hazel/Renderer/Framebuffer.h"

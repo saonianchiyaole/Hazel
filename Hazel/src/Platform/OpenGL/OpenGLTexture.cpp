@@ -5,10 +5,11 @@
 #include "glad/glad.h"
 
 
-namespace Hazel{
+namespace Hazel {
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
-		: m_Path(path)
 	{
+
+		m_Path = path;
 
 		stbi_set_flip_vertically_on_load(true); // ¼ÓÔØÍ¼ÏñÊ±·­×ªYÖá
 
@@ -45,8 +46,10 @@ namespace Hazel{
 		stbi_image_free(data);
 	}
 	OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height)
-		: m_Width(width), m_Height(height)
 	{
+		m_Width = width;
+		m_Height = height;
+
 		m_InternalFormat = GL_RGBA8;
 		m_DataFormat = GL_RGBA;
 
@@ -60,7 +63,7 @@ namespace Hazel{
 		glTexParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 	OpenGLTexture2D::~OpenGLTexture2D()
-	{	
+	{
 		glDeleteTextures(1, &m_RendererID);
 	}
 	void OpenGLTexture2D::SetData(const void* data, const uint32_t size)
@@ -69,14 +72,7 @@ namespace Hazel{
 		HZ_CORE_ASSERT(size == m_Width * m_Height * bpp, "Data must be entire texture");
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
 	}
-	uint32_t OpenGLTexture2D::GetWidth() const
-	{
-		return m_Width;
-	}
-	uint32_t OpenGLTexture2D::GetHeight() const
-	{
-		return m_Height;
-	}
+
 
 	void OpenGLTexture2D::Bind(uint32_t slot) const {
 		glBindTextureUnit(slot, m_RendererID);

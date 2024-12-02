@@ -1,3 +1,4 @@
+G:\Project\visualStudio\Hazel\vendor\ImGuizmo\ImGuizmo.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\ImGuizmo.obj
 G:\Project\visualStudio\Hazel\vendor\stb_image\stb_image.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\stb_image.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Application.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Application.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Layer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Layer.obj
@@ -8,8 +9,10 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timer.cpp;G:\Project\visualSt
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timestep.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Timestep.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiBuild.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\ImGuiBuild.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiLayer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\ImGuiLayer.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Math\Math.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Math.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Buffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Buffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Camera.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Camera.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\EditorCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\EditorCamera.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Framebuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Framebuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\GraphicsContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\GraphicsContext.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\OrthographicCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\OrthographicCamera.obj
@@ -19,12 +22,14 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\PerspectiveCamera.cpp;G:\
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RenderCommand.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\RenderCommand.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Renderer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer2D.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Renderer2D.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer3D.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Renderer3D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\RendererAPI.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Shader.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Shader.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Texture.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Texture.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\VertexArray.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\VertexArray.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\Entity.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Entity.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\Scene.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\Scene.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\SceneSerializer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\SceneSerializer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\ScriptableEntity.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\ScriptableEntity.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLBuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\OpenGLBuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Release-x86_64\Hazel\OpenGLContext.obj

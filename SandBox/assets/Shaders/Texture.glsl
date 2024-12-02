@@ -23,6 +23,7 @@ void main()
 	v_TexIndex = a_TexIndex;
 	v_Color = a_Color;
 
+	
 	gl_Position = u_Projection * u_View * u_Transform *  vec4(a_Position, 1.0);
 }
 
@@ -32,6 +33,7 @@ void main()
 #version 330 core
 
 layout(location = 0) out vec4 color;
+layout(location = 1) out vec4 color2;
 
 uniform sampler2D u_Textures[20];
 
@@ -52,4 +54,5 @@ void main()
 		case 5: color = texture(u_Textures[5], v_TexCrood) * v_Color; break;
 		case 6: color = texture(u_Textures[6], v_TexCrood) * v_Color; break;
 	}
+	color2 = vec4(0.5f, 0.7f, 0.2f, 0.0f);
 }

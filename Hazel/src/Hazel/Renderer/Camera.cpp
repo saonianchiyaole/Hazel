@@ -22,6 +22,27 @@ namespace Hazel {
 		RecalculateProjectionMatrix();
 	}
 
+	Camera::Camera(ProjectionType type, float param1, float param2, float param3, float param4)
+	{
+		m_Type = type;
+		m_AspectRatio = param2;
+		m_NearClip = param3;
+		m_FarClip = param4;
+		if (type == ProjectionType::Perspective) {
+			m_Fovy = param1;
+			m_Fovx = 45.f;
+			m_ZoomLevel = 1.0f;
+			
+			
+		}
+		else if (type == ProjectionType::Orthographic) {
+			m_Fovy = 45.0f;
+			m_Fovx = 45.f;
+			m_ZoomLevel = param1;
+		}
+		RecalculateProjectionMatrix();
+	}
+
 	Camera::~Camera()
 	{
 

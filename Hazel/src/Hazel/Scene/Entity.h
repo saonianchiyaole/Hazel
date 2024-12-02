@@ -5,6 +5,7 @@
 
 namespace Hazel {
 	class Entity {
+		friend class SceneSerializer;
 	public:
 		Entity();
 		Entity(entt::entity entityHandle, Scene* scene);
@@ -42,6 +43,11 @@ namespace Hazel {
 			return m_Scene->GetRegistry().remove<T>(m_EntityHandle);
 		}
 
+
+		inline uint64_t GetEntityID() {
+			return m_EntityID;
+		}
+
 		bool operator ==(Entity& other) {
 			return (m_EntityHandle == other.m_EntityHandle) && (m_Scene == other.m_Scene);
 		}
@@ -53,8 +59,8 @@ namespace Hazel {
 		operator bool() {
 			return m_EntityHandle != entt::null;
 		}
-		operator uint32_t() {
-			return (uint32_t)m_EntityHandle;
+		operator int() {
+			return (int)m_EntityHandle;
 		}
 		operator entt::entity() {
 			return m_EntityHandle;
@@ -63,6 +69,7 @@ namespace Hazel {
 
 	private:
 		entt::entity m_EntityHandle{ entt::null };
+		uint64_t m_EntityID;
 		Scene* m_Scene = nullptr;
 	};
 

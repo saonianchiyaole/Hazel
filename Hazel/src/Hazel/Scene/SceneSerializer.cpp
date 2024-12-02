@@ -10,6 +10,25 @@
 namespace YAML {
 
 	template<>
+	struct convert<glm::vec2> {
+		static Node encode(const glm::vec2& rhs) {
+			Node node;
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::vec2& rhs) {
+			if (!node.IsSequence() || node.size() != 2)
+				return false;
+			rhs.x = node[0].as<float>();
+			rhs.y = node[1].as<float>();
+			return true;
+		}
+
+	};
+
+	template<>
 	struct convert<glm::vec3> {
 		static Node encode(const glm::vec3& rhs) {
 			Node node;
@@ -85,7 +104,7 @@ namespace Hazel {
 	bool SceneSerializer::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
 		out << YAML::BeginMap;
-		out << YAML::Key << "Entity" << YAML::Value << "463782467832";
+		out << YAML::Key << "Entity" << YAML::Value << entity.m_EntityID;
 
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -107,9 +126,12 @@ namespace Hazel {
 			out << YAML::EndMap;
 		}
 		if (entity.HasComponent<SpriteComponent>()) {
+			auto& spriteComponent = entity.GetComponent<SpriteComponent>();
 			out << YAML::Key << "SpriteComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Color" << YAML::Value << entity.GetComponent<SpriteComponent>().color;
+			out << YAML::Key << "Color" << YAML::Value << spriteComponent.color;
+			if (spriteComponent.texture)
+				out << YAML::Key << "Texture" << YAML::Value << spriteComponent.texture->GetPath();
 			out << YAML::EndMap;
 		}
 		if (entity.HasComponent<CameraComponent>()) {
@@ -125,6 +147,33 @@ namespace Hazel {
 			out << YAML::Key << "AspectRatio" << YAML::Value << camera->GetAspectRatio();
 			out << YAML::Key << "NearClip" << YAML::Value << camera->GetNearClip();
 			out << YAML::Key << "FarClip" << YAML::Value << camera->GetFarClip();
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<Rigidbody2DComponent>()) {
+			out << YAML::Key << "Rigidbody2DComponent";
+			out << YAML::BeginMap;
+			auto& rigidbody2D = entity.GetComponent<Rigidbody2DComponent>();
+
+			out << YAML::Key << "Type" << YAML::Value << (int)rigidbody2D.type;
+			out << YAML::Key << "FixedRotation" << YAML::Value << rigidbody2D.fixedRotation;
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<BoxCollider2DComponent>()) {
+			out << YAML::Key << "BoxCollider2DComponent";
+			out << YAML::BeginMap;
+			auto& boxCollider2D = entity.GetComponent<BoxCollider2DComponent>();
+
+			out << YAML::Key << "Offset" << YAML::Value << boxCollider2D.offset;
+			out << YAML::Key << "Size" << YAML::Value << boxCollider2D.size;
+			out << YAML::Key << "Density" << YAML::Value << boxCollider2D.density;
+			out << YAML::Key << "Friction" << YAML::Value << boxCollider2D.friction;
+			out << YAML::Key << "Restitution" << YAML::Value << boxCollider2D.restitution;
+			out << YAML::Key << "RestitutionThreshold" << YAML::Value << boxCollider2D.restitutionThreshold;
+			
 
 			out << YAML::EndMap;
 		}
@@ -181,7 +230,6 @@ namespace Hazel {
 		if (entities) {
 			for (auto entity : entities) {
 				uint64_t uuid = entity["Entity"].as<uint64_t>();
-
 				std::string name;
 				//Tag
 				auto tagComponent = entity["TagComponent"];
@@ -191,6 +239,7 @@ namespace Hazel {
 				HZ_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
 				Entity deserializedEntity = m_Scene->CreateEntity(name);
+				deserializedEntity.m_EntityID = uuid;
 				//Transform
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent) {
@@ -225,9 +274,30 @@ namespace Hazel {
 				//Sprite
 				auto spriteComponent = entity["SpriteComponent"];
 				if (spriteComponent) {
-					deserializedEntity.AddComponent<SpriteComponent>(
+					auto& sprite = deserializedEntity.AddComponent<SpriteComponent>(
 						spriteComponent["Color"].as<glm::vec4>()
 					);
+					auto texture = spriteComponent["Texture"];
+					if (texture)
+						sprite.texture = Texture2D::Create(texture.as<std::string>());
+				}
+
+				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
+				if (rigidbody2DComponent) {
+					auto& rigidbody2D = deserializedEntity.AddComponent<Rigidbody2DComponent>();
+					rigidbody2D.type = (Rigidbody2DComponent::BodyType)rigidbody2DComponent["Type"].as<int>();
+					rigidbody2D.fixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
+				}
+
+				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
+				if (boxCollider2DComponent) {
+					auto& boxCollider2D = deserializedEntity.AddComponent<BoxCollider2DComponent>();
+					boxCollider2D.offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
+					boxCollider2D.size = boxCollider2DComponent["Size"].as<glm::vec2>();
+					boxCollider2D.density = boxCollider2DComponent["Density"].as<float>();
+					boxCollider2D.friction = boxCollider2DComponent["Friction"].as<float>();
+					boxCollider2D.restitution = boxCollider2DComponent["Restitution"].as<float>();
+					boxCollider2D.restitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
 				}
 
 			}

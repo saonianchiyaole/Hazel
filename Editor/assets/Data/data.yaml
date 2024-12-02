@@ -1,44 +1,66 @@
 Scene: Untitled
 Entities:
-  - Entity: 463782467832
-    TagComponent:
-      Tag: HelloWorld
-    TransformComponent:
-      Translate: [0, 0, -19]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteComponent:
-      Color: [1, 0.5, 0.5, 1]
-  - Entity: 463782467832
+  - Entity: 14757395258967641292
     TagComponent:
       Tag: MainCamera
     TransformComponent:
-      Translate: [0, 0, 7.2]
+      Translate: [-1.1063093, 0, 5.742021]
       Rotation: [0, -0.05235988, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       ProjectionType: 0
       Primary: true
-      Fovy: 45
+      Fovy: 120
       ZoomLevel: 1
-      AspectRatio: 1.087087
+      AspectRatio: 2.007583
       NearClip: 0.1
       FarClip: 10000
-  - Entity: 463782467832
+  - Entity: 14757395258967641292
     TagComponent:
-      Tag: GreenSquare
+      Tag: test
     TransformComponent:
-      Translate: [1.7, 0, -2.3]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 0]
+      Translate: [-4.813656, -2105.7988, -3.7954473]
+      Rotation: [0, -0, 0]
+      Scale: [5, 4.4, 1]
     SpriteComponent:
-      Color: [1, 1, 1, 1]
-  - Entity: 463782467832
+      Color: [1, 0.5019608, 0.5019608, 0.16862746]
+      Texture: assets\ChernoLogo.png
+  - Entity: 14757395258967641292
     TagComponent:
       Tag: Plane
     TransformComponent:
-      Translate: [1, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Translate: [-0.0022367393, 8.108, -5.9535875e-08]
+      Rotation: [-7.468775e-09, -0, 0.0003535536]
+      Scale: [0.99986994, 0.9998268, 0.9999878]
     SpriteComponent:
-      Color: [0.41445595, 0.784031, 0.9607843, 1]
+      Color: [0.89215684, 0.030613236, 0.030613236, 1]
+      Texture: assets\code.png
+    Rigidbody2DComponent:
+      Type: 1
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5
+  - Entity: 14757395258967641292
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, -0, 0]
+      Scale: [14.848474, 2.3799999, 2.3800004]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+    Rigidbody2DComponent:
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5

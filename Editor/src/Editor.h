@@ -5,6 +5,7 @@
 #include "Hazel/Core/Timer.h"
 #include "Hazel/Renderer/ParticleSystem.h"
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 
 #include "ImGuizmo.h"
 
@@ -23,8 +24,9 @@ namespace Hazel {
 		bool OnWindowResized(Hazel::WindowResizeEvent& event);
 		bool OnKeyPressed(KeyPressedEvent& e);
 
+		void OpenScene(std::filesystem::path filepath);
 
-
+		void UI_ToolBar();
 	private:
 		Hazel::Ref<Hazel::OrthographicCameraController> m_CameraController;
 		Hazel::Ref<Hazel::Shader> m_Shader;
@@ -41,16 +43,28 @@ namespace Hazel {
 		Hazel::FramebufferSpecification m_FramebufferSpecification;
 
 		Ref<Scene> m_Scene;
-		Hazel::Ref<Hazel::Camera> m_Camera;
+		SceneState m_SceneState;
+		EditorCamera m_EditorCamera;
 
 		SceneHierarchyPanel m_HierarchyPanel;
+		ContentBrowserPanel m_ContentBrowserPanel;
 
-		bool isViewportFocus = false;
+		bool m_IsViewportFocus = false;
+		bool m_IsViewportHovered = false;
 
 		Hazel::ParticleProps m_Particle;
 		Hazel::ParticleSystem m_ParticleSystem;
 
 		glm::vec2 m_ViewportSize;
+		glm::vec2 m_ViewportButtomLeftPos;
+		Entity m_HoveredEntity;
+		std::string m_HoveredEntityString;
+
+		float frameStartTime;
+
+		Ref<Texture2D> m_PlayButtonTexture;
+		Ref<Texture2D> m_PauseButtonTexture;
+
 
 		ImGuizmo::OPERATION m_ImGuizmoMode = ImGuizmo::OPERATION::TRANSLATE;
 	};

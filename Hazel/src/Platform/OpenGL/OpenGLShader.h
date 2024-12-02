@@ -4,7 +4,6 @@
 #include "Hazel/Renderer/Shader.h"
  
 
-#include "glad/glad.h"
 
 
 namespace Hazel {

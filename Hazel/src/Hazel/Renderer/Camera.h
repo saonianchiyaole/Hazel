@@ -18,7 +18,9 @@ namespace Hazel {
 
 	public:
 		Camera();
-		~Camera();
+		Camera(ProjectionType type, float param1, float param2, float param3, float param4);
+		virtual ~Camera();
+
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; };
 		const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; };
 		const glm::mat4& GetViewProjectionMatrix() const { return m_ViewProjectionMatrix; }
@@ -94,8 +96,8 @@ namespace Hazel {
 
 		glm::vec3 m_Up;
 		glm::vec3 m_Front;
-		glm::vec3 m_Position;
-		glm::vec3 m_Rotation;
+		glm::vec3 m_Position = { 0.f, 0.f, 0.f };
+		glm::vec3 m_Rotation = { 0.f, 0.f, 0.f };
 
 		glm::mat4 m_ViewMatrix;
 		glm::mat4 m_ProjectionMatrix;
