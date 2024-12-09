@@ -216,6 +216,9 @@
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Core\UUID.h">
+      <Filter>src\Hazel\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -346,6 +349,9 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Core\UUID.cpp">
+      <Filter>src\Hazel\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

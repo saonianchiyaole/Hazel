@@ -1,40 +1,48 @@
 Scene: Untitled
 Entities:
-  - Entity: 14757395258967641292
+  - Entity: 12525170710031122055
     TagComponent:
-      Tag: MainCamera
+      Tag: Plane
     TransformComponent:
-      Translate: [-1.1063093, 0, 5.742021]
-      Rotation: [0, -0.05235988, 0]
+      Translate: [0.048210204, -1.40942, 0]
+      Rotation: [0, -0, 0]
+      Scale: [13.578387, 1, 1]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+    Rigidbody2DComponent:
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5
+  - Entity: 10116330883116492222
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translate: [0, 0.29438782, 5.3]
+      Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       ProjectionType: 0
       Primary: true
-      Fovy: 120
+      Fovy: 97
       ZoomLevel: 1
-      AspectRatio: 2.007583
-      NearClip: 0.1
+      AspectRatio: 1.8103448
+      NearClip: 0.001
       FarClip: 10000
-  - Entity: 14757395258967641292
+  - Entity: 12337321931969354250
     TagComponent:
-      Tag: test
+      Tag: square
     TransformComponent:
-      Translate: [-4.813656, -2105.7988, -3.7954473]
+      Translate: [0, 5.569664, 0]
       Rotation: [0, -0, 0]
-      Scale: [5, 4.4, 1]
+      Scale: [1, 1, 1]
     SpriteComponent:
-      Color: [1, 0.5019608, 0.5019608, 0.16862746]
-      Texture: assets\ChernoLogo.png
-  - Entity: 14757395258967641292
-    TagComponent:
-      Tag: Plane
-    TransformComponent:
-      Translate: [-0.0022367393, 8.108, -5.9535875e-08]
-      Rotation: [-7.468775e-09, -0, 0.0003535536]
-      Scale: [0.99986994, 0.9998268, 0.9999878]
-    SpriteComponent:
-      Color: [0.89215684, 0.030613236, 0.030613236, 1]
-      Texture: assets\code.png
+      Color: [1, 0.5, 0.5, 1]
     Rigidbody2DComponent:
       Type: 1
       FixedRotation: false
@@ -45,21 +53,23 @@ Entities:
       Friction: 0.5
       Restitution: 0.5
       RestitutionThreshold: 0.5
-  - Entity: 14757395258967641292
+  - Entity: 9477152255538285345
     TagComponent:
-      Tag: floor
+      Tag: Circle
     TransformComponent:
-      Translate: [0, 0, 0]
+      Translate: [2.7088513, 2.8712158, 2.3283064e-10]
       Rotation: [0, -0, 0]
-      Scale: [14.848474, 2.3799999, 2.3800004]
-    SpriteComponent:
-      Color: [1, 0.5, 0.5, 1]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [1, 1, 1, 1]
+      Thickness: 1
+      Fade: 0.005
     Rigidbody2DComponent:
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
+      Type: 1
+      FixedRotation: true
+    CircleCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.5, 0.5]
+      Radius: 0.5
       Density: 1
       Friction: 0.5
       Restitution: 0.5

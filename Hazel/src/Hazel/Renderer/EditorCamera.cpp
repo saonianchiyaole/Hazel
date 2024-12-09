@@ -76,6 +76,8 @@ namespace Hazel {
 
 		m_ViewMatrix = glm::translate(glm::mat4(1.0f), m_Position) * glm::toMat4(m_Orientation);
 		m_ViewMatrix = glm::inverse(m_ViewMatrix);
+
+		RecalculateViewProjectionMatrix();
 	}
 
 	void EditorCamera::OnEvent(Event& e)

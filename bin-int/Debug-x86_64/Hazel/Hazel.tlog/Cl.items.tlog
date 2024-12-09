@@ -7,6 +7,7 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Log.cpp;G:\Project\visualStud
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Random.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Random.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Timer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timestep.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Timestep.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\UUID.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\UUID.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiBuild.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiBuild.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiLayer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiLayer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Math\Math.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Math.obj

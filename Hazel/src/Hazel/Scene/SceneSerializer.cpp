@@ -104,7 +104,9 @@ namespace Hazel {
 	bool SceneSerializer::SerializeEntity(YAML::Emitter& out, Entity& entity)
 	{
 		out << YAML::BeginMap;
-		out << YAML::Key << "Entity" << YAML::Value << entity.m_EntityID;
+
+		HZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "This Entity doesn't have ID!!!!!!");
+		out << YAML::Key << "Entity" << YAML::Value << (uint64_t)entity.GetComponent<IDComponent>().ID;
 
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -134,6 +136,17 @@ namespace Hazel {
 				out << YAML::Key << "Texture" << YAML::Value << spriteComponent.texture->GetPath();
 			out << YAML::EndMap;
 		}
+
+		if (entity.HasComponent<CircleRendererComponent>()) {
+			auto& circleRendererComponent = entity.GetComponent<CircleRendererComponent>();
+			out << YAML::Key << "CircleRendererComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Color" << YAML::Value << circleRendererComponent.color;
+			out << YAML::Key << "Thickness" << YAML::Value << circleRendererComponent.thickness;
+			out << YAML::Key << "Fade" << YAML::Value << circleRendererComponent.fade;
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<CameraComponent>()) {
 			auto& transformComponent = entity.GetComponent<TransformComponent>();
 			out << YAML::Key << "CameraComponent";
@@ -174,6 +187,22 @@ namespace Hazel {
 			out << YAML::Key << "Restitution" << YAML::Value << boxCollider2D.restitution;
 			out << YAML::Key << "RestitutionThreshold" << YAML::Value << boxCollider2D.restitutionThreshold;
 			
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<CircleCollider2DComponent>()) {
+			out << YAML::Key << "CircleCollider2DComponent";
+			out << YAML::BeginMap;
+			auto& circleCollider2D = entity.GetComponent<CircleCollider2DComponent>();
+
+			out << YAML::Key << "Offset" << YAML::Value << circleCollider2D.offset;
+			out << YAML::Key << "Radius" << YAML::Value << circleCollider2D.radius;
+			out << YAML::Key << "Density" << YAML::Value << circleCollider2D.density;
+			out << YAML::Key << "Friction" << YAML::Value << circleCollider2D.friction;
+			out << YAML::Key << "Restitution" << YAML::Value << circleCollider2D.restitution;
+			out << YAML::Key << "RestitutionThreshold" << YAML::Value << circleCollider2D.restitutionThreshold;
+
 
 			out << YAML::EndMap;
 		}
@@ -230,15 +259,17 @@ namespace Hazel {
 		if (entities) {
 			for (auto entity : entities) {
 				uint64_t uuid = entity["Entity"].as<uint64_t>();
-				std::string name;
+				
 				//Tag
+				std::string name;
 				auto tagComponent = entity["TagComponent"];
 				if (tagComponent)
 					name = tagComponent["Tag"].as<std::string>();
 
+				
 				HZ_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-				Entity deserializedEntity = m_Scene->CreateEntity(name);
+				Entity deserializedEntity = m_Scene->CreateEnttiyWithUUID(name, uuid);
 				deserializedEntity.m_EntityID = uuid;
 				//Transform
 				auto transformComponent = entity["TransformComponent"];
@@ -254,12 +285,6 @@ namespace Hazel {
 				if (cameraComponent) {
 					auto& camera = deserializedEntity.AddComponent<CameraComponent>().camera;
 					deserializedEntity.GetComponent<CameraComponent>().primary = cameraComponent["Primary"].as<bool>();
-					//camera->SetProjectionType(Camera::ProjectionType(cameraComponent["ProjectionType"].as<int>()));
-					//camera->SetFovy(cameraComponent["Fovy"].as<float>());
-					//camera->SetAspectRatio(cameraComponent["AspectRatio"].as<float>());
-					//camera->SetZoomLevel(cameraComponent["ZoomLevel"].as<float>());
-					//camera->SetNearClip(cameraComponent["NearClip"].as<float>());
-					//camera->SetFarClip(cameraComponent["FarClip"].as<float>());
 					camera->m_Type = Camera::ProjectionType(cameraComponent["ProjectionType"].as<int>());
 					camera->m_Fovy = cameraComponent["Fovy"].as<float>();
 					camera->m_ZoomLevel = cameraComponent["ZoomLevel"].as<float>();
@@ -282,6 +307,14 @@ namespace Hazel {
 						sprite.texture = Texture2D::Create(texture.as<std::string>());
 				}
 
+				auto circleRenderer = entity["CircleRendererComponent"];
+				if (circleRenderer) {
+					auto& circle = deserializedEntity.AddComponent<CircleRendererComponent>();
+					circle.color = circleRenderer["Color"].as<glm::vec4>();
+					circle.thickness = circleRenderer["Thickness"].as<float>();
+					circle.fade = circleRenderer["Fade"].as<float>();
+				}
+
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
 				if (rigidbody2DComponent) {
 					auto& rigidbody2D = deserializedEntity.AddComponent<Rigidbody2DComponent>();
@@ -298,6 +331,17 @@ namespace Hazel {
 					boxCollider2D.friction = boxCollider2DComponent["Friction"].as<float>();
 					boxCollider2D.restitution = boxCollider2DComponent["Restitution"].as<float>();
 					boxCollider2D.restitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
+				}
+
+				auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+				if (circleCollider2DComponent) {
+					auto& circleCollider2D = deserializedEntity.AddComponent<CircleCollider2DComponent>();
+					circleCollider2D.offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
+					circleCollider2D.radius = circleCollider2DComponent["Radius"].as<float>();
+					circleCollider2D.density = circleCollider2DComponent["Density"].as<float>();
+					circleCollider2D.friction = circleCollider2DComponent["Friction"].as<float>();
+					circleCollider2D.restitution = circleCollider2DComponent["Restitution"].as<float>();
+					circleCollider2D.restitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
 				}
 
 			}

@@ -55,4 +55,17 @@ namespace Hazel {
 
 	}
 
+	Ref<UniformBuffer> UniformBuffer::Create(uint32_t size, uint32_t binding)
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return std::make_shared<OpenGLUniformBuffer>(size, binding);
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
 }

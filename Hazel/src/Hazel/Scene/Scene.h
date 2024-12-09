@@ -5,6 +5,7 @@
 #include "Hazel/Renderer/EditorCamera.h"
 #include "Hazel/Core/Timestep.h"
 #include "glm/glm.hpp"
+#include "Hazel/Core/UUID.h"
 
 class b2World;
 
@@ -19,7 +20,14 @@ namespace Hazel {
 	class Scene {
 	public:
 
+
+		static Ref<Scene> CopyScene(Ref<Scene> src);
+
+		template<class Component>
+		static void CopyComponent(Ref<Scene> src, Ref<Scene> dst, UUID uuid);
+
 		Entity CreateEntity(const std::string& name);
+		Entity CreateEnttiyWithUUID(const std::string& name,const uint64_t ID);
 		void DestroyEntity(Entity entity);
 
 		inline entt::registry& GetRegistry() {

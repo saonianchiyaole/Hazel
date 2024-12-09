@@ -40,9 +40,9 @@ namespace Hazel {
 		m_Framebuffer = Hazel::Framebuffer::Create(m_FramebufferSpecification);
 
 
-		m_Scene.reset(new Scene);
+		m_EditorScene.reset(new Scene);
 
-		m_Scene->m_ViewPortSize = m_ViewportSize;
+		m_EditorScene->m_ViewPortSize = m_ViewportSize;
 
 		class CameraContorller : public Hazel::ScriptableEntity {
 		public:
@@ -70,28 +70,8 @@ namespace Hazel {
 		};
 
 
-		m_HierarchyPanel.SetContext(m_Scene);
+		m_HierarchyPanel.SetContext(m_EditorScene);
 		m_ContentBrowserPanel = { "assets" };
-
-
-
-		SceneSerializer sceneSerializer(m_Scene);
-		sceneSerializer.Deserialize("assets\\Data\\data.yaml");
-
-
-		Ref<Camera> camera = m_Scene->GetPrimaryCamera();
-
-		auto view = m_Scene->GetRegistry().view<CameraComponent, TransformComponent>();
-		for (auto& entity : view) {
-			auto& [camera, transform] = view.get<CameraComponent, TransformComponent>(entity);
-
-			if (camera.primary == true) {
-				std::cout << (int)entity << std::endl;
-				//mainCamera->SetTransform(transform.translate, transform.rotation);
-			}
-			break;
-		}
-
 
 		m_EditorCamera = { 90.0f, 1280.f / 720.f, 0.001f, 1000.f };
 
@@ -130,10 +110,10 @@ namespace Hazel {
 
 		switch (m_SceneState) {
 		case SceneState::Edit:
-			m_Scene->OnUpdateEditor(ts, m_EditorCamera);
+			m_EditorScene->OnUpdateEditor(ts, m_EditorCamera);
 			break;
 		case SceneState::Play:
-			m_Scene->OnUpdateRuntime(ts);
+			m_RuntimeScene->OnUpdateRuntime(ts);
 			break;
 		}
 
@@ -150,7 +130,7 @@ namespace Hazel {
 		else {
 			//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
 			int pixelVaule = m_Framebuffer->ReadPixel(1, mousePos.x, mousePos.y);
-			m_HoveredEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_Scene.get() };
+			m_HoveredEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_SceneState == SceneState::Edit ? m_EditorScene.get() : m_RuntimeScene.get()};
 		}
 
 
@@ -225,26 +205,27 @@ namespace Hazel {
 			{
 				// Disabling fullscreen would allow the window to be moved to the front of other windows,
 				// which we can't undo at the moment without finer window depth/z control.
-				ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-				ImGui::MenuItem("Padding", NULL, &opt_padding);
+				if (ImGui::MenuItem("Open...")) {
+					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.yaml)\0*.yaml\0");
+					OpenScene(filePath);
+				}
 				ImGui::Separator();
-
 
 				if (ImGui::MenuItem("SaveAs...")) {
 					std::string filePath = FileDialogs::SaveFile("Hazel Scene (*.yaml)\0*.yaml\0");
 					if (!filePath.empty())
 					{
-						SceneSerializer sceneSerializer(m_Scene);
+						SceneSerializer sceneSerializer(m_EditorScene);
 						sceneSerializer.Serialize(filePath);
 					}
 				}
 
 				if (ImGui::MenuItem("Save", "Ctrl+S")) {
-					SceneSerializer sceneSerializer(m_Scene);
+					SceneSerializer sceneSerializer(m_EditorScene);
 					sceneSerializer.Serialize("assets\\Data\\data.yaml");
 				}
 				if (ImGui::MenuItem("SaveAndClose")) {
-					SceneSerializer sceneSerializer(m_Scene);
+					SceneSerializer sceneSerializer(m_EditorScene);
 					sceneSerializer.Serialize("assets\\Data\\data.yaml");
 					Application::GetInstance().Close();
 				}
@@ -292,7 +273,7 @@ namespace Hazel {
 				m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
-				m_Scene->m_ViewPortSize = m_ViewportSize;
+				m_EditorScene->m_ViewPortSize = m_ViewportSize;
 				HZ_CORE_INFO("ViewPortSize : {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
 			}
 			ImGui::Image((void*)m_Framebuffer->GetColorAttachment(0), { (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
@@ -344,7 +325,7 @@ namespace Hazel {
 				activeCamera = &m_EditorCamera;
 				break;
 			case Hazel::SceneState::Play:
-				activeCamera = m_Scene->GetPrimaryCamera().get();
+				activeCamera = m_RuntimeScene->GetPrimaryCamera().get();
 				activeCamera->SetAspectRatio(m_ViewportSize.x / m_ViewportSize.y);
 				break;
 			default:
@@ -366,10 +347,9 @@ namespace Hazel {
 					glm::value_ptr(transform), nullptr, snap ? &snapValues[0] : nullptr);
 
 				if (ImGuizmo::IsUsing()) {
-					HZ_CORE_INFO("Ignore physics calculation");
 					Math::Decompose(transform, translation, rotation, scale);
 					seletedEntity.GetComponent<TransformComponent>().SetTransform(translation, rotation, scale);
-					if (m_Scene->GetState() == SceneState::Play && seletedEntity.HasComponent<Rigidbody2DComponent>())
+					if (m_SceneState == SceneState::Play && seletedEntity.HasComponent<Rigidbody2DComponent>())
 					{
 						Rigidbody2DComponent rigidbody2D = seletedEntity.GetComponent<Rigidbody2DComponent>();
 						rigidbody2D.SetPhysicsPosition({ translation.x, translation.y }, rotation.z);
@@ -419,10 +399,10 @@ namespace Hazel {
 		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(HZ_KEY_LEFT_ALT) && m_IsViewportHovered && (!ImGuizmo::IsOver() || !m_HierarchyPanel.GetSelectedEntity())) {
 			if (m_HoveredEntity.GetHandle() == entt::null) {
 
-				m_HierarchyPanel.SetSelectedEntity(entt::null, m_Scene);
+				m_HierarchyPanel.SetSelectedEntity(entt::null);
 			}
 			else {
-				m_HierarchyPanel.SetSelectedEntity(m_HoveredEntity.GetHandle(), m_Scene);
+				m_HierarchyPanel.SetSelectedEntity(m_HoveredEntity.GetHandle());
 			}
 			return true;
 		}
@@ -477,10 +457,10 @@ namespace Hazel {
 			HZ_CORE_WARN("This is Not Scene file!");
 			return;
 		}
-		m_Scene.reset(new Scene);
-		m_HierarchyPanel = { m_Scene };
+		m_EditorScene.reset(new Scene);
+		m_HierarchyPanel = { m_EditorScene };
 
-		SceneSerializer sceneSerializer(m_Scene);
+		SceneSerializer sceneSerializer(m_EditorScene);
 		sceneSerializer.Deserialize(filepath.string());
 	}
 
@@ -497,7 +477,7 @@ namespace Hazel {
 
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-		bool toolbarEnabled = m_Scene != nullptr;
+		bool toolbarEnabled = m_EditorScene != nullptr;
 
 		ImVec4 tintColor = ImVec4(1, 1, 1, 1);
 		if (!toolbarEnabled)
@@ -513,13 +493,19 @@ namespace Hazel {
 		case Hazel::SceneState::Edit:
 			if (ImGui::ImageButton("##PlayButton", (ImTextureID)m_PlayButtonTexture->GetRendererID(), { size, size }, { 0, 1 }, { 1, 0 })) {
 				m_SceneState = SceneState::Play;
-				m_Scene->OnRuntimeStart();
+
+				m_RuntimeScene = Scene::CopyScene(m_EditorScene);
+				m_HierarchyPanel.SetContext(m_RuntimeScene);
+				m_RuntimeScene->OnRuntimeStart();
 			}
 			break;
 		case Hazel::SceneState::Play:
 			if (ImGui::ImageButton("##PauseButton", (ImTextureID)m_PauseButtonTexture->GetRendererID(), { size, size }, { 0, 1 }, { 1, 0 })) {
 				m_SceneState = SceneState::Edit;
-				m_Scene->OnRuntimeStop();
+
+				m_RuntimeScene->OnRuntimeStop();
+				m_RuntimeScene.reset();
+				m_HierarchyPanel.SetContext(m_EditorScene);
 			}
 			break;
 		default:

@@ -167,6 +167,7 @@
     <ClInclude Include="src\Hazel\Core\Random.h" />
     <ClInclude Include="src\Hazel\Core\Timer.h" />
     <ClInclude Include="src\Hazel\Core\Timestep.h" />
+    <ClInclude Include="src\Hazel\Core\UUID.h" />
     <ClInclude Include="src\Hazel\Core\Window.h" />
     <ClInclude Include="src\Hazel\Event\ApplicationEvent.h" />
     <ClInclude Include="src\Hazel\Event\Event.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="src\Hazel\Core\Random.cpp" />
     <ClCompile Include="src\Hazel\Core\Timer.cpp" />
     <ClCompile Include="src\Hazel\Core\Timestep.cpp" />
+    <ClCompile Include="src\Hazel\Core\UUID.cpp" />
     <ClCompile Include="src\Hazel\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Hazel\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\Hazel\Math\Math.cpp" />

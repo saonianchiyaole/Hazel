@@ -14,7 +14,11 @@
 #include "box2d/b2_polygon_shape.h"
 #include "box2d/b2_circle_shape.h"
 
+
 namespace Hazel {
+
+	static std::unordered_map<UUID, std::pair<entt::entity, entt::entity>> s_CopyRegistry;
+
 
 	static b2BodyType Rigidbody2DTypeToBox2DBody(Rigidbody2DComponent::BodyType type) {
 		switch (type) {
@@ -27,10 +31,59 @@ namespace Hazel {
 		}
 	}
 
+	Ref<Scene> Scene::CopyScene(Ref<Scene> src)
+	{
+		s_CopyRegistry.clear();
+
+		Ref<Scene> dst;
+		dst.reset(new Scene);
+
+		const auto& srcRegistry = src->GetRegistry();
+		const auto& dstRegistry = dst->GetRegistry();
+
+		auto srcView = srcRegistry.view<entt::entity>();
+		for (auto entityID : srcView) {
+			const auto& tag = srcRegistry.get<TagComponent>(entityID).tag;
+			auto uuid = srcRegistry.get<IDComponent>(entityID).ID;
+
+			s_CopyRegistry[uuid] = { entityID, dst->CreateEnttiyWithUUID(tag, uuid).GetHandle() };
+
+			CopyComponent<TransformComponent>(src, dst, uuid);
+			CopyComponent<SpriteComponent>(src, dst, uuid);
+			CopyComponent<CircleRendererComponent>(src, dst, uuid);
+			CopyComponent<CameraComponent>(src, dst, uuid);
+			CopyComponent<NativeScriptComponent>(src, dst, uuid);
+			CopyComponent<Rigidbody2DComponent>(src, dst, uuid);
+			CopyComponent<BoxCollider2DComponent>(src, dst, uuid);
+			CopyComponent<CircleCollider2DComponent>(src, dst, uuid);
+
+		}
+
+		return dst;
+	}
+
+
+	template<class Component>
+	void Scene::CopyComponent(Ref<Scene> src, Ref<Scene> dst, UUID uuid)
+	{
+		auto view = src->GetRegistry().view<Component>();
+		const auto& srcRegistry = src->GetRegistry();
+		if (srcRegistry.all_of<Component>(s_CopyRegistry[uuid].first)) {
+			auto component = src->GetRegistry().get<Component>(s_CopyRegistry[uuid].first);
+			dst->GetRegistry().emplace_or_replace<Component>(s_CopyRegistry[uuid].second, component);
+		}
+	}
+
 	Entity Scene::CreateEntity(const std::string& name)
+	{
+		return CreateEnttiyWithUUID(name, UUID());
+	}
+
+	Entity Scene::CreateEnttiyWithUUID(const std::string& name, const uint64_t ID)
 	{
 		Entity entity{ m_Registry.create(), this };
 
+		entity.AddComponent<IDComponent>(ID);
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag = name;
 
@@ -103,6 +156,23 @@ namespace Hazel {
 				fixtureDef.restitutionThreshold = boxCollider2D.restitutionThreshold;
 				body->CreateFixture(&fixtureDef);
 			}
+
+			if (entity.HasComponent<CircleCollider2DComponent>()) {
+				auto& circleCollider2D = entity.GetComponent<CircleCollider2DComponent>();
+				b2CircleShape circleShape;
+				circleShape.m_p.Set(circleCollider2D.offset.x, circleCollider2D.offset.y);
+				circleShape.m_radius = transform.scale.x * circleCollider2D.radius;
+
+				b2FixtureDef fixtureDef;
+				fixtureDef.shape = &circleShape;
+				fixtureDef.density = circleCollider2D.density;
+				fixtureDef.friction = circleCollider2D.friction;
+				fixtureDef.restitution = circleCollider2D.restitution;
+				fixtureDef.restitutionThreshold = circleCollider2D.restitutionThreshold;
+				body->CreateFixture(&fixtureDef);
+			}
+			
+
 		}
 	}
 
@@ -122,6 +192,12 @@ namespace Hazel {
 			auto& [transform, sprite] = group.get<TransformComponent, SpriteComponent>(entity);
 
 			Renderer2D::DrawSprite(transform, sprite, (int)entity);
+		}
+
+		auto circleGroup = m_Registry.view<TransformComponent, CircleRendererComponent>();
+		for (auto entityID : circleGroup) {
+			auto& [transform, circle] = circleGroup.get<TransformComponent, CircleRendererComponent>(entityID);
+			Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
 		}
 
 		Renderer2D::EndScene();
@@ -161,7 +237,7 @@ namespace Hazel {
 				transform.translate.y = position.y;
 				transform.rotation.z = body->GetAngle();
 				transform.RecalculateTransform();
-			
+
 			}
 		}
 
@@ -181,11 +257,19 @@ namespace Hazel {
 		if (mainCamera != nullptr) {
 			Renderer2D::BeginScene(*mainCamera);
 
-			auto group = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
-			for (auto entity : group) {
-				auto& [transform, sprite] = group.get<TransformComponent, SpriteComponent>(entity);
-				Renderer2D::DrawSprite(transform, sprite, (int)entity);
+			auto quadGroup = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
+			for (auto entityID : quadGroup) {
+				auto& [transform, sprite] = quadGroup.get<TransformComponent, SpriteComponent>(entityID);
+				Renderer2D::DrawSprite(transform, sprite, (int)entityID);
 			}
+
+			auto circleGroup = m_Registry.view<TransformComponent, CircleRendererComponent>();
+			for (auto entityID : circleGroup) {
+				auto& [transform, circle] = circleGroup.get<TransformComponent, CircleRendererComponent>(entityID);
+				Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
+			}
+
+
 
 			Renderer2D::EndScene();
 		}
@@ -199,6 +283,11 @@ namespace Hazel {
 	template<class T>
 	void Scene::OnAddComponent(Entity& entity, T& component) {
 		static_assert(false);
+	}
+
+	template<>
+	void Scene::OnAddComponent<IDComponent>(Entity& entity, IDComponent& transformComponent) {
+
 	}
 
 	template<>
@@ -234,6 +323,14 @@ namespace Hazel {
 	}
 
 	template<>
+	void Scene::OnAddComponent<CircleRendererComponent>(Entity& entity, CircleRendererComponent& nativeScriptComponent) {
+	}
+
+	template<>
 	void Scene::OnAddComponent<BoxCollider2DComponent>(Entity& entity, BoxCollider2DComponent& nativeScriptComponent) {
+	}
+
+	template<>
+	void Scene::OnAddComponent<CircleCollider2DComponent>(Entity& entity, CircleCollider2DComponent& nativeScriptComponent) {
 	}
 }

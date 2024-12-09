@@ -6,14 +6,23 @@
 #include "Hazel/Renderer/Texture.h"
 #include "Hazel/Scene/ScriptableEntity.h"
 #include "Hazel/Core/Timestep.h"
+#include "Hazel/Core/UUID.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/quaternion.hpp"
-
 #include "box2d/b2_body.h"
 
 namespace Hazel {
+
+	struct IDComponent {
+		UUID ID;
+		IDComponent() {
+		}
+		IDComponent(uint64_t IDVal) : ID(IDVal) {}
+		IDComponent(const IDComponent& other) = default;
+	};
+
 
 	struct TagComponent {
 		std::string tag;
@@ -82,6 +91,14 @@ namespace Hazel {
 		SpriteComponent(const SpriteComponent& other) : color(other.color) {}
 	};
 
+	struct CircleRendererComponent {
+		glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
+		float thickness = 1.0f;
+		float fade = 0.005f;
+		CircleRendererComponent() = default;
+		CircleRendererComponent(const CircleRendererComponent& other) = default;
+	};
+
 	struct CameraComponent {
 		Ref<Camera> camera;
 		bool primary = false;
@@ -137,4 +154,19 @@ namespace Hazel {
 		BoxCollider2DComponent() = default;
 		BoxCollider2DComponent(const BoxCollider2DComponent& other) = default;
 	};
+
+	struct CircleCollider2DComponent {
+		glm::vec2 offset = { 0.0f, 0.0f };
+		float radius = 0.5f;
+		float density = 1.0f;
+		float friction = 0.5f;
+		float restitution = 0.5f;
+		float restitutionThreshold = 0.5f;
+
+
+		void* runtimeFixture = nullptr;
+		CircleCollider2DComponent() = default;
+		CircleCollider2DComponent(const CircleCollider2DComponent& other) = default;
+	};
+
 }

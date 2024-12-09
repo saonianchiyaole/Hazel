@@ -23,11 +23,11 @@ namespace Hazel {
 	void SceneHierarchyPanel::SetContext(const Ref<Scene> context)
 	{
 		m_Context = context;
+		m_SelectedEntity = {};
 	}
-	void SceneHierarchyPanel::SetSelectedEntity(const entt::entity entity, Ref<Scene> scene)
+	void SceneHierarchyPanel::SetSelectedEntity(const entt::entity entity)
 	{
-		m_SelectedEntity = Entity{ entity, scene.get() };
-		m_Context = scene;
+		m_SelectedEntity = Entity{ entity, m_Context.get()};
 	}
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
@@ -83,6 +83,11 @@ namespace Hazel {
 					ImGui::CloseCurrentPopup();
 				}
 
+				if (ImGui::MenuItem("Circle Renderer")) {
+					m_SelectedEntity.AddComponent<CircleRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
 				if (ImGui::MenuItem("Rigidbody 2D")) {
 					m_SelectedEntity.AddComponent<Rigidbody2DComponent>();
 					ImGui::CloseCurrentPopup();
@@ -92,6 +97,12 @@ namespace Hazel {
 					m_SelectedEntity.AddComponent<BoxCollider2DComponent>();
 					ImGui::CloseCurrentPopup();
 				}
+
+				if (ImGui::MenuItem("Circle Collider 2D")) {
+					m_SelectedEntity.AddComponent<CircleCollider2DComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
 
 				ImGui::EndPopup();
 			}
@@ -291,6 +302,13 @@ namespace Hazel {
 
 		}
 
+		DrawComponent<CircleRendererComponent>(entity, "Circle Renderer", [](auto& component)
+			{
+				ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+				ImGui::DragFloat("Thickness", &component.thickness, 0.025, 0.0f, 1.0f);
+				ImGui::DragFloat("Fade", &component.fade, 0.0025, 0.00, 1.0f);
+			});
+
 		DrawComponent<Rigidbody2DComponent>(entity, "Rigidbody 2D", [](auto& component)
 			{
 				const char* bodyTypeString[] = { "Static", "Dynamic", "Kinematic" };
@@ -323,6 +341,18 @@ namespace Hazel {
 				ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
 				ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f);
 			});
+
+		DrawComponent<CircleCollider2DComponent>(entity, "Circle Collider 2D", [](auto& component)
+			{
+				ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
+				ImGui::DragFloat("Radius", &component.radius);
+				ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f);
+			});
+
+		
 
 	}
 }
