@@ -27,6 +27,9 @@ namespace Hazel {
 		void OpenScene(std::filesystem::path filepath);
 
 		void UI_ToolBar();
+		void ColliderVisiable();
+		void DrawGuizmo();
+
 	private:
 		Hazel::Ref<Hazel::OrthographicCameraController> m_CameraController;
 		Hazel::Ref<Hazel::Shader> m_Shader;
@@ -53,6 +56,7 @@ namespace Hazel {
 
 		bool m_IsViewportFocus = false;
 		bool m_IsViewportHovered = false;
+		bool m_IsColliderVisiable = false;
 
 		Hazel::ParticleProps m_Particle;
 		Hazel::ParticleSystem m_ParticleSystem;

@@ -41,36 +41,9 @@ namespace Hazel {
 
 
 		m_EditorScene.reset(new Scene);
+		m_ActiveScene = m_EditorScene;
 
-		m_EditorScene->m_ViewPortSize = m_ViewportSize;
-
-		class CameraContorller : public Hazel::ScriptableEntity {
-		public:
-			void OnCreate() {
-				std::cout << "CameraContorller Create!" << std::endl;
-			}
-
-			void OnDestroy() {
-
-			}
-			void OnUpdate(Timestep ts) {
-				auto& transform = GetComponent<Hazel::TransformComponent>();
-				float speed = 5.0f;
-
-				if (Input::IsKeyPressed(HZ_KEY_A))
-					transform.SetTranslate(glm::vec3{ transform.translate[0] - speed * ts, transform.translate[1], transform.translate[2] });
-				if (Input::IsKeyPressed(HZ_KEY_D))
-					transform.SetTranslate(glm::vec3{ transform.translate[0] + speed * ts, transform.translate[1], transform.translate[2] });
-				if (Input::IsKeyPressed(HZ_KEY_W))
-					transform.SetTranslate(glm::vec3{ transform.translate[0], transform.translate[1] - speed * ts, transform.translate[2] });
-				if (Input::IsKeyPressed(HZ_KEY_S))
-					transform.SetTranslate(glm::vec3{ transform.translate[0] , transform.translate[1] + speed * ts, transform.translate[2] });
-
-			}
-		};
-
-
-		m_HierarchyPanel.SetContext(m_EditorScene);
+		m_HierarchyPanel.SetContext(m_ActiveScene);
 		m_ContentBrowserPanel = { "assets" };
 
 		m_EditorCamera = { 90.0f, 1280.f / 720.f, 0.001f, 1000.f };
@@ -94,7 +67,7 @@ namespace Hazel {
 	{
 		Hazel::PROFILE_SCOPE("Editor : OnUpdate");
 
-		if (m_IsViewportHovered)
+		if (m_IsViewportHovered && m_SceneState == SceneState::Edit)
 			m_EditorCamera.OnUpdate(ts);
 
 		float deltaTime = ts;
@@ -110,10 +83,10 @@ namespace Hazel {
 
 		switch (m_SceneState) {
 		case SceneState::Edit:
-			m_EditorScene->OnUpdateEditor(ts, m_EditorCamera);
+			m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
 			break;
 		case SceneState::Play:
-			m_RuntimeScene->OnUpdateRuntime(ts);
+			m_ActiveScene->OnUpdateRuntime(ts);
 			break;
 		}
 
@@ -130,11 +103,11 @@ namespace Hazel {
 		else {
 			//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
 			int pixelVaule = m_Framebuffer->ReadPixel(1, mousePos.x, mousePos.y);
-			m_HoveredEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_SceneState == SceneState::Edit ? m_EditorScene.get() : m_RuntimeScene.get()};
+			m_HoveredEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
 		}
 
 
-
+		ColliderVisiable();
 
 		m_Framebuffer->Unbind();
 
@@ -261,6 +234,11 @@ namespace Hazel {
 		ImGui::End();
 
 
+		ImGui::Begin("Setting");
+		ImGui::Checkbox("Collider Visiable", &m_IsColliderVisiable);
+		ImGui::End();
+
+
 		// ViewPort Begin
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
 		ImGui::Begin("ViewPort");
@@ -273,7 +251,7 @@ namespace Hazel {
 				m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
-				m_EditorScene->m_ViewPortSize = m_ViewportSize;
+				m_ActiveScene->SetViewPortSize(m_ViewportSize);
 				HZ_CORE_INFO("ViewPortSize : {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
 			}
 			ImGui::Image((void*)m_Framebuffer->GetColorAttachment(0), { (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
@@ -296,73 +274,7 @@ namespace Hazel {
 
 
 		UI_ToolBar();
-
-
-		auto seletedEntity = m_HierarchyPanel.GetSelectedEntity();
-		// ImGuizmo
-		if (seletedEntity) {
-
-			ImGuizmo::SetOrthographic(false);
-			ImGuizmo::SetDrawlist();
-
-			float posx = ImGui::GetWindowPos().x;
-			float posy = ImGui::GetWindowPos().y;
-			ImGuizmo::SetRect(posx, posy, m_ViewportSize.x, m_ViewportSize.y);
-
-
-			bool snap = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL);
-			float snapValue = 0.5f;
-			if (m_ImGuizmoMode == ImGuizmo::OPERATION::ROTATE)
-				snapValue = 45.0f;
-
-			glm::vec3 translation, rotation, scale;
-
-
-			Camera* activeCamera;
-			switch (m_SceneState)
-			{
-			case Hazel::SceneState::Edit:
-				activeCamera = &m_EditorCamera;
-				break;
-			case Hazel::SceneState::Play:
-				activeCamera = m_RuntimeScene->GetPrimaryCamera().get();
-				activeCamera->SetAspectRatio(m_ViewportSize.x / m_ViewportSize.y);
-				break;
-			default:
-				break;
-			}
-
-			const auto& view = activeCamera->GetViewMatrix();
-			const auto& projection = activeCamera->GetProjectionMatrix();
-			//auto 
-			//auto 
-
-			float snapValues[3] = { snapValue, snapValue, snapValue };
-
-
-			if (seletedEntity.HasComponent<TransformComponent>())
-			{
-				glm::mat4 transform = seletedEntity.GetComponent<TransformComponent>().transform;
-				ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), m_ImGuizmoMode, ImGuizmo::MODE::LOCAL,
-					glm::value_ptr(transform), nullptr, snap ? &snapValues[0] : nullptr);
-
-				if (ImGuizmo::IsUsing()) {
-					Math::Decompose(transform, translation, rotation, scale);
-					seletedEntity.GetComponent<TransformComponent>().SetTransform(translation, rotation, scale);
-					if (m_SceneState == SceneState::Play && seletedEntity.HasComponent<Rigidbody2DComponent>())
-					{
-						Rigidbody2DComponent rigidbody2D = seletedEntity.GetComponent<Rigidbody2DComponent>();
-						rigidbody2D.SetPhysicsPosition({ translation.x, translation.y }, rotation.z);
-						if (!((b2Body*)rigidbody2D.runtimeBody)->IsAwake())
-							((b2Body*)rigidbody2D.runtimeBody)->SetAwake(true);
-						((b2Body*)rigidbody2D.runtimeBody)->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
-					}
-				}
-
-			}
-
-
-		}
+		DrawGuizmo();
 
 
 		ImGui::End();
@@ -381,7 +293,7 @@ namespace Hazel {
 
 	void Editor::OnEvent(Hazel::Event& event)
 	{
-		if (m_IsViewportHovered)
+		if (m_IsViewportHovered && m_SceneState == SceneState::Edit)
 			m_EditorCamera.OnEvent(event);
 
 		Hazel::EventDispatcher dispatcher(event);
@@ -458,10 +370,13 @@ namespace Hazel {
 			return;
 		}
 		m_EditorScene.reset(new Scene);
-		m_HierarchyPanel = { m_EditorScene };
+		m_ActiveScene = m_EditorScene;
+		m_HierarchyPanel = { m_ActiveScene };
 
 		SceneSerializer sceneSerializer(m_EditorScene);
 		sceneSerializer.Deserialize(filepath.string());
+
+		m_ActiveScene->SetViewPortSize(m_ViewportSize);
 	}
 
 	void Editor::UI_ToolBar()
@@ -495,7 +410,8 @@ namespace Hazel {
 				m_SceneState = SceneState::Play;
 
 				m_RuntimeScene = Scene::CopyScene(m_EditorScene);
-				m_HierarchyPanel.SetContext(m_RuntimeScene);
+				m_ActiveScene = m_RuntimeScene;
+				m_HierarchyPanel.SetContext(m_ActiveScene);
 				m_RuntimeScene->OnRuntimeStart();
 			}
 			break;
@@ -505,7 +421,9 @@ namespace Hazel {
 
 				m_RuntimeScene->OnRuntimeStop();
 				m_RuntimeScene.reset();
-				m_HierarchyPanel.SetContext(m_EditorScene);
+				m_ActiveScene = m_EditorScene;
+				m_HierarchyPanel.SetContext(m_ActiveScene);
+
 			}
 			break;
 		default:
@@ -519,6 +437,110 @@ namespace Hazel {
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
 		ImGui::End();
+	}
+
+	void Editor::ColliderVisiable()
+	{
+		if (!m_IsColliderVisiable)
+			return;
+		Camera* camera = nullptr;
+		switch (m_SceneState)
+		{
+		case Hazel::SceneState::Edit:
+			camera = &m_EditorCamera;
+			break;
+		case Hazel::SceneState::Play:
+			camera = m_ActiveScene->GetPrimaryCamera().get();
+			if (!m_ActiveScene->GetPrimaryCamera())
+				return;
+			break;
+		default:
+			break;
+		}
+		Renderer2D::BeginScene(*camera);
+
+		auto group = m_ActiveScene->m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
+		for (auto entityID : group) {
+			auto& [transform, sprite] = group.get<TransformComponent, SpriteComponent>(entityID);
+
+			Renderer2D::DrawRect(transform, {0.0f, 1.0f, 0.0f, 1.0f}, (int)entityID);
+		}
+
+		auto circleGroup = m_ActiveScene->m_Registry.view<TransformComponent, CircleRendererComponent>();
+		for (auto entityID : circleGroup) {
+			auto& [transform, circle] = circleGroup.get<TransformComponent, CircleRendererComponent>(entityID);
+			Renderer2D::DrawCircle(transform, {0.0f, 1.0f, 0.0f, 1.0f}, 0.07f, 0.0025f , (int)entityID);
+		}
+
+		Renderer2D::EndScene();
+	}
+
+	void Editor::DrawGuizmo()
+	{
+		auto seletedEntity = m_HierarchyPanel.GetSelectedEntity();
+		// ImGuizmo
+		if (seletedEntity) {
+
+			Camera* activeCamera = nullptr;
+			switch (m_SceneState)
+			{
+			case Hazel::SceneState::Edit:
+				activeCamera = &m_EditorCamera;
+				break;
+			case Hazel::SceneState::Play:
+				activeCamera = m_ActiveScene->GetPrimaryCamera().get();
+				break;
+			default:
+				break;
+			}
+
+			if (!activeCamera)
+				return;
+
+
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetDrawlist();
+
+			float posx = ImGui::GetWindowPos().x;
+			float posy = ImGui::GetWindowPos().y;
+			ImGuizmo::SetRect(posx, posy, m_ViewportSize.x, m_ViewportSize.y);
+
+
+			bool snap = Input::IsKeyPressed(HZ_KEY_LEFT_CONTROL);
+			float snapValue = 0.5f;
+			if (m_ImGuizmoMode == ImGuizmo::OPERATION::ROTATE)
+				snapValue = 45.0f;
+
+			glm::vec3 translation, rotation, scale;
+
+			const auto& view = activeCamera->GetViewMatrix();
+			const auto& projection = activeCamera->GetProjectionMatrix();
+			//auto 
+
+			float snapValues[3] = { snapValue, snapValue, snapValue };
+
+
+			if (seletedEntity.HasComponent<TransformComponent>())
+			{
+				glm::mat4 transform = seletedEntity.GetComponent<TransformComponent>().transform;
+				ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), m_ImGuizmoMode, ImGuizmo::MODE::LOCAL,
+					glm::value_ptr(transform), nullptr, snap ? &snapValues[0] : nullptr);
+
+				if (ImGuizmo::IsUsing()) {
+					Math::Decompose(transform, translation, rotation, scale);
+					seletedEntity.GetComponent<TransformComponent>().SetTransform(translation, rotation, scale);
+					if (m_SceneState == SceneState::Play && seletedEntity.HasComponent<Rigidbody2DComponent>())
+					{
+						Rigidbody2DComponent rigidbody2D = seletedEntity.GetComponent<Rigidbody2DComponent>();
+						rigidbody2D.SetPhysicsPosition({ translation.x, translation.y }, rotation.z);
+						if (!((b2Body*)rigidbody2D.runtimeBody)->IsAwake())
+							((b2Body*)rigidbody2D.runtimeBody)->SetAwake(true);
+						((b2Body*)rigidbody2D.runtimeBody)->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+					}
+				}
+
+			}
+		}
 	}
 
 }

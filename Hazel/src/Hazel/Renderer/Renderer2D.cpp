@@ -32,13 +32,26 @@ namespace Hazel {
 		int entityID;
 	};
 
+	struct LineVertex {
+		glm::vec3 position;
+		glm::vec4 color;
+
+		int entityID;
+	};
+
 	struct Renderer2DStorage {
 		Ref<VertexArray> quadVertexArray;
 		Ref<VertexBuffer> quadVertexBuffer;
+
 		Ref<VertexArray> circleVertexArray;
 		Ref<VertexBuffer> circleVertexBuffer;
+
+		Ref<VertexArray> lineVertexArray;
+		Ref<VertexBuffer> lineVertexBuffer;
+
 		Ref<Shader> textureshader;
 		Ref<Shader> circleShader;
+		Ref<Shader> lineShader;
 		Ref<Shader> flatshader;
 
 		const uint32_t maxQuad = 10000;
@@ -47,6 +60,7 @@ namespace Hazel {
 
 		uint32_t QuadIndexCount = 0;
 		uint32_t circleIndexCount = 0;
+		uint32_t lineIndexCount = 0;
 
 		QuadVertex* quadVertexBufferPtr = nullptr;
 		QuadVertex* quadVertexBuffeBase = nullptr;
@@ -54,6 +68,12 @@ namespace Hazel {
 		CircleVertex* circleVertexBuffePtr = nullptr;
 		CircleVertex* circleVertexBuffeBase = nullptr;
 
+		LineVertex* lineVertexBuffePtr = nullptr;
+		LineVertex* lineVertexBuffeBase = nullptr;
+
+
+
+		float lineWidth = 1;
 
 		static const uint32_t maxTextureSlot = 20;
 		std::array<Ref<Texture2D>, maxTextureSlot> textureSlots;
@@ -169,6 +189,23 @@ namespace Hazel {
 
 		//CircleVertex End
 
+		//LineVertex Start
+		
+		m_Data->lineVertexArray = Hazel::VertexArray::Create();
+		m_Data->lineVertexBuffer = Hazel::VertexBuffer::Create(m_Data->maxQuadVetices * sizeof(LineVertex));
+		m_Data->lineVertexBuffeBase = new LineVertex[m_Data->maxQuadVetices];
+		Hazel::BufferLayout lineLayout = std::vector<Hazel::BufferElement>{
+			{ Hazel::ShaderDataType::Float3, "a_Position"},
+			{ Hazel::ShaderDataType::Float4, "a_Color"},
+		
+			{ Hazel::ShaderDataType::Int, "a_EntityID"},
+		};
+		m_Data->lineVertexBuffer->SetLayout(lineLayout);
+		m_Data->lineVertexArray->AddVertexBuffer(m_Data->lineVertexBuffer);
+		 
+		//LineVertex End
+
+
 		delete[] quadIndices;
 
 		//Shader
@@ -177,6 +214,9 @@ namespace Hazel {
 
 		Hazel::ShaderLibrary::Load("assets/Shaders/2DCircleShader.glsl");
 		m_Data->circleShader = Hazel::ShaderLibrary::Get("2DCircleShader");
+
+		Hazel::ShaderLibrary::Load("assets/Shaders/2DLineShader.glsl");
+		m_Data->lineShader = Hazel::ShaderLibrary::Get("2DLineShader");
 
 		//Default white texture
 		m_Data->whiteTexture = Texture2D::Create(1, 1);
@@ -209,6 +249,7 @@ namespace Hazel {
 		
 		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
 		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;
+		m_Data->lineVertexBuffePtr = m_Data->lineVertexBuffeBase;
 
 	}
 	void Renderer2D::BeginScene(const EditorCamera& camera)
@@ -218,7 +259,19 @@ namespace Hazel {
 
 		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
 		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;
+		m_Data->lineVertexBuffePtr = m_Data->lineVertexBuffeBase;
 	}
+
+	void Renderer2D::BeginScene(const Camera& camera)
+	{
+		m_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		m_Data->cameraUniformBuffer->SetData((const void*)&m_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraData), 0);
+
+		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
+		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;
+		m_Data->lineVertexBuffePtr = m_Data->lineVertexBuffeBase;
+	}
+
 	void Renderer2D::EndScene()
 	{
 
@@ -227,8 +280,10 @@ namespace Hazel {
 
 		m_Data->QuadIndexCount = 0;
 		m_Data->circleIndexCount = 0;
+		m_Data->lineIndexCount = 0;
 		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
 		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;
+		m_Data->lineVertexBuffePtr = m_Data->lineVertexBuffeBase;
 
 		m_Data->textureSlotIndex = 1;
 	}
@@ -268,7 +323,16 @@ namespace Hazel {
 			m_RendererState.drawCall += 1;
 		}
 
-		
+		if (m_Data->lineIndexCount) {
+			uint32_t dataSize = m_Data->lineVertexBuffePtr - m_Data->lineVertexBuffeBase;
+			m_Data->lineVertexBuffer->SetData(m_Data->lineVertexBuffeBase, dataSize * sizeof(LineVertex));
+
+			m_Data->lineShader->Bind();
+			m_Data->lineVertexArray->Bind();
+			RenderCommand::SetLineWidth(m_Data->lineWidth);
+			RenderCommand::DrawLines(m_Data->lineVertexArray, m_Data->lineIndexCount);
+			m_RendererState.drawCall += 1;
+		}
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
@@ -514,6 +578,35 @@ namespace Hazel {
 			DrawQuad(transform, sprite.color, sprite.texture, entityID);
 		else
 			DrawQuad(transform, sprite.color, entityID);
+	}
+	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int enitityID)
+	{
+		m_Data->lineVertexBuffePtr->position = p0;
+		m_Data->lineVertexBuffePtr->color = color;
+		m_Data->lineVertexBuffePtr->entityID = enitityID;
+		m_Data->lineVertexBuffePtr++;
+
+		m_Data->lineVertexBuffePtr->position = p1;
+		m_Data->lineVertexBuffePtr->color = color;
+		m_Data->lineVertexBuffePtr->entityID = enitityID;
+		m_Data->lineVertexBuffePtr++;
+
+		m_Data->lineIndexCount += 2;
+	}
+	void Renderer2D::DrawRect(const glm::mat4 transform, const glm::vec4& color, int enitityID)
+	{
+		glm::vec3 rectVertex[4];
+		rectVertex[0] = transform * m_Data->QuadVertices[0];  //bottom left
+		rectVertex[1] = transform * m_Data->QuadVertices[1];  //bottom right
+		rectVertex[2] = transform * m_Data->QuadVertices[2];  //top left
+		rectVertex[3] = transform * m_Data->QuadVertices[3];  //top right
+
+
+		DrawLine(rectVertex[0], rectVertex[1], color, enitityID);
+		DrawLine(rectVertex[0], rectVertex[2], color, enitityID);
+		DrawLine(rectVertex[1], rectVertex[3], color, enitityID);
+		DrawLine(rectVertex[2], rectVertex[3], color, enitityID);
+
 	}
 	const Renderer2D::RendererState* Renderer2D::GetState()
 	{

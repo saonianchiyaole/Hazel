@@ -45,6 +45,8 @@ namespace Hazel {
 		void OnUpdateEditor(Timestep ts, const EditorCamera& camera);
 		void OnUpdateRuntime(Timestep ts);
 
+		void SetViewPortSize(glm::vec2 viewPortSize);
+
 		SceneState GetState() {
 			return m_State;
 		}

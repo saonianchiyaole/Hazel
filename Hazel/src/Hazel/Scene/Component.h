@@ -88,7 +88,10 @@ namespace Hazel {
 		Ref<Texture2D> texture;
 		SpriteComponent() :color(glm::vec4(1.0f, 0.5f, 0.5f, 1.0f)) {}
 		SpriteComponent(const glm::vec4& colorVal) : color(colorVal) {}
-		SpriteComponent(const SpriteComponent& other) : color(other.color) {}
+		SpriteComponent(const SpriteComponent& other) {
+			color = other.color;
+			texture = other.texture;
+		}
 	};
 
 	struct CircleRendererComponent {

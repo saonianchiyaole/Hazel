@@ -171,7 +171,7 @@ namespace Hazel {
 				fixtureDef.restitutionThreshold = circleCollider2D.restitutionThreshold;
 				body->CreateFixture(&fixtureDef);
 			}
-			
+
 
 		}
 	}
@@ -273,6 +273,13 @@ namespace Hazel {
 
 			Renderer2D::EndScene();
 		}
+	}
+
+	void Scene::SetViewPortSize(glm::vec2 viewPortSize)
+	{
+		m_ViewPortSize = viewPortSize;
+		if (GetPrimaryCamera() != nullptr)
+			GetPrimaryCamera()->SetAspectRatio(viewPortSize.x / viewPortSize.y);
 	}
 
 	Scene* Scene::Raw()

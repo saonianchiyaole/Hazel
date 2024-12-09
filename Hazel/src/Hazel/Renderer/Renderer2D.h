@@ -27,6 +27,7 @@ namespace Hazel {
 
 		static void BeginScene(const OrthographicCamera& camera);
 		static void BeginScene(const EditorCamera& camera);
+		static void BeginScene(const Camera& camera);
 		static void EndScene();
 
 		static void Flush();
@@ -50,6 +51,9 @@ namespace Hazel {
 
 		static void DrawCircle(const glm::mat4& transform, const glm::vec4& color, const float thickness, const float fade, const int entityID = -1);
 		static void DrawSprite(const glm::mat4& transform, const SpriteComponent& sprite, const int entityID);
+
+		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int enitityID = -1);
+		static void DrawRect(const glm::mat4 transform, const glm::vec4& color, int enitityID = -1);
 
 
 		const static RendererState* GetState();
