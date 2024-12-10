@@ -459,16 +459,17 @@ namespace Hazel {
 		}
 		Renderer2D::BeginScene(*camera);
 
-		auto group = m_ActiveScene->m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
-		for (auto entityID : group) {
-			auto& [transform, sprite] = group.get<TransformComponent, SpriteComponent>(entityID);
-
+		auto quadGroup = m_ActiveScene->m_Registry.view<TransformComponent, BoxCollider2DComponent>();
+		for (auto entityID : quadGroup) {
+			const auto& [transformComponent, boxCollider2D] = quadGroup.get<TransformComponent, BoxCollider2DComponent>(entityID);
+			glm::mat4 transform = glm::translate(transformComponent.transform, {boxCollider2D.offset, 0.0f});
 			Renderer2D::DrawRect(transform, {0.0f, 1.0f, 0.0f, 1.0f}, (int)entityID);
 		}
 
-		auto circleGroup = m_ActiveScene->m_Registry.view<TransformComponent, CircleRendererComponent>();
+		auto circleGroup = m_ActiveScene->m_Registry.view<TransformComponent, CircleCollider2DComponent>();
 		for (auto entityID : circleGroup) {
-			auto& [transform, circle] = circleGroup.get<TransformComponent, CircleRendererComponent>(entityID);
+			const auto& [transformComponent, circleCollider2D] = circleGroup.get<TransformComponent, CircleCollider2DComponent>(entityID);
+			glm::mat4 transform = glm::translate(transformComponent.transform, { circleCollider2D.offset, 0.0f });
 			Renderer2D::DrawCircle(transform, {0.0f, 1.0f, 0.0f, 1.0f}, 0.07f, 0.0025f , (int)entityID);
 		}
 
