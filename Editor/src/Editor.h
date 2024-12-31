@@ -71,6 +71,9 @@ namespace Hazel {
 		Ref<Texture2D> m_PlayButtonTexture;
 		Ref<Texture2D> m_PauseButtonTexture;
 
+		Mesh m_Mesh;
+		Ref<Shader> m_MeshShader;
+
 
 		ImGuizmo::OPERATION m_ImGuizmoMode = ImGuizmo::OPERATION::TRANSLATE;
 	};

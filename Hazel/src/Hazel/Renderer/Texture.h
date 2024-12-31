@@ -3,6 +3,11 @@
 
 namespace Hazel {
 
+	enum class TextureType {
+		None, Albedo, Roughness, Metalness, Normal
+	};
+
+
 	class Texture {
 	public:
 		Texture() = default;
@@ -28,10 +33,18 @@ namespace Hazel {
 		static Ref<Texture2D> Create(const uint32_t width, const uint32_t height);
 		static Ref<Texture2D> Create(std::filesystem::path path);
 		virtual void SetData(const void* data, const uint32_t size) = 0;
+		virtual void SetType(TextureType type);
+
+		TextureType GetType();
+
 		virtual const uint32_t GetRendererID() = 0;
+		bool IsLoaded() { return m_Loaded; }
+
 	protected:
 		std::string m_Path;
 		uint32_t m_Width, m_Height;
+		TextureType m_Type;
+		bool m_Loaded = false;
 	};
 
 }

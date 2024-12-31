@@ -71,6 +71,8 @@ namespace Hazel {
 		entt::entity m_EntityHandle{ entt::null };
 		uint64_t m_EntityID;
 		Scene* m_Scene = nullptr;
+
+		friend class Scene;
 	};
 
 

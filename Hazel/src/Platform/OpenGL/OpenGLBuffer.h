@@ -8,6 +8,7 @@ namespace Hazel {
 	public:
 		virtual ~OpenGLVertexBuffer();
 		OpenGLVertexBuffer(float* vertices, uint32_t size);
+		OpenGLVertexBuffer(void* vertices, uint32_t size);
 		OpenGLVertexBuffer(uint32_t size);
 
 		virtual void Bind() const override;
@@ -27,7 +28,8 @@ namespace Hazel {
 	public:
 		OpenGLIndexBuffer(){}
 		virtual ~OpenGLIndexBuffer();
-		OpenGLIndexBuffer(uint32_t* vertices, uint32_t count);
+		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+		OpenGLIndexBuffer(void* indices, uint32_t count);
 
 		virtual void Bind() const override;
 		virtual void Unbind() const override;

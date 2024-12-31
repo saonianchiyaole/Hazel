@@ -1,10 +1,16 @@
-#include "hzpch.h"''
+#include "hzpch.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Hazel/Scene/Component.h"
 #include <imgui.h>
 
 #include <glm/gtc/type_ptr.hpp>
 #include "Hazel/Renderer/Camera.h"
+#include "Hazel/Scripting/ScriptEngine.h"
+
+#include "mono/metadata/class.h"
+
+//#include "Platform/Windows/WindowsUtils.h"
+#include "Hazel/Utils/PlatformUtils.h"
 
 namespace Hazel {
 	SceneHierarchyPanel::SceneHierarchyPanel()
@@ -27,7 +33,7 @@ namespace Hazel {
 	}
 	void SceneHierarchyPanel::SetSelectedEntity(const entt::entity entity)
 	{
-		m_SelectedEntity = Entity{ entity, m_Context.get()};
+		m_SelectedEntity = Entity{ entity, m_Context.get() };
 	}
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
@@ -88,6 +94,11 @@ namespace Hazel {
 					ImGui::CloseCurrentPopup();
 				}
 
+				if (ImGui::MenuItem("Mesh")) {
+					m_SelectedEntity.AddComponent<MeshComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
 				if (ImGui::MenuItem("Rigidbody 2D")) {
 					m_SelectedEntity.AddComponent<Rigidbody2DComponent>();
 					ImGui::CloseCurrentPopup();
@@ -100,6 +111,13 @@ namespace Hazel {
 
 				if (ImGui::MenuItem("Circle Collider 2D")) {
 					m_SelectedEntity.AddComponent<CircleCollider2DComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
+
+
+				if (ImGui::MenuItem("Script")) {
+					m_SelectedEntity.AddComponent<ScriptComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 
@@ -185,7 +203,7 @@ namespace Hazel {
 							((b2Body*)rigidbody2D.runtimeBody)->SetAwake(true);
 						((b2Body*)rigidbody2D.runtimeBody)->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 					}
-						
+
 				}
 
 				glm::vec3 rotation = glm::degrees(transform.rotation);
@@ -302,6 +320,111 @@ namespace Hazel {
 
 		}
 
+
+		DrawComponent<ScriptComponent>(entity, "Script", [&](auto& component)
+			{
+				bool isEntityClassExist = ScriptEngine::IsEntityClassExist(component.className);
+
+				static char buffer[64];
+				strcpy_s(buffer, sizeof(buffer), component.className.c_str());
+
+
+				if (!isEntityClassExist) {
+
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+					if (ImGui::InputText("Class", buffer, sizeof(buffer))) {
+						component.className = buffer;
+					}
+					ImGui::PopStyleColor();
+				}
+				else {
+					if (ImGui::InputText("Class", buffer, sizeof(buffer))) {
+						component.className = buffer;
+					}
+				}
+
+				// Draw Fields 
+				if (m_Context->GetState() == SceneState::Play && isEntityClassExist) {
+					const auto& fields = ScriptEngine::GetScriptClass(component.className)->GetFields();
+					UUID entityID = entity.GetEntityID();
+					Ref<ScriptInstance> instance = ScriptEngine::GetScriptInstance(entityID);
+					for (auto field : fields) {
+						switch (field.second.type) {
+						case ScriptFieldType::None:
+							continue;
+						case ScriptFieldType::Float:
+						case ScriptFieldType::Double:
+						{
+							float data = instance->GetFieldValue<float>(field.first);
+							if (ImGui::InputFloat(field.first.c_str(), &data))
+								instance->SetFieldVaule(field.first, data);
+						}
+						break;
+						case ScriptFieldType::Bool:
+							//ImGui::Checkbox(field.second.name, );
+							break;
+						case ScriptFieldType::Char:
+							//ImGui::InputText(field.second.name, )
+							break;
+						case ScriptFieldType::Short:
+						case ScriptFieldType::Int:
+						case ScriptFieldType::Long:
+						case ScriptFieldType::Byte:
+						case ScriptFieldType::UShort:
+							break;
+						case ScriptFieldType::UInt:
+							break;
+						case ScriptFieldType::ULong:
+
+							//ImGui::InputInt(field.second.name, );
+							break;
+						case ScriptFieldType::Vector2:
+						{
+							glm::vec2 data = instance->GetFieldValue<glm::vec2>(field.first);
+							if (ImGui::InputFloat2(field.first.c_str(), glm::value_ptr(data)))
+								instance->SetFieldVaule(field.first, data);
+						}
+						//ImGui::InputFloat2(field.second.name, );
+						break;
+						case ScriptFieldType::Vector3:
+							//ImGui::InputFloat3(field.second.name, );
+							break;
+						case ScriptFieldType::Vector4:
+							//ImGui::InputFloat4(field.second.name, );
+							break;
+						case ScriptFieldType::Entity:
+							break;
+						}
+					}
+				}
+
+			});
+
+		DrawComponent<MeshComponent>(entity, "Mesh", [&](auto& component)
+			{
+				auto& meshComponent = entity.GetComponent<MeshComponent>();
+
+				std::string context;
+
+				if (meshComponent.mesh == nullptr) {
+					context = "Select Mesh";
+				}
+				else {
+					context = meshComponent.mesh->GetFilePath();
+					size_t pos = context.find_last_of("\\");
+					if (pos != std::string::npos) {
+						context = context.substr(pos + 1);
+					}
+				}
+
+				if (ImGui::Button(context.c_str())) {
+					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.fbx)\0*.fbx\0");
+					meshComponent.SetMesh(MakeRef<Mesh>(filePath, entity.GetHandle()));
+				}
+
+			}
+		);
+
 		DrawComponent<CircleRendererComponent>(entity, "Circle Renderer", [](auto& component)
 			{
 				ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
@@ -313,7 +436,7 @@ namespace Hazel {
 			{
 				const char* bodyTypeString[] = { "Static", "Dynamic", "Kinematic" };
 				const char* currentBodyTypeString = bodyTypeString[(int)component.type];
-				if (ImGui::BeginCombo("Projection", currentBodyTypeString)) {
+				if (ImGui::BeginCombo("BodyType", currentBodyTypeString)) {
 					for (int i = 0; i < 2; i++) {
 						bool isSelected = currentBodyTypeString == bodyTypeString[i];
 						if (ImGui::Selectable(bodyTypeString[i], isSelected))
@@ -331,6 +454,11 @@ namespace Hazel {
 
 				ImGui::Checkbox("Fixed Rotation", &component.fixedRotation);
 			});
+
+
+
+
+
 
 		DrawComponent<BoxCollider2DComponent>(entity, "Box Collider 2D", [](auto& component)
 			{
@@ -352,7 +480,7 @@ namespace Hazel {
 				ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f);
 			});
 
-		
+
 
 	}
 }

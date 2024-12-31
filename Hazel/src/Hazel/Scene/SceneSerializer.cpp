@@ -207,6 +207,29 @@ namespace Hazel {
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<ScriptComponent>()) {
+			out << YAML::Key << "ScriptComponent";
+			out << YAML::BeginMap;
+			auto& script = entity.GetComponent<ScriptComponent>();
+
+			out << YAML::Key << "ClassName" << YAML::Value << script.className;
+
+
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<MeshComponent>()) {
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap;
+			auto& mesh = entity.GetComponent<MeshComponent>();
+
+			out << YAML::Key << "FilePath" << YAML::Value << mesh.mesh->GetFilePath();
+
+
+			out << YAML::EndMap;
+		}
+
+
 
 		out << YAML::EndMap;
 
@@ -270,7 +293,7 @@ namespace Hazel {
 				HZ_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
 				Entity deserializedEntity = m_Scene->CreateEnttiyWithUUID(name, uuid);
-				deserializedEntity.m_EntityID = uuid;
+
 				//Transform
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent) {
@@ -344,6 +367,19 @@ namespace Hazel {
 					circleCollider2D.restitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
 				}
 
+				auto scriptComponent = entity["ScriptComponent"];
+				if (scriptComponent) {
+					auto& script= deserializedEntity.AddComponent<ScriptComponent>();
+					script.className = scriptComponent["ClassName"].as<std::string>();
+
+				}
+				//Mesh
+				auto meshComponent = entity["MeshComponent"];
+				if (meshComponent) {
+					auto& mesh = deserializedEntity.AddComponent<MeshComponent>();
+					mesh.SetMesh(MakeRef<Mesh>(meshComponent["FilePath"].as<std::string>(), deserializedEntity.GetHandle()));
+
+				}
 			}
 		}
 

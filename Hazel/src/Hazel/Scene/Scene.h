@@ -28,6 +28,11 @@ namespace Hazel {
 
 		Entity CreateEntity(const std::string& name);
 		Entity CreateEnttiyWithUUID(const std::string& name,const uint64_t ID);
+		Entity GetEntityFormUUID(UUID uuid);
+		
+		Entity FindEntityByName(std::string name);
+
+
 		void DestroyEntity(Entity entity);
 
 		inline entt::registry& GetRegistry() {
@@ -60,6 +65,9 @@ namespace Hazel {
 		glm::vec2 m_ViewPortSize;
 
 		b2World* m_PhysicsWorld;
+
+
+		std::unordered_map<UUID, entt::entity> m_UUIDToEntity;
 
 		SceneState m_State;
 		friend class Entity;

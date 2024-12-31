@@ -7,6 +7,8 @@
 #include "Hazel/Scene/ScriptableEntity.h"
 #include "Hazel/Core/Timestep.h"
 #include "Hazel/Core/UUID.h"
+#include "Hazel/Renderer/Mesh.h"
+
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/matrix_transform.hpp"
@@ -171,5 +173,34 @@ namespace Hazel {
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent& other) = default;
 	};
+
+	struct ScriptComponent {
+		std::string scriptFilePath;
+		std::string className;
+
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent& other) = default;
+	};
+
+	struct MeshComponent {
+		Ref<Mesh> mesh;
+		MeshType type = Invalid;
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent& other) = default;
+
+		void SetMesh(Ref<Mesh> mesh) {
+			this->mesh = mesh;
+			type = mesh->GetMeshType();
+		}
+	};
+
+	template<typename ... Components>
+	struct ComponentGroup {
+
+	};
+
+	using AllComponents = ComponentGroup<TransformComponent, IDComponent, TagComponent, SpriteComponent,
+		CircleRendererComponent, CameraComponent, NativeScriptComponent, Rigidbody2DComponent,
+		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent>;
 
 }

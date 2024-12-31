@@ -44,6 +44,16 @@ namespace Hazel {
 			return nullptr;
 	}
 
+	void Texture2D::SetType(TextureType type)
+	{
+		m_Type = type;
+	}
+
+	TextureType Texture2D::GetType()
+	{
+		return m_Type;
+	}
+
 
 	uint32_t Texture2D::GetWidth() const
 	{

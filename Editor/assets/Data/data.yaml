@@ -1,24 +1,5 @@
 Scene: Untitled
 Entities:
-  - Entity: 3210850351033950326
-    TagComponent:
-      Tag: Plane2
-    TransformComponent:
-      Translate: [5.726206, 0, 0]
-      Rotation: [0.024098728, -0.056281824, 0.72072387]
-      Scale: [11.220309, 0.99999994, 1]
-    SpriteComponent:
-      Color: [1, 0.5, 0.5, 1]
-    Rigidbody2DComponent:
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.5
-      RestitutionThreshold: 0.5
   - Entity: 12525170710031122055
     TagComponent:
       Tag: Plane
@@ -53,17 +34,17 @@ Entities:
       AspectRatio: 2.0320196
       NearClip: 0.001
       FarClip: 10000
-  - Entity: 12337321931969354250
+  - Entity: 3210850351033950326
     TagComponent:
-      Tag: square
+      Tag: Plane2
     TransformComponent:
-      Translate: [0, 5.569664, 0]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
+      Translate: [5.726206, 0, 0]
+      Rotation: [0.024098728, -0.056281824, 0.72072387]
+      Scale: [11.220309, 0.99999994, 1]
     SpriteComponent:
       Color: [1, 0.5, 0.5, 1]
     Rigidbody2DComponent:
-      Type: 1
+      Type: 0
       FixedRotation: false
     BoxCollider2DComponent:
       Offset: [0, 0]
@@ -93,3 +74,14 @@ Entities:
       Friction: 0.5
       Restitution: 0.5
       RestitutionThreshold: 0.5
+  - Entity: 13038212330706941355
+    TagComponent:
+      Tag: test
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+    ScriptComponent:
+      ClassName: Hazel.Player

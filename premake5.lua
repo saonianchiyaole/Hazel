@@ -21,6 +21,27 @@ IncludeDir["entt"] = "vendor/entt"
 IncludeDir["yaml"] = "vendor/yaml-cpp/include"
 IncludeDir["ImGuizmo"] = "vendor/ImGuizmo"
 IncludeDir["box2d"] = "vendor/box2d/include"
+IncludeDir["mono"] = "vendor/mono/include"
+IncludeDir["assimp"] = "vendor/assimp/include"
+
+SolutionDir = "G:/Project/visualStudio/Hazel"
+
+
+-- Initialize LibDir
+LibDir = {} 
+LibDir["mono"] = "%{SolutionDir}/vendor/mono/lib/%{cfg.buildcfg}"
+
+Lib = {}
+Lib["mono"] = "%{LibDir.mono}/mono-2.0-sgen.lib"
+Lib["WinSock"] = "Ws2_32.lib"
+Lib["WinMM"] = "Winmm.lib"
+Lib["WinVersion"] = "Version.lib"
+Lib["BCrypt"] = "Bcrypt.lib"
+Lib["Ucrt"] = "libucrt.lib"
+Lib["VCruntime"] = "libvcruntime.lib"
+Lib["assimpd"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc143-mtd.lib"
+Lib["assimp"] = "%{SolutionDir}/vendor/assimp/lib/Release/assimp-vc143-mt.lib"
+
 
 
 include "vendor/GLFW"
@@ -28,13 +49,15 @@ include "vendor/GLAD"
 include "vendor/imgui"
 include "vendor/yaml-cpp"
 include "vendor/box2d"
+include "ScriptCore"
+
 
 project "Hazel"
 	location "Hazel"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("$(SolutionDir)bin/" .. outputDir .. "/%{prj.name}")
 	objdir ("$(SolutionDir)bin-int/" .. outputDir .. "/%{prj.name}")
@@ -66,6 +89,13 @@ project "Hazel"
 		"%{IncludeDir.yaml}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.box2d}",
+		"%{IncludeDir.mono}",
+		"%{IncludeDir.assimp}"
+	}
+
+	libdirs
+	{
+		"%{LibDir.mono}",
 	}
 
 	links
@@ -75,7 +105,8 @@ project "Hazel"
 		"imgui",
 		"opengl32.lib",
 		"yaml-cpp",
-		"box2d"
+		"box2d",
+		"%{Lib.mono}",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -84,6 +115,14 @@ project "Hazel"
 	filter "system:windows"
 		staticruntime "On"
 		systemversion "latest"
+
+		links
+		{
+			"%{Lib.WinSock}",
+			"%{Lib.WinMM}",
+			"%{Lib.WinVersion}",
+			"%{Lib.BCrypt}",
+		}
 
 		defines
 		{
@@ -105,10 +144,20 @@ project "Hazel"
 		runtime "Debug"
 		symbols "on"
 
+		links
+		{
+			"%{Lib.assimpd}"
+		}
+
 	filter "configurations:Release"
 		defines "HZ_RELEASE"
 		runtime "Release"
 		optimize "on"
+
+		links
+		{
+			"%{Lib.assimp}"
+		}
 
 	filter "configurations:Dist"
 		defines "HZ_DIST"
@@ -122,7 +171,7 @@ project "SandBox"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("$(SolutionDir)bin/" .. outputDir .. "/%{prj.name}")
 	objdir ("$(SolutionDir)bin-int/" .. outputDir .. "/%{prj.name}")
@@ -179,7 +228,7 @@ project "Editor"
 		kind "ConsoleApp"
 		language "C++"
 		cppdialect "C++17"
-		staticruntime "on"
+		staticruntime "off"
 	
 		targetdir ("$(SolutionDir)bin/" .. outputDir .. "/%{prj.name}")
 		objdir ("$(SolutionDir)bin-int/" .. outputDir .. "/%{prj.name}")
@@ -203,14 +252,20 @@ project "Editor"
 			"%{IncludeDir.yaml}",
 			"%{IncludeDir.ImGuizmo}",
 			"%{IncludeDir.box2d}",
+			"%{IncludeDir.mono}",
 		}
 	
 	
 		links
 		{
-			"Hazel"
+			"Hazel",
+			"%{Lib.mono}",
+			"%{Lib.WinSock}",
+			"%{Lib.WinMM}",
+			"%{Lib.WinVersion}",
+			"%{Lib.BCrypt}",
 		}
-	
+		
 		filter "system:windows"
 			staticruntime "On"
 			systemversion "latest"

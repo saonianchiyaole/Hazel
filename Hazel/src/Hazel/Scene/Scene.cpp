@@ -5,7 +5,11 @@
 
 #include "Hazel/Scene/Component.h"
 
+#include "Hazel/Renderer/Renderer.h"
 #include "Hazel/Renderer/Renderer2D.h"
+#include "Hazel/Scripting/ScriptEngine.h"
+
+
 
 // Box2D
 #include "box2d/b2_world.h"
@@ -18,6 +22,7 @@
 namespace Hazel {
 
 	static std::unordered_map<UUID, std::pair<entt::entity, entt::entity>> s_CopyRegistry;
+
 
 
 	static b2BodyType Rigidbody2DTypeToBox2DBody(Rigidbody2DComponent::BodyType type) {
@@ -56,7 +61,8 @@ namespace Hazel {
 			CopyComponent<Rigidbody2DComponent>(src, dst, uuid);
 			CopyComponent<BoxCollider2DComponent>(src, dst, uuid);
 			CopyComponent<CircleCollider2DComponent>(src, dst, uuid);
-
+			CopyComponent<ScriptComponent>(src, dst, uuid);
+			CopyComponent<MeshComponent>(src, dst, uuid);
 		}
 
 		return dst;
@@ -87,12 +93,32 @@ namespace Hazel {
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag = name;
 
+		m_UUIDToEntity[ID] = entity.GetHandle();
+
 		return entity;
+	}
+
+	Entity Scene::GetEntityFormUUID(UUID uuid)
+	{
+		return { m_UUIDToEntity[uuid], this };
+	}
+
+	Entity Scene::FindEntityByName(std::string name)
+	{
+		auto view = m_Registry.view<TagComponent>();
+		for (auto entityID : view) {
+			const auto& tagComponent = m_Registry.get<TagComponent>(entityID);
+			if (tagComponent.tag == name) {
+				return Entity{ entityID, this };
+			}
+		}
 	}
 
 	void Scene::DestroyEntity(Entity entity)
 	{
 		m_Registry.destroy(entity);
+		if (m_UUIDToEntity.find(entity.GetEntityID()) != m_UUIDToEntity.end())
+			m_UUIDToEntity.erase(entity.GetEntityID());
 	}
 
 	Ref<Camera> Scene::GetPrimaryCamera()
@@ -116,12 +142,15 @@ namespace Hazel {
 
 		OnPhysics2DStart();
 
+		ScriptEngine::OnRuntimeStart(this);
 	}
 
 	void Scene::OnRuntimeStop()
 	{
 		m_State = SceneState::Edit;
 		OnPhysics2DStop();
+
+		ScriptEngine::OnRuntimeStop();
 	}
 
 	void Scene::OnPhysics2DStart()
@@ -184,7 +213,7 @@ namespace Hazel {
 
 	void Scene::OnUpdateEditor(Timestep ts, const EditorCamera& camera)
 	{
-
+		// 2D part
 		Renderer2D::BeginScene(camera);
 
 		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
@@ -202,19 +231,31 @@ namespace Hazel {
 
 		Renderer2D::EndScene();
 
+
+
+		// 3D part
+		auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
+		Renderer::BeginScene(camera);
+
+		for (auto entityID : meshGroup) {
+
+			auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
+			if (mesh.mesh && mesh.type != Invalid)
+				Renderer::SubmitMesh(mesh.mesh, transform);
+		}
+
+		Renderer::EndScene();
+
+
+
 	}
 
 	void Scene::OnUpdateRuntime(Timestep ts)
 	{
-		m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+		m_Registry.view<ScriptComponent>().each([=](auto entityID, auto& scriptComponent)
 			{
-				if (!nsc.instance) {
-					nsc.instance = nsc.InstantiateScript();
-					nsc.instance->m_Entity = Entity{ entity, this };
-					nsc.instance->OnCreate();
-				}
-
-				nsc.instance->OnUpdate(ts);
+				Entity entity{ entityID, this };
+				ScriptEngine::OnUpdateEntity(&entity, ts);
 			}
 		);
 
@@ -272,6 +313,20 @@ namespace Hazel {
 
 
 			Renderer2D::EndScene();
+
+
+			// 3D part
+			auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
+			Renderer::BeginScene(*mainCamera);
+
+			for (auto entityID : meshGroup) {
+
+				auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
+				if (mesh.mesh && mesh.type != Invalid)
+					Renderer::SubmitMesh(mesh.mesh, transform);
+			}
+
+			Renderer::EndScene();
 		}
 	}
 
@@ -293,8 +348,8 @@ namespace Hazel {
 	}
 
 	template<>
-	void Scene::OnAddComponent<IDComponent>(Entity& entity, IDComponent& transformComponent) {
-
+	void Scene::OnAddComponent<IDComponent>(Entity& entity, IDComponent& IDComponent) {
+		entity.m_EntityID = IDComponent.ID;
 	}
 
 	template<>
@@ -339,5 +394,14 @@ namespace Hazel {
 
 	template<>
 	void Scene::OnAddComponent<CircleCollider2DComponent>(Entity& entity, CircleCollider2DComponent& nativeScriptComponent) {
+	}
+
+
+	template<>
+	void Scene::OnAddComponent<ScriptComponent>(Entity& entity, ScriptComponent& scriptComponent) {
+	}
+
+	template<>
+	void Scene::OnAddComponent<MeshComponent>(Entity& entity, MeshComponent& meshComponent) {
 	}
 }

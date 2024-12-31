@@ -4,14 +4,14 @@
 #include <imgui.h>
 #include "Hazel/Event/ApplicationEvent.h"
 
-#include "Platform/OpenGL/OpenGLShader.h"
-
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
 #include "Hazel/Renderer/Renderer2D.h"
 #include "entt.hpp"
-#include "Platform/Windows/WindowsUtils.h"
+
+//#include "Hazel/Utils/PlatformUtils.h"
+#include "Platform/Windows/WindowsUtils.cpp"
 
 
 namespace Hazel {
@@ -48,6 +48,13 @@ namespace Hazel {
 
 		m_EditorCamera = { 90.0f, 1280.f / 720.f, 0.001f, 1000.f };
 
+
+		//m_Mesh = Mesh("assets/m1911/m1911.fbx");
+		//ShaderLibrary::Load("assets/Shaders/Shader.glsl");
+		//m_MeshShader = ShaderLibrary::Get("Shader");
+
+
+
 		// Init here
 		m_Particle.ColorBegin = { 254 / 255.0f, 212 / 255.0f, 123 / 255.0f, 1.0f };
 		m_Particle.ColorEnd = { 254 / 255.0f, 109 / 255.0f, 41 / 255.0f, 1.0f };
@@ -75,9 +82,9 @@ namespace Hazel {
 		m_Framebuffer->Bind();
 		Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		Hazel::RenderCommand::Clear();
+		
 		int textureValue = -1;
 		m_Framebuffer->ClearAttachment(1, (void*)&textureValue);
-
 		static float angle = 0.0f;
 		angle += 1.f;
 
@@ -89,6 +96,19 @@ namespace Hazel {
 			m_ActiveScene->OnUpdateRuntime(ts);
 			break;
 		}
+
+		/*m_MeshShader->Bind();
+		static float rotation;
+		rotation += (float)ts;
+		glm::mat4 transform = glm::rotate(glm::mat4(1.0f), rotation, {1.0f, 0.0f, 0.0f});
+		m_MeshShader->SetMat4("u_Transform", transform);
+		m_MeshShader->SetMat4("u_View", m_EditorCamera.GetViewMatrix());
+		m_MeshShader->SetMat4("u_Projection", m_EditorCamera.GetProjectionMatrix());
+		m_Mesh.m_VertexArray->Bind();
+		RenderCommand::DrawIndexed(m_Mesh.m_VertexArray);*/
+
+
+		
 
 		//Get Pixel value
 		glm::vec2 mousePos = *(glm::vec2*)&ImGui::GetMousePos();
@@ -110,9 +130,6 @@ namespace Hazel {
 		ColliderVisiable();
 
 		m_Framebuffer->Unbind();
-
-		Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-		Hazel::RenderCommand::Clear();
 	}
 
 
@@ -252,7 +269,6 @@ namespace Hazel {
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
 				m_ActiveScene->SetViewPortSize(m_ViewportSize);
-				HZ_CORE_INFO("ViewPortSize : {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
 			}
 			ImGui::Image((void*)m_Framebuffer->GetColorAttachment(0), { (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
@@ -282,6 +298,17 @@ namespace Hazel {
 		// ViewPort End
 
 
+		//Test
+		//ImGui::Begin("Check Texture");
+		//ImGui::Image((void*)m_Mesh.m_Textures[0]->GetRendererID(),{ (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+		//ImGui::End();
+		 
+		 
+		 
+		//Test End
+
+
+
 		m_HierarchyPanel.OnImGuiRender();
 		m_ContentBrowserPanel.OnImGuiRender();
 
@@ -305,8 +332,6 @@ namespace Hazel {
 
 	bool Editor::OnMoustLeftButtonClicked(Hazel::MouseButtonPressedEvent& event)
 	{
-
-		HZ_INFO("Mouse Position {0},{1}", Hazel::Input::GetMousePos().first, Hazel::Input::GetMousePos().second);
 
 		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(HZ_KEY_LEFT_ALT) && m_IsViewportHovered && (!ImGuizmo::IsOver() || !m_HierarchyPanel.GetSelectedEntity())) {
 			if (m_HoveredEntity.GetHandle() == entt::null) {

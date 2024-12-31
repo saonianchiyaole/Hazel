@@ -1,0 +1,11 @@
+Scene: Untitled
+Entities:
+  - Entity: 17399632842228297536
+    TagComponent:
+      Tag: Gun
+    TransformComponent:
+      Translate: [1, 1, 1]
+      Rotation: [0, -0, 0]
+      Scale: [0.69, 0.69, 0.69]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911.fbx

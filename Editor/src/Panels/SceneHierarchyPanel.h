@@ -7,6 +7,7 @@
 
 #include "Hazel/Renderer/Texture.h"
 
+
 namespace Hazel {
 	
 	class SceneHierarchyPanel {
