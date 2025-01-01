@@ -84,10 +84,11 @@ namespace Hazel {
 		std::array<glm::vec4, 4> QuadVertices;
 		std::array<glm::vec2, 4> QuadTextureCrood;
 
-		struct CameraData {
+		struct CameraUniformBuffer {
 			glm::mat4 viewProjectionMatrix;
+			glm::vec4 position;
 		};
-		CameraData cameraBuffer;
+		CameraUniformBuffer cameraBuffer;
 		Ref<UniformBuffer> cameraUniformBuffer;
 	};
 
@@ -232,7 +233,7 @@ namespace Hazel {
 		m_Data->textureshader->SetIntArray("u_Textures", indexArray, m_Data->maxTextureSlot);
 
 		
-		m_Data->cameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DStorage::CameraData), 0);
+		m_Data->cameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
 	}
 	void Renderer2D::Shutdown()
@@ -244,8 +245,10 @@ namespace Hazel {
 	{
 		//Initialize variable
 
-		m_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		m_Data->cameraUniformBuffer->SetData((const void*)&m_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraData), 0);
+		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
+		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
+		m_Data->cameraUniformBuffer->SetData((const void*)&m_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 		
 		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
 		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;
@@ -254,8 +257,10 @@ namespace Hazel {
 	}
 	void Renderer2D::BeginScene(const EditorCamera& camera)
 	{
-		m_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		m_Data->cameraUniformBuffer->SetData((const void*)&m_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraData), 0);
+		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
+		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
+		m_Data->cameraUniformBuffer->SetData((const void*)&m_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
 		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
 		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;
@@ -264,8 +269,10 @@ namespace Hazel {
 
 	void Renderer2D::BeginScene(const Camera& camera)
 	{
-		m_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		m_Data->cameraUniformBuffer->SetData((const void*)&m_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraData), 0);
+		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
+		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
+		m_Data->cameraUniformBuffer->SetData((const void*)&cameraUniformBufferData, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
 		m_Data->quadVertexBufferPtr = m_Data->quadVertexBuffeBase;
 		m_Data->circleVertexBuffePtr = m_Data->circleVertexBuffeBase;

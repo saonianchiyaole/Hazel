@@ -16,6 +16,7 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Camera.cpp;G:\Project\vis
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\EditorCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\EditorCamera.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Framebuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Framebuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\GraphicsContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\GraphicsContext.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Lightt.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Lightt.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Material.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Material.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Mesh.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Mesh.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\OrthographicCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OrthographicCamera.obj

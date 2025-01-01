@@ -229,6 +229,16 @@ namespace Hazel {
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<LightComponent>()) {
+			out << YAML::Key << "LightComponent";
+			out << YAML::BeginMap;
+			auto& light = entity.GetComponent<LightComponent>();
+
+			out << YAML::Key << "Color" << YAML::Value << light.color;
+
+			out << YAML::EndMap;
+		}
+
 
 
 		out << YAML::EndMap;
@@ -297,7 +307,7 @@ namespace Hazel {
 				//Transform
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent) {
-					deserializedEntity.AddComponent<TransformComponent>(
+					deserializedEntity.GetComponent<TransformComponent>().SetTransform(
 						transformComponent["Translate"].as<glm::vec3>(),
 						transformComponent["Rotation"].as<glm::vec3>(),
 						transformComponent["Scale"].as<glm::vec3>()
@@ -379,6 +389,12 @@ namespace Hazel {
 					auto& mesh = deserializedEntity.AddComponent<MeshComponent>();
 					mesh.SetMesh(MakeRef<Mesh>(meshComponent["FilePath"].as<std::string>(), deserializedEntity.GetHandle()));
 
+				}
+
+				auto lightComponent = entity["LightComponent"];
+				if (lightComponent) {
+					auto& light = deserializedEntity.AddComponent<LightComponent>();
+					light.color = lightComponent["Color"].as<glm::vec3>();
 				}
 			}
 		}

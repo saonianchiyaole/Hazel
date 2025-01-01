@@ -18,9 +18,14 @@ namespace Hazel {
 		RenderCommand::Init();
 		Renderer2D::Init();
 
-		s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(glm::mat4), 0);
+		s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
+		s_SceneData->lightUniformBuffer = UniformBuffer::Create(sizeof(LightUniformBuffer), 1);
+
 		ShaderLibrary::Load("assets/Shaders/Shader.glsl");
 		s_SceneData->defaultShader = ShaderLibrary::Get("Shader");
+
+
+		//Set Dufault Light Uniform
 	}
 
 	void Renderer::BeginScene(const Camera& camera)
@@ -29,7 +34,12 @@ namespace Hazel {
 		s_SceneData->ProjectionMatrix = camera.GetProjectionMatrix();
 		s_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
 
-		s_SceneData->cameraUniformBuffer->SetData(&camera.GetViewProjectionMatrix(), sizeof(glm::mat4), 0);
+
+		CameraUniformBuffer cameraUniformBufferData;
+		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
+
+		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
 	}
 
 	void Renderer::BeginScene(const EditorCamera& camera)
@@ -38,7 +48,12 @@ namespace Hazel {
 		s_SceneData->ProjectionMatrix = camera.GetProjectionMatrix();
 		s_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
 
-		s_SceneData->cameraUniformBuffer->SetData(&camera.GetViewProjectionMatrix(), sizeof(glm::mat4), 0);
+		CameraUniformBuffer cameraUniformBufferData;
+		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
+
+		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
+
 	}
 
 	void Renderer::EndScene()
@@ -46,7 +61,7 @@ namespace Hazel {
 	}
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform)
 	{
-		
+
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->Bind();
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_View", s_SceneData->ViewMatrix);
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_Projection", s_SceneData->ProjectionMatrix);
@@ -56,7 +71,7 @@ namespace Hazel {
 		RenderCommand::DrawIndexed(vertexArray);
 	}
 
-	
+
 
 	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Shader> shader, UUID entityID)
 	{
@@ -69,7 +84,21 @@ namespace Hazel {
 
 		RenderCommand::DrawIndexed(mesh->m_VertexArray);
 
-		
+
+	}
+
+	void Renderer::SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent)
+	{
+		LightUniformBuffer lightUniformBufferData;
+		lightUniformBufferData.position = { transformComponent.translate, 0.0f};
+
+		glm::quat quaternion = glm::quat(transformComponent.rotation);
+		glm::mat3 rotationMatrix = glm::toMat3(quaternion);
+
+		lightUniformBufferData.direction = { glm::normalize(rotationMatrix * glm::vec3(0.0f, 0.0f, 1.0f)), 0.0f };
+		lightUniformBufferData.color = {lightComponent.color, 0.0f};
+
+		s_SceneData->lightUniformBuffer->SetData(&lightUniformBufferData, sizeof(LightUniformBuffer), 0); 
 	}
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)

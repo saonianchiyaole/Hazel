@@ -10,9 +10,16 @@ layout(location = 4) in vec2 a_TexCoord;
 layout(location = 5) in int a_EntityID;		
 
 
+layout(std140, binding = 0) uniform CameraUniform
+{
+	mat4 u_ViewProjection;
+	vec4 cameraPosition;
+};
+
 uniform mat4 u_Transform;
 uniform mat4 u_View;
 uniform mat4 u_Projection;
+
 
 out VertexOutput{
 	vec3 WorldPosition;
@@ -21,24 +28,22 @@ out VertexOutput{
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
-	int EntityID;
+	flat int EntityID;
+	flat vec4 cameraPosition;
 }vs_Output;
 
 
-layout(std140, binding = 0) uniform Camera
-{
-	mat4 u_ViewProjection;
-};
 
 void main()
 {		
 	vs_Output.WorldPosition = vec3(u_Transform * vec4(a_Position, 1.0f));
-	vs_Output.Normal = mat3(u_Transform) * a_Position;
+	vs_Output.Normal = mat3(u_Transform) * a_Normal;
 	vs_Output.TexCoord = vec2(a_TexCoord.x, a_TexCoord.y);
 	vs_Output.WorldNormals = mat3(u_Transform) * mat3(a_Tangent, a_Binormal, a_Normal);
 	vs_Output.WorldTransform = mat3(u_Transform);
 	vs_Output.Binormal = a_Binormal;
 	vs_Output.EntityID = a_EntityID;
+	vs_Output.cameraPosition = cameraPosition;
 
 	gl_Position = u_ViewProjection * u_Transform *  vec4(a_Position, 1.0);
 }
@@ -51,6 +56,18 @@ void main()
 layout(location = 0) out vec4 color;	
 layout(location = 1) out int IDColor;
 
+
+
+layout(std140, binding = 1) uniform LightUniform
+{
+	struct {	
+		vec4 position;
+		vec4 direction;
+		vec4 color;
+	}light;
+};
+
+
 in VertexOutput{
 	vec3 WorldPosition;
     vec3 Normal;
@@ -58,14 +75,46 @@ in VertexOutput{
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
-	int EntityID;
+	flat int EntityID;
+	flat vec4 cameraPosition;
 }vs_Input;
 
 
+
 uniform sampler2D u_Albedo;
+uniform sampler2D u_Normal;
+
+//uniform float diffuseFactor;
+//uniform float specFactor;
+
+vec4 Lighting(){
+	
+	vec3 view = normalize(vs_Input.cameraPosition.xyz - vs_Input.WorldPosition);
+	vec3 lightDir = normalize(-light.direction.xyz);
+	
+	vec4 albedo = texture(u_Albedo, vs_Input.TexCoord);
+	float transparency = albedo.w; 
+
+	float ambient = 0.2f;
+	float diffuseFactor = 0.5f;
+	float diffuse = diffuseFactor * max(dot(vs_Input.Normal, lightDir), 0.0f);
+	
+	float specFactor = 0.9f; 
+	vec3 halfNormal = normalize(lightDir + view);
+	float specular = specFactor * pow(max(dot(halfNormal, vs_Input.Normal), 0), 32);
+
+
+	//return vec4((ambient + diffuse + specular) * light.color * vec3(albedo), transparency);
+
+	return vec4((ambient + diffuse + specular) * light.color.xyz * albedo.xyz, 1.0f);
+}
+
 
 void main()
 {
-	color = texture(u_Albedo, vs_Input.TexCoord);
+
+	vec4 lightContribution = Lighting(); 
+
+	color = lightContribution;
 	IDColor = vs_Input.EntityID;
 }

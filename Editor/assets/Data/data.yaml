@@ -1,87 +1,20 @@
 Scene: Untitled
 Entities:
-  - Entity: 12525170710031122055
+  - Entity: 17399632842228297536
     TagComponent:
-      Tag: Plane
+      Tag: Gun
     TransformComponent:
-      Translate: [-2.4067898, -1.40942, 0]
-      Rotation: [-0.028281981, 0.019605663, -0.3996113]
-      Scale: [13.57838, 0.9999999, 0.9999999]
-    SpriteComponent:
-      Color: [1, 0.5, 0.5, 1]
-    Rigidbody2DComponent:
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.5
-      RestitutionThreshold: 0.5
-  - Entity: 10116330883116492222
+      Translate: [1, 1, 1]
+      Rotation: [0, -0, 0.05235988]
+      Scale: [0.69, 0.69, 0.69]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911.fbx
+  - Entity: 2058834786711790100
     TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translate: [0, 0.29438782, 5.3]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      ProjectionType: 0
-      Primary: true
-      Fovy: 97
-      ZoomLevel: 1
-      AspectRatio: 2.0320196
-      NearClip: 0.001
-      FarClip: 10000
-  - Entity: 3210850351033950326
-    TagComponent:
-      Tag: Plane2
-    TransformComponent:
-      Translate: [5.726206, 0, 0]
-      Rotation: [0.024098728, -0.056281824, 0.72072387]
-      Scale: [11.220309, 0.99999994, 1]
-    SpriteComponent:
-      Color: [1, 0.5, 0.5, 1]
-    Rigidbody2DComponent:
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.5
-      RestitutionThreshold: 0.5
-  - Entity: 9477152255538285345
-    TagComponent:
-      Tag: Circle
-    TransformComponent:
-      Translate: [2.7088513, 2.8712158, 2.3283064e-10]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [1, 1, 1, 1]
-      Thickness: 1
-      Fade: 0.005
-    Rigidbody2DComponent:
-      Type: 1
-      FixedRotation: true
-    CircleCollider2DComponent:
-      Offset: [0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.5
-      RestitutionThreshold: 0.5
-  - Entity: 13038212330706941355
-    TagComponent:
-      Tag: test
+      Tag: Light
     TransformComponent:
       Translate: [0, 0, 0]
-      Rotation: [0, 0, 0]
+      Rotation: [0, 3.3161256, 0]
       Scale: [1, 1, 1]
-    SpriteComponent:
-      Color: [1, 0.5, 0.5, 1]
-    ScriptComponent:
-      ClassName: Hazel.Player
+    LightComponent:
+      Color: [1, 1, 1]

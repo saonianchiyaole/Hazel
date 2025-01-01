@@ -15,6 +15,19 @@ namespace Hazel {
 	
 	struct TransformComponent;
 
+
+
+	struct LightUniformBuffer {
+		glm::vec4 position;
+		glm::vec4 direction;
+		glm::vec4 color;
+	};
+
+	struct CameraUniformBuffer {
+		glm::mat4 viewProjectionMatrix;
+		glm::vec4 position;
+	};
+
 	class Renderer {
 	public:
 
@@ -29,6 +42,8 @@ namespace Hazel {
 
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent = TransformComponent(), Ref<Shader> shader = s_SceneData->defaultShader, UUID entityID = -1);
 
+		static void SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent);
+
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
 		static void OnWindowResize(uint32_t width, uint32_t height);
@@ -42,6 +57,7 @@ namespace Hazel {
 			Ref<Shader> defaultShader;
 
 			Ref<UniformBuffer> cameraUniformBuffer;
+			Ref<UniformBuffer> lightUniformBuffer;
 
 		};
 		static SceneData* s_SceneData;

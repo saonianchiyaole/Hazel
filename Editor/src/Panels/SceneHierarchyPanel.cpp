@@ -114,10 +114,13 @@ namespace Hazel {
 					ImGui::CloseCurrentPopup();
 				}
 
-
-
 				if (ImGui::MenuItem("Script")) {
 					m_SelectedEntity.AddComponent<ScriptComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
+				if (ImGui::MenuItem("Light")) {
+					m_SelectedEntity.AddComponent<LightComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 
@@ -480,7 +483,12 @@ namespace Hazel {
 				ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f);
 			});
 
-
+		DrawComponent<LightComponent>(entity, "Light", [&](auto& component)
+			{
+				auto& light = entity.GetComponent<LightComponent>();
+				ImGui::DragFloat3("Color", glm::value_ptr(light.color), 0.05f, 0.0f, 1.0f);
+			}
+		);
 
 	}
 }

@@ -53,6 +53,7 @@ namespace Hazel {
 		virtual void SetProjection(float param1, float param2, float param3, float param4);
 
 		glm::vec3& GetPosition() { return m_Position; }
+		const glm::vec3& GetPosition() const { return m_Position; }
 		inline glm::vec3 GetRotation() { return m_Rotation; }
 		inline float GetFovy() { return m_Fovy;}
 		inline float GetFovx() { return m_Fovx;}

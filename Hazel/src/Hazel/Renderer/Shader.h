@@ -5,6 +5,8 @@
 #include "glm/glm.hpp"
 #include "glad/glad.h"
 
+#include "Hazel/Renderer/ShaderUniform.h"
+
 namespace Hazel {
 
 	class Shader {
@@ -35,6 +37,9 @@ namespace Hazel {
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& filepath);
 	private:
+
+		std::vector<ShaderUniform> m_Uniforms;
+
 	};
 
 

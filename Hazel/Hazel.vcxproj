@@ -183,6 +183,7 @@
     <ClInclude Include="src\Hazel\Renderer\EditorCamera.h" />
     <ClInclude Include="src\Hazel\Renderer\Framebuffer.h" />
     <ClInclude Include="src\Hazel\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Hazel\Renderer\Light.h" />
     <ClInclude Include="src\Hazel\Renderer\Material.h" />
     <ClInclude Include="src\Hazel\Renderer\Mesh.h" />
     <ClInclude Include="src\Hazel\Renderer\OrthographicCamera.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="src\Hazel\Renderer\Renderer3D.h" />
     <ClInclude Include="src\Hazel\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Hazel\Renderer\Shader.h" />
+    <ClInclude Include="src\Hazel\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\Hazel\Renderer\Texture.h" />
     <ClInclude Include="src\Hazel\Renderer\VertexArray.h" />
     <ClInclude Include="src\Hazel\Scene\Component.h" />
@@ -239,6 +241,7 @@
     <ClCompile Include="src\Hazel\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\Hazel\Renderer\GraphicsContext.cpp" />
+    <ClCompile Include="src\Hazel\Renderer\Lightt.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Material.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Mesh.cpp" />
     <ClCompile Include="src\Hazel\Renderer\OrthographicCamera.cpp" />
@@ -251,6 +254,7 @@
     <ClCompile Include="src\Hazel\Renderer\Renderer3D.cpp" />
     <ClCompile Include="src\Hazel\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Hazel\Renderer\ShaderUniform.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Texture.cpp" />
     <ClCompile Include="src\Hazel\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Hazel\Scene\Entity.cpp" />

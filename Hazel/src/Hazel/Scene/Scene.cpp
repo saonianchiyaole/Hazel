@@ -92,6 +92,8 @@ namespace Hazel {
 		entity.AddComponent<IDComponent>(ID);
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag = name;
+		
+		entity.AddComponent<TransformComponent>();
 
 		m_UUIDToEntity[ID] = entity.GetHandle();
 
@@ -214,13 +216,13 @@ namespace Hazel {
 	void Scene::OnUpdateEditor(Timestep ts, const EditorCamera& camera)
 	{
 		// 2D part
-		Renderer2D::BeginScene(camera);
+		/*Renderer2D::BeginScene(camera);
 
-		auto group = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
-		for (auto entity : group) {
-			auto& [transform, sprite] = group.get<TransformComponent, SpriteComponent>(entity);
+		auto quadGroup = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
+		for (auto entityID : quadGroup) {
+			auto& [transform, sprite] = quadGroup.get<TransformComponent, SpriteComponent>(entityID);
 
-			Renderer2D::DrawSprite(transform, sprite, (int)entity);
+			Renderer2D::DrawSprite(transform, sprite, (int)entityID);
 		}
 
 		auto circleGroup = m_Registry.view<TransformComponent, CircleRendererComponent>();
@@ -229,7 +231,18 @@ namespace Hazel {
 			Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
 		}
 
-		Renderer2D::EndScene();
+		Renderer2D::EndScene();*/
+
+
+
+		//Light
+		auto LightGroup = m_Registry.view<TransformComponent, LightComponent>();
+		for (auto entityID : LightGroup) {
+			auto& [transform, light] = LightGroup.get<TransformComponent, LightComponent>(entityID);
+
+			Renderer::SubmitLight(light, transform);
+			// Material submit
+		}
 
 
 
@@ -313,6 +326,17 @@ namespace Hazel {
 
 
 			Renderer2D::EndScene();
+
+
+			//Light
+			auto LightGroup = m_Registry.group<TransformComponent, LightComponent>();
+			for (auto entityID : LightGroup) {
+				auto& [transform, light] = LightGroup.get<TransformComponent, LightComponent>(entityID);
+
+				Renderer::SubmitLight(light, transform);
+				// Material submit
+			}
+
 
 
 			// 3D part
@@ -403,5 +427,9 @@ namespace Hazel {
 
 	template<>
 	void Scene::OnAddComponent<MeshComponent>(Entity& entity, MeshComponent& meshComponent) {
+	}
+
+	template<>
+	void Scene::OnAddComponent<LightComponent>(Entity& entity, LightComponent& lightComponent) {
 	}
 }

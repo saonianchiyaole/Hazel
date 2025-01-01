@@ -8,7 +8,7 @@
 #include "Hazel/Core/Timestep.h"
 #include "Hazel/Core/UUID.h"
 #include "Hazel/Renderer/Mesh.h"
-
+#include "Hazel/Renderer/Light.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/matrix_transform.hpp"
@@ -194,6 +194,14 @@ namespace Hazel {
 		}
 	};
 
+	struct LightComponent {
+		glm::vec3 color = {1.0f, 1.0f, 1.0f};
+		LightType type = LightType::None;
+
+		LightComponent() = default;
+		LightComponent(const LightComponent& other) = default;
+	};
+
 	template<typename ... Components>
 	struct ComponentGroup {
 
@@ -201,6 +209,6 @@ namespace Hazel {
 
 	using AllComponents = ComponentGroup<TransformComponent, IDComponent, TagComponent, SpriteComponent,
 		CircleRendererComponent, CameraComponent, NativeScriptComponent, Rigidbody2DComponent,
-		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent>;
+		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent>;
 
 }
