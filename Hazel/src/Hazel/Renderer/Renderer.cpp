@@ -87,6 +87,23 @@ namespace Hazel {
 
 	}
 
+	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material)
+	{
+
+		material->GetShader()->Bind();
+		material->Submit();
+		material->GetShader()->SetMat4("u_Transform", transformComponent.transform);
+		material->GetShader()->SetInt("u_Albedo", 0);
+		mesh->GetTexture(TextureType::Albedo)->Bind(0);
+		mesh->m_VertexArray->Bind();
+
+
+		RenderCommand::DrawIndexed(mesh->m_VertexArray);
+
+	}
+
+
+
 	void Renderer::SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent)
 	{
 		LightUniformBuffer lightUniformBufferData;

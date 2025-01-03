@@ -9,6 +9,8 @@
 #include "Hazel/Core/UUID.h"
 #include "Hazel/Renderer/Mesh.h"
 #include "Hazel/Renderer/Light.h"
+#include "Hazel/Renderer/Material.h"
+
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/matrix_transform.hpp"
@@ -194,6 +196,16 @@ namespace Hazel {
 		}
 	};
 
+
+	struct MaterialComponent {
+		Ref<Material> material;
+		std::string name;
+		MaterialComponent() = default;
+		MaterialComponent(const MaterialComponent& other) = default;
+		MaterialComponent(Ref<Material> materialVal) : material(material){}
+
+	};
+
 	struct LightComponent {
 		glm::vec3 color = {1.0f, 1.0f, 1.0f};
 		LightType type = LightType::None;
@@ -209,6 +221,6 @@ namespace Hazel {
 
 	using AllComponents = ComponentGroup<TransformComponent, IDComponent, TagComponent, SpriteComponent,
 		CircleRendererComponent, CameraComponent, NativeScriptComponent, Rigidbody2DComponent,
-		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent>;
+		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent, MaterialComponent>;
 
 }

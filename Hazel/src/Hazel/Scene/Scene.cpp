@@ -251,10 +251,19 @@ namespace Hazel {
 		Renderer::BeginScene(camera);
 
 		for (auto entityID : meshGroup) {
+			
+			
+			Entity entity = { entityID, this };
 
 			auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
 			if (mesh.mesh && mesh.type != Invalid)
-				Renderer::SubmitMesh(mesh.mesh, transform);
+			{Entity entity = { entityID, this };
+				if (!entity.HasComponent<MaterialComponent>())
+					Renderer::SubmitMesh(mesh.mesh, transform);
+				else {
+					Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().material);
+				}
+			}
 		}
 
 		Renderer::EndScene();
@@ -345,9 +354,19 @@ namespace Hazel {
 
 			for (auto entityID : meshGroup) {
 
+				Entity entity = { entityID, this };
+
 				auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
 				if (mesh.mesh && mesh.type != Invalid)
-					Renderer::SubmitMesh(mesh.mesh, transform);
+				{
+					if(!entity.HasComponent<MaterialComponent>())
+						Renderer::SubmitMesh(mesh.mesh, transform);
+					else {
+						Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().material);
+					}
+				}
+
+
 			}
 
 			Renderer::EndScene();
@@ -427,6 +446,10 @@ namespace Hazel {
 
 	template<>
 	void Scene::OnAddComponent<MeshComponent>(Entity& entity, MeshComponent& meshComponent) {
+	}
+
+	template<>
+	void Scene::OnAddComponent<MaterialComponent>(Entity& entity, MaterialComponent& MaterialComponent) {
 	}
 
 	template<>

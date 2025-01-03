@@ -8,8 +8,7 @@ project "ScriptCore"
 
 	files 
 	{
-		"Source/**.cs",
-		"Properties/**.cs"
+		"src/**.cs",
 	}
 	
 	filter "configurations:Debug"

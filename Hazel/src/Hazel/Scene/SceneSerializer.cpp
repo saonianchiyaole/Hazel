@@ -229,6 +229,16 @@ namespace Hazel {
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<MaterialComponent>()) {
+			out << YAML::Key << "MaterialComponent";
+			out << YAML::BeginMap;
+			auto& material = entity.GetComponent<MaterialComponent>();
+
+			out << YAML::Key << "Path" << YAML::Value << material.name;
+
+			out << YAML::EndMap;
+		}
+
 		if (entity.HasComponent<LightComponent>()) {
 			out << YAML::Key << "LightComponent";
 			out << YAML::BeginMap;
@@ -238,7 +248,6 @@ namespace Hazel {
 
 			out << YAML::EndMap;
 		}
-
 
 
 		out << YAML::EndMap;
@@ -389,6 +398,24 @@ namespace Hazel {
 					auto& mesh = deserializedEntity.AddComponent<MeshComponent>();
 					mesh.SetMesh(MakeRef<Mesh>(meshComponent["FilePath"].as<std::string>(), deserializedEntity.GetHandle()));
 
+				}
+
+				//Material
+				auto materialComponent = entity["MaterialComponent"];
+				if (materialComponent) {
+					auto& material = deserializedEntity.AddComponent<MaterialComponent>();
+					material.name = materialComponent["Path"].as<std::string>();
+
+
+
+					// TODO fix this
+					/*if(ShaderLibrary::Exists(material.name))
+						material.material = MakeRef<Material>(ShaderLibrary::Get(material.name));
+					else {
+
+					}*/
+
+					material.material = MakeRef<Material>(ShaderLibrary::Get(material.name));
 				}
 
 				auto lightComponent = entity["LightComponent"];

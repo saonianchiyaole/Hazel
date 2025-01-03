@@ -29,6 +29,7 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer2D.cpp;G:\Project
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer3D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer3D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RendererAPI.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Shader.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Shader.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\ShaderUniform.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ShaderUniform.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Texture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Texture.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\VertexArray.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VertexArray.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\Entity.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Entity.obj
@@ -42,8 +43,10 @@ G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLContext.cpp;G:\Pro
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLFramebuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLFramebuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLRendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLRendererAPI.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLShader.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLShader.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLShaderUniform.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLShaderUniform.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLTexture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLTexture.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLVertexArray.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLVertexArray.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Windows\WindowsInput.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\WindowsInput.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Platform\Windows\WindowsUtils.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\WindowsUtils.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Windows\WindowsWindow.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\WindowsWindow.obj
 G:\Project\visualStudio\Hazel\Hazel\src\hzpch.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\hzpch.obj

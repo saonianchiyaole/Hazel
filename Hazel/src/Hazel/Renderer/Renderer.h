@@ -41,6 +41,7 @@ namespace Hazel {
 		static void Init();
 
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent = TransformComponent(), Ref<Shader> shader = s_SceneData->defaultShader, UUID entityID = -1);
+		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material);
 
 		static void SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent);
 

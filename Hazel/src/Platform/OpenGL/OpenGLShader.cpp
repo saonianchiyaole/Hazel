@@ -3,8 +3,8 @@
 
 
 #include <glm/gtc/type_ptr.hpp>
-
-
+#include "Hazel/Renderer/Buffer.h"
+#include "Platform/OpenGL/OpenGLShaderUniform.h"
 #include <fstream>
 
 namespace Hazel {
@@ -172,9 +172,68 @@ namespace Hazel {
 			glDetachShader(program, shaderID);
 			glDetachShader(program, shaderID);
 		}
+
+
+		//Set Single ShaderUniform
+
+		GLint uniformCount;
+		glGetProgramiv(m_RendererID, GL_ACTIVE_UNIFORMS, &uniformCount);
+
+		for (GLint i = 0; i < uniformCount; ++i) {
+
+			char name[256];
+			GLenum type;
+			GLint size;
+			glGetActiveUniform(m_RendererID, i, sizeof(name), nullptr, &size, &type, name);
+
+			Ref<OpenGLShaderUniform> shaderUniform;
+
+			bool isAccpetableUniform = false;
+
+			switch (type) {
+			case GL_FLOAT: 
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Float));
+				break;
+			case GL_FLOAT_VEC2: 
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Vec2));
+				//isAccpetableUniform = true;
+				break;
+			case GL_FLOAT_VEC3 : 
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Vec3));
+				//isAccpetableUniform = true;
+				break;
+			case GL_FLOAT_VEC4:
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Vec4));
+				//isAccpetableUniform = true;
+				break;
+			case GL_FLOAT_MAT3 : 
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat3));
+				break;
+			case GL_FLOAT_MAT4 : 
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat4));
+				break;
+			case GL_INT: 
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Int));
+				break;
+			case GL_BOOL:
+				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Bool));
+				break;
+			case GL_SAMPLER_2D : 
+			case GL_SAMPLER_CUBE: 
+				break;
+			}			
+		}
+
+		//Set ShaderUniform Block 
+
 	}
 
-
+	void OpenGLShader::Submit()
+	{
+		for (const auto& uniform : m_Uniforms) {
+			uniform->Submit(m_RendererID);
+		}
+	}
 
 	void OpenGLShader::Bind() const {
 		glUseProgram(m_RendererID);

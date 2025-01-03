@@ -15,8 +15,14 @@ namespace Hazel {
 
 		void Submit();
 
-	private:
+		Ref<Shader> GetShader();
 
+		void SetShader(Ref<Shader> shader);
+		std::string GetName();
+		void SetName(std::string name);
+
+	private:
+		std::string m_Name;
 		Ref<Shader> m_Shader;
 
 	};

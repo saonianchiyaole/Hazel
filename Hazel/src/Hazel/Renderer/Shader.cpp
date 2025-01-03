@@ -10,6 +10,13 @@ namespace Hazel {
 	
 	std::unordered_map<std::string, std::shared_ptr<Hazel::Shader>> Hazel::ShaderLibrary::m_Shaders;
 
+	
+
+	std::vector<Ref<ShaderUniform>> Shader::GetUniforms()
+	{
+		return m_Uniforms;
+	}
+
 	Ref<Shader> Shader::Create(const std::string& vertexSrc, const std::string& fragmentSrc) {
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:

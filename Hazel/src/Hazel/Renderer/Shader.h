@@ -33,12 +33,15 @@ namespace Hazel {
 		virtual const GLint GetRendererID() = 0;
 
 
+		virtual void Submit() = 0;
+		std::vector<Ref<ShaderUniform>> GetUniforms();
+
 		static Ref<Shader> Create(const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& filepath);
-	private:
-
-		std::vector<ShaderUniform> m_Uniforms;
+	protected:
+		std::string m_Name;
+		std::vector<Ref<ShaderUniform>> m_Uniforms;
 
 	};
 

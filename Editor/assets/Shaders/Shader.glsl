@@ -84,8 +84,9 @@ in VertexOutput{
 uniform sampler2D u_Albedo;
 uniform sampler2D u_Normal;
 
-//uniform float diffuseFactor;
-//uniform float specFactor;
+uniform float ambientFactor;
+uniform float diffuseFactor;
+uniform float specFactor;
 
 vec4 Lighting(){
 	
@@ -95,11 +96,10 @@ vec4 Lighting(){
 	vec4 albedo = texture(u_Albedo, vs_Input.TexCoord);
 	float transparency = albedo.w; 
 
-	float ambient = 0.2f;
-	float diffuseFactor = 0.5f;
+	float ambient = ambientFactor;
+
 	float diffuse = diffuseFactor * max(dot(vs_Input.Normal, lightDir), 0.0f);
 	
-	float specFactor = 0.9f; 
 	vec3 halfNormal = normalize(lightDir + view);
 	float specular = specFactor * pow(max(dot(halfNormal, vs_Input.Normal), 0), 32);
 

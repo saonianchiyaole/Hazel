@@ -99,6 +99,11 @@ namespace Hazel {
 					ImGui::CloseCurrentPopup();
 				}
 
+				if (ImGui::MenuItem("Material")) {
+					m_SelectedEntity.AddComponent<MaterialComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
 				if (ImGui::MenuItem("Rigidbody 2D")) {
 					m_SelectedEntity.AddComponent<Rigidbody2DComponent>();
 					ImGui::CloseCurrentPopup();
@@ -427,6 +432,93 @@ namespace Hazel {
 
 			}
 		);
+
+		DrawComponent<MaterialComponent>(entity, "Material", [&](auto& component)
+			{
+
+				char buffer[255];
+				strcpy_s(buffer, sizeof(buffer), component.name.c_str());
+
+				if(!ShaderLibrary::Exists(component.name))
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+					if (ImGui::InputText("Material", buffer, sizeof(buffer))) {
+						component.name = buffer;
+						if (ShaderLibrary::Exists(component.name)) {
+							component.material = MakeRef<Material>(ShaderLibrary::Get(component.name));
+						}
+					}
+					ImGui::PopStyleColor();
+				}
+				else {
+					if (ImGui::InputText("Material", buffer, sizeof(buffer))) {
+						component.name = buffer;
+					}
+				}
+
+				
+
+
+				if (!component.material)
+					return;
+
+				// Draw Uniform 
+
+				Ref<Shader> shader = component.material->GetShader();
+				for (const auto& uniform : shader->GetUniforms()) {
+
+
+					std::string uniformName = uniform->GetName();
+
+					switch (uniform->GetType())
+					{
+					case Hazel::ShaderDataType::None:
+						break;
+					case Hazel::ShaderDataType::Float:
+					{
+						ImGui::DragFloat(uniformName.c_str(), uniform->GetData<float>(), 0.01);
+					}
+						break;
+					case Hazel::ShaderDataType::Float2:
+					case Hazel::ShaderDataType::Vec2:
+						ImGui::DragFloat2(uniformName.c_str(), &uniform->GetData<glm::vec2>()->x, 0.01);
+						break;
+					case Hazel::ShaderDataType::Float3:
+					case Hazel::ShaderDataType::Vec3:
+						ImGui::DragFloat3(uniformName.c_str(), &uniform->GetData<glm::vec3>()->x, 0.001);
+						break;
+					case Hazel::ShaderDataType::Float4:
+					case Hazel::ShaderDataType::Vec4:
+						ImGui::DragFloat4(uniformName.c_str(), &uniform->GetData<glm::vec4>()->x, 0.001);
+						break;
+					case Hazel::ShaderDataType::Mat3:
+					case Hazel::ShaderDataType::Mat4:
+						break;
+					case Hazel::ShaderDataType::Int:
+						ImGui::DragInt(uniformName.c_str(), uniform->GetData<int>(), 0.001);
+						break;
+					case Hazel::ShaderDataType::Int2:
+						ImGui::DragInt2(uniformName.c_str(), static_cast<int*>(uniform->GetData<int>()), 0.001);
+						break;
+					case Hazel::ShaderDataType::Int3:
+						ImGui::DragInt3(uniformName.c_str(), static_cast<int*>(uniform->GetData<int>()), 0.001);
+						break;
+					case Hazel::ShaderDataType::Int4:
+						ImGui::DragInt4(uniformName.c_str(), static_cast<int*>(uniform->GetData<int>()), 0.001);
+						break;
+					case Hazel::ShaderDataType::Bool:
+						ImGui::Checkbox(uniformName.c_str(), uniform->GetData<bool>());
+						break;
+					default:
+						break;
+					}
+
+
+				
+				}
+
+			});
+
 
 		DrawComponent<CircleRendererComponent>(entity, "Circle Renderer", [](auto& component)
 			{

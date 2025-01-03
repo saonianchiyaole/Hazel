@@ -488,10 +488,7 @@ namespace Hazel {
 			case ScriptFieldType::Float:
 			case ScriptFieldType::Double:
 			{
-				float* ptr = static_cast<float*>(it.second);
-				if (ptr) {
-					delete ptr;
-				}
+				delete static_cast<float*>(it.second);
 				break;
 			}
 			case ScriptFieldType::Bool:

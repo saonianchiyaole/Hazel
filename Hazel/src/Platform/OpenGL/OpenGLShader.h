@@ -44,13 +44,17 @@ namespace Hazel {
 		virtual const GLint GetRendererID() override;
 
 
+		virtual void Submit() override;
+		
+
+
+
 	private:
 		std::string ReadFile(const std::string& filepath);
 		std::unordered_map<GLenum, std::string> Preprocess(std::string& src);
 		void Compile(const std::unordered_map<GLenum, std::string> shaderSourcescode);
 	private:
 		uint32_t m_RendererID;
-		std::string m_Name;
 	};
 
 }
