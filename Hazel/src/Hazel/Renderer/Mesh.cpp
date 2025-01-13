@@ -75,6 +75,12 @@ namespace Hazel {
 		:m_FilePath(path)
 	{
 
+		HZ_CORE_INFO("Open Scene filePath {0}", path);
+		if (path.empty()) {
+			HZ_CORE_WARN("This is Not Scene file!");
+			return;
+		}
+
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, s_MeshImportFlags);
 		if (!scene || !scene->HasMeshes())
@@ -175,8 +181,8 @@ namespace Hazel {
 
 				//NormalMaps
 				if (aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS) {
-					std::filesystem::path path = path;
-					auto parentPath = path.parent_path();
+					std::filesystem::path modelpath = path;
+					auto parentPath = modelpath.parent_path();
 					parentPath /= std::string(aiTexPath.data);
 					std::string texturePath = parentPath.string();
 					HZ_CORE_INFO("Mesh : Normal map path = {0}", texturePath);

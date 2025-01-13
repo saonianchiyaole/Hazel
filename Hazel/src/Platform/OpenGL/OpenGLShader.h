@@ -31,6 +31,8 @@ namespace Hazel {
 		virtual const void SetIntArray(const std::string& name, const int* val, const uint32_t count) override;
 
 
+		virtual bool Reload() override;
+
 		void UploadUniformInt(const std::string& name, const int& val);
 		void UploadUniformFloat2(const std::string& name, const glm::vec2& vec2);
 		void UploadUniformFloat3(const std::string& name, const glm::vec3& vec3);
@@ -44,7 +46,7 @@ namespace Hazel {
 		virtual const GLint GetRendererID() override;
 
 
-		virtual void Submit() override;
+		virtual void Submit(std::unordered_map<std::string, void*> data) override;
 		
 
 
@@ -52,7 +54,7 @@ namespace Hazel {
 	private:
 		std::string ReadFile(const std::string& filepath);
 		std::unordered_map<GLenum, std::string> Preprocess(std::string& src);
-		void Compile(const std::unordered_map<GLenum, std::string> shaderSourcescode);
+		bool Compile(const std::unordered_map<GLenum, std::string> shaderSourcescode);
 	private:
 		uint32_t m_RendererID;
 	};

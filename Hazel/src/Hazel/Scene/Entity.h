@@ -38,7 +38,7 @@ namespace Hazel {
 		}
 
 		template<class T>
-		T RemoveComponent() {
+		size_t RemoveComponent() {
 			HZ_CORE_ASSERT(HasComponent<T>(), "Entity dose not have this component!");
 			return m_Scene->GetRegistry().remove<T>(m_EntityHandle);
 		}

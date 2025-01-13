@@ -63,6 +63,7 @@ namespace Hazel {
 			CopyComponent<CircleCollider2DComponent>(src, dst, uuid);
 			CopyComponent<ScriptComponent>(src, dst, uuid);
 			CopyComponent<MeshComponent>(src, dst, uuid);
+			CopyComponent<MaterialComponent>(src, dst, uuid);
 		}
 
 		return dst;

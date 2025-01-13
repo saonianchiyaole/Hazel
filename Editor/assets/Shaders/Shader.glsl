@@ -88,7 +88,8 @@ uniform float ambientFactor;
 uniform float diffuseFactor;
 uniform float specFactor;
 
-vec4 Lighting(){
+vec4 PhongLighting(){
+	
 	
 	vec3 view = normalize(vs_Input.cameraPosition.xyz - vs_Input.WorldPosition);
 	vec3 lightDir = normalize(-light.direction.xyz);
@@ -110,10 +111,14 @@ vec4 Lighting(){
 }
 
 
+vec4 PBRLighting(){
+	return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
 void main()
 {
 
-	vec4 lightContribution = Lighting(); 
+	vec4 lightContribution = PhongLighting(); 
 
 	color = lightContribution;
 	IDColor = vs_Input.EntityID;

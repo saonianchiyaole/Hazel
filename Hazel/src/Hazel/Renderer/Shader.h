@@ -17,7 +17,9 @@ namespace Hazel {
 		virtual void Bind() const = 0;
 		virtual void Unbind() const = 0;
 		virtual const std::string GetName() const = 0;
+			
 
+		virtual bool Reload() = 0;
 
 		virtual const void SetInt(const std::string& name, const int val) = 0;
 		virtual const void SetFloat(const std::string& name, const float val) = 0;
@@ -29,18 +31,21 @@ namespace Hazel {
 
 		virtual const void SetIntArray(const std::string& name, const int* val, const uint32_t count) = 0;
 
-
 		virtual const GLint GetRendererID() = 0;
 
 
-		virtual void Submit() = 0;
+
+		virtual void Submit(std::unordered_map<std::string, void*> data) = 0;
 		std::vector<Ref<ShaderUniform>> GetUniforms();
+		std::string GetPath();
+		//Ref<ShaderUniform> GetUniform(std::string name);
 
 		static Ref<Shader> Create(const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& filepath);
 	protected:
 		std::string m_Name;
+		std::string m_Path;
 		std::vector<Ref<ShaderUniform>> m_Uniforms;
 
 	};
@@ -50,12 +55,16 @@ namespace Hazel {
 	public:
 		static void Add(const Ref<Shader> shader);
 		static void Add(const std::string& name, const Ref<Shader> shader);
-		static void Load(const std::string& path);
-		static void Load(const std::string& name, const std::string& path);
+		static Ref<Shader> Load(const std::string& path);
+		static Ref<Shader> Load(const std::string& name, const std::string& path);
+		static void Reload(const std::string& name);
+
 
 		static bool Exists(const std::string& name);
 		static Ref<Shader> Get(const std::string& name);
 	private:
+
+		friend class Editor;
 		static std::unordered_map<std::string, Ref<Shader>> m_Shaders;
 	};
 

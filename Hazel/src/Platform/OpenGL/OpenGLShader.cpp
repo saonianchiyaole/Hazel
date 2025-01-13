@@ -5,7 +5,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Hazel/Renderer/Buffer.h"
 #include "Platform/OpenGL/OpenGLShaderUniform.h"
+#include "Hazel/Renderer/ShaderUniform.h"
+#include "Platform/OpenGL/OpenGLTexture.h"
 #include <fstream>
+
 
 namespace Hazel {
 
@@ -22,6 +25,9 @@ namespace Hazel {
 
 	OpenGLShader::OpenGLShader(const std::string& filepath) {
 		
+		m_Path = filepath;
+
+
 		std::string shaderSource = ReadFile(filepath);
 		Compile(Preprocess(shaderSource));
 
@@ -93,7 +99,7 @@ namespace Hazel {
 		return result;
 	}
 
-	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string> shaderSourcescode)
+	bool OpenGLShader::Compile(const std::unordered_map<GLenum, std::string> shaderSourcescode)
 	{
 		
 		GLint program = glCreateProgram();
@@ -127,10 +133,10 @@ namespace Hazel {
 				// Use the infoLog as you see fit.
 
 				HZ_CORE_ERROR("{0}", infoLog.data());
-				HZ_CORE_ASSERT(false, "Shader compilation failure!");
+				HZ_CORE_ERROR("Shader compilation failure!");
 
 				// In this simple program, we'll just leave
-				return;
+				return false;
 			}
 
 			glAttachShader(program, shader);
@@ -162,7 +168,7 @@ namespace Hazel {
 			// Use the infoLog as you see fit.
 
 			// In this simple program, we'll just leave
-			return;
+			return false;
 		}
 
 		m_RendererID = program;
@@ -179,6 +185,9 @@ namespace Hazel {
 		GLint uniformCount;
 		glGetProgramiv(m_RendererID, GL_ACTIVE_UNIFORMS, &uniformCount);
 
+		uint32_t textureSlot = 0;
+
+
 		for (GLint i = 0; i < uniformCount; ++i) {
 
 			char name[256];
@@ -186,10 +195,9 @@ namespace Hazel {
 			GLint size;
 			glGetActiveUniform(m_RendererID, i, sizeof(name), nullptr, &size, &type, name);
 
-			Ref<OpenGLShaderUniform> shaderUniform;
+			//Ref<OpenGLShaderUniform> shaderUniform;
 
 			bool isAccpetableUniform = false;
-
 			switch (type) {
 			case GL_FLOAT: 
 				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Float));
@@ -219,6 +227,13 @@ namespace Hazel {
 				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Bool));
 				break;
 			case GL_SAMPLER_2D : 
+			{
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Sampler2D));
+				/*Ref<OpenGLShaderUniform> shaderUniform = MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Sampler2D);
+				shaderUniform->GetData<OpenGLTexture2D>()->SetSlot(textureSlot);
+				m_Uniforms.push_back(shaderUniform);
+				textureSlot += 1;*/
+			}
 			case GL_SAMPLER_CUBE: 
 				break;
 			}			
@@ -226,12 +241,16 @@ namespace Hazel {
 
 		//Set ShaderUniform Block 
 
+
+		return true;
 	}
 
-	void OpenGLShader::Submit()
+
+	void OpenGLShader::Submit(std::unordered_map<std::string, void*> data)
 	{
+
 		for (const auto& uniform : m_Uniforms) {
-			uniform->Submit(m_RendererID);
+			uniform->Submit(m_RendererID, data[uniform->GetName()]);
 		}
 	}
 
@@ -300,6 +319,8 @@ namespace Hazel {
 		return m_RendererID;
 	}
 
+	
+
 	void OpenGLShader::UploadUniformMat3(const std::string& name, const glm::mat3& matrix)
 	{
 		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
@@ -328,6 +349,16 @@ namespace Hazel {
 	{
 		GLint location = glGetUniformLocation(m_RendererID, name.c_str());
 		glUniform1f(location, val);
+	}
+
+	bool OpenGLShader::Reload()
+	{
+
+		this->m_Uniforms.clear();
+
+		std::string shaderSource = ReadFile(m_Path);
+		Compile(Preprocess(shaderSource));
+		return true;
 	}
 
 	void OpenGLShader::UploadUniformInt(const std::string& name, const int& val)

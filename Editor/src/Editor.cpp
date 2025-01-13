@@ -106,7 +106,7 @@ namespace Hazel {
 		m_MeshShader->SetMat4("u_Projection", m_EditorCamera.GetProjectionMatrix());
 		m_Mesh.m_VertexArray->Bind();
 		RenderCommand::DrawIndexed(m_Mesh.m_VertexArray);*/
-
+		
 
 		
 
@@ -193,8 +193,6 @@ namespace Hazel {
 		{
 			if (ImGui::BeginMenu("Options"))
 			{
-				// Disabling fullscreen would allow the window to be moved to the front of other windows,
-				// which we can't undo at the moment without finer window depth/z control.
 				if (ImGui::MenuItem("Open...")) {
 					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.yaml)\0*.yaml\0");
 					OpenScene(filePath);
@@ -253,6 +251,21 @@ namespace Hazel {
 
 		ImGui::Begin("Setting");
 		ImGui::Checkbox("Collider Visiable", &m_IsColliderVisiable);
+		ImGui::End();
+
+		ImGui::Begin("Shader");
+		for (const auto& shader : ShaderLibrary::m_Shaders) {
+
+			
+			ImGui::Text("%s", shader.second->GetName().c_str());
+			ImGui::SameLine();
+
+			std::string buttonName = "Reload##" + shader.first;
+			if (ImGui::Button(buttonName.c_str())){
+				shader.second->Reload();
+			}
+		}
+
 		ImGui::End();
 
 

@@ -7,8 +7,9 @@ namespace Hazel {
 		None = 0, Float, Float2, Float3, Float4, 
 		Vec2, Vec3, Vec4,
 		Mat3, Mat4,
-		Int, Int2, Int3, Int4
-		, Bool
+		Int, Int2, Int3, Int4,
+		Bool,
+		Sampler2D, SamplerCube
 	};
 
 
@@ -44,6 +45,8 @@ namespace Hazel {
 			case ShaderDataType::Mat3:			return 9;
 			case ShaderDataType::Mat4:			return 16;
 			case ShaderDataType::Bool:			return 1;
+			case ShaderDataType::Sampler2D:		return 1;
+			case ShaderDataType::SamplerCube:	return 1;
 			}
 
 			HZ_CORE_ASSERT(false, "Unknown ElementType!");

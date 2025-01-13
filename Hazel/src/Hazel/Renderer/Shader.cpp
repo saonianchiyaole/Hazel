@@ -17,6 +17,11 @@ namespace Hazel {
 		return m_Uniforms;
 	}
 
+	std::string Shader::GetPath()
+	{
+		return m_Path;
+	}
+
 	Ref<Shader> Shader::Create(const std::string& vertexSrc, const std::string& fragmentSrc) {
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
@@ -58,26 +63,41 @@ namespace Hazel {
 	void ShaderLibrary::Add(const Ref<Shader> shader)
 	{
 		auto& name = shader->GetName();
-		HZ_CORE_ASSERT(!Exists(name), "This Shader already exist");
+		if(Exists(name))
+		{
+			HZ_CORE_WARN("This Shader already exist{}", name);
+			return;
+		}
 		m_Shaders[name] = shader;
 	}
 
 	void ShaderLibrary::Add(const std::string& name, const Ref<Shader> shader)
 	{
-		HZ_CORE_ASSERT(!Exists(name), "This Shader already exist");
+		if (Exists(name))
+		{
+			HZ_CORE_WARN("This Shader already exist{}", name);
+			return;
+		}
 		m_Shaders[name] = shader;
 	}
 
-	void ShaderLibrary::Load(const std::string& path)
+	Ref<Shader> ShaderLibrary::Load(const std::string& path)
 	{
 		auto shader = Shader::Create(path);
 		Add(shader);
+		return shader;
 	}
 
-	void ShaderLibrary::Load(const std::string& name, const std::string& path)
+	Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& path)
 	{
 		auto shader = Shader::Create(path);
 		Add(name, shader);
+		return shader;
+	}
+
+	void ShaderLibrary::Reload(const std::string& name)
+	{
+		m_Shaders[name]->Reload();
 	}
 
 	Ref<Shader> ShaderLibrary::Get(const std::string& name)

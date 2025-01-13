@@ -4,6 +4,7 @@
 
 #include "Platform/OpenGL/OpenGLBuffer.h"
 #include "Hazel/Renderer/RendererAPI.h"
+#include "Platform/OpenGL/OpenGLTexture.h"
 
 namespace Hazel {
 	
@@ -27,7 +28,14 @@ namespace Hazel {
 			case ShaderDataType::Int3:			return 4 * 3;
 			case ShaderDataType::Int4:			return 4 * 4;
 			case ShaderDataType::Bool:			return 1;
-
+			case ShaderDataType::Sampler2D: {
+				switch (RendererAPI::GetAPI()) {
+				case RendererAPI::API::None:
+					return 0;
+				case RendererAPI::API::OpenGL:
+					return sizeof(OpenGLTexture2D);
+				}
+			}
 			}
 
 			HZ_CORE_ASSERT(false, "Unknown ShaderDataType!");

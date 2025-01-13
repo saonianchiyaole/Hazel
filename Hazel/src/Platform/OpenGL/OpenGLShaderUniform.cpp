@@ -3,6 +3,8 @@
 
 #include "Platform/OpenGL/OpenGLShaderUniform.h"
 
+#include "Platform/OpenGL/OpenGLTexture.h"
+
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
@@ -45,6 +47,8 @@ namespace Hazel {
 				return GL_INT_VEC4;
 			case Hazel::ShaderDataType::Bool:
 				return GL_BOOL;
+			case Hazel::ShaderDataType::Sampler2D:
+				return GL_SAMPLER_2D;
 			default:
 				break;
 			}
@@ -59,7 +63,6 @@ namespace Hazel {
 		: ShaderUniform()
 	{
 		m_Name = name;
-		m_Value = Utils::AllocateMemoryByShaderDataType(type);
 		m_Type = type;
 		m_OpenGLType = Utils::GetOpenGLUniformTypeFromShaderDataType(type);
 
@@ -68,53 +71,61 @@ namespace Hazel {
 
 
 
-	void OpenGLShaderUniform::Submit(GLint shaderID)
+	void OpenGLShaderUniform::Submit(GLint shaderID, void* data)
 	{
 
 		GLint location = glGetUniformLocation(shaderID, m_Name.c_str());
 
 
-
 		switch (m_OpenGLType) {
 		case GL_FLOAT: {
-			glUniform1f(location, *(float*)m_Value);
+			glUniform1f(location, *(float*)data);
 			break;
 		}
 		case GL_FLOAT_VEC2: {
-			glm::vec2 value = *(glm::vec2*)m_Value;
+			glm::vec2 value = *(glm::vec2*)data;
 			glUniform2fv(location, 1, glm::value_ptr(value));
 			break;
 		}
 		case GL_FLOAT_VEC3: {
-			glm::vec3 value = *(glm::vec3*)m_Value;
+			glm::vec3 value = *(glm::vec3*)data;
 			glUniform3fv(location, 1, glm::value_ptr(value));
 			break;
 		}
 		case GL_FLOAT_VEC4: {
-			glm::vec4 value = *(glm::vec4*)m_Value;
+			glm::vec4 value = *(glm::vec4*)data;
 			glUniform4fv(location, 1, glm::value_ptr(value));
 			break;
 		}
 		case GL_FLOAT_MAT3: {
-			glm::mat3 value = *(glm::mat3*)(m_Value);
+			glm::mat3 value = *(glm::mat3*)(data);
 			glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
 			break;
 		}
 		case GL_FLOAT_MAT4: {
-			glm::mat4 value = *(glm::mat4*)(m_Value);
+			glm::mat4 value = *(glm::mat4*)(data);
 			glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 			break;
 		}
 		case GL_INT: {
-			int value = *(int*)(m_Value);
+			int value = *(int*)(data);
 			glUniform1i(location, value);
 			break;
 		}
 		case GL_BOOL: {
-			glUniform1i(location, m_Value ? 1 : 0); // OpenGL 使用整数表示布尔值
+			glUniform1i(location, data ? 1 : 0); 
 			break;
 		}
-		case GL_SAMPLER_2D:
+		case GL_SAMPLER_2D: {
+			if (!data)
+				break;
+			
+			OpenGLTexture2D* texture = static_cast<OpenGLTexture2D*>(data);
+			glUniform1i(location, texture->GetSlot());
+			if(texture->IsLoaded())
+				texture->Bind(texture->GetSlot());
+			break;
+		}
 		case GL_SAMPLER_CUBE: {
 			//int textureUnit = *static_cast<int*>(uniform->GetData());
 			//glUniform1i(location, textureUnit); // 纹理单元绑定到 uniform

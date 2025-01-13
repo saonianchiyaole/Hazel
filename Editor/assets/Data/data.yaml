@@ -19,4 +19,4 @@ Entities:
     MeshComponent:
       FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911.fbx
     MaterialComponent:
-      Path: Shader
+      Path: assets\Material\m1911.material

@@ -1,7 +1,10 @@
 #include "hzpch.h"
 #include "Panels/SceneHierarchyPanel.h"
 #include "Hazel/Scene/Component.h"
+
 #include <imgui.h>
+#include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 #include <glm/gtc/type_ptr.hpp>
 #include "Hazel/Renderer/Camera.h"
@@ -11,6 +14,8 @@
 
 //#include "Platform/Windows/WindowsUtils.h"
 #include "Hazel/Utils/PlatformUtils.h"
+#include "Hazel/Renderer/RendererAPI.h"
+#include "Hazel/Utils/MaterialSerializer.h"
 
 namespace Hazel {
 	SceneHierarchyPanel::SceneHierarchyPanel()
@@ -165,15 +170,47 @@ namespace Hazel {
 	template<class T, class Function>
 	void SceneHierarchyPanel::DrawComponent(Entity& entity, std::string componentName, Function func)
 	{
+
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 		if (entity.HasComponent<T>()) {
 			auto& component = entity.GetComponent<T>();
 
-			if (ImGui::TreeNodeEx((void*)typeid(T).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, componentName.c_str())) {
+			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImGui::Separator();
+			ImGui::PopStyleVar(
+			);
+			
+			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, componentName.c_str());
+
+
+			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
+			
+			if (ImGui::Button("..", ImVec2{ lineHeight, lineHeight }))
+			{
+				ImGui::OpenPopup("ComponentSettings");
+			}
+
+			bool isComponentRemoved = false;
+			if (ImGui::BeginPopup("ComponentSettings"))
+			{
+				if (ImGui::MenuItem("Remove component"))
+					isComponentRemoved = true;
+
+				ImGui::EndPopup();
+			}
+
+			if (open) {
 
 				func(component);
 
 				ImGui::TreePop();
 
+			}
+
+			if (isComponentRemoved) {
+				entity.RemoveComponent<T>();
 			}
 
 		}
@@ -435,29 +472,37 @@ namespace Hazel {
 
 		DrawComponent<MaterialComponent>(entity, "Material", [&](auto& component)
 			{
-
-				char buffer[255];
-				strcpy_s(buffer, sizeof(buffer), component.name.c_str());
-
-				if(!ShaderLibrary::Exists(component.name))
+				if (ImGui::BeginPopup("ComponentSettings"))
 				{
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
-					if (ImGui::InputText("Material", buffer, sizeof(buffer))) {
-						component.name = buffer;
-						if (ShaderLibrary::Exists(component.name)) {
-							component.material = MakeRef<Material>(ShaderLibrary::Get(component.name));
+					if (ImGui::MenuItem("Save as..")) {
+						std::string filePath = FileDialogs::SaveFile("Hazel Scene (*.material)\0*.material\0");
+						if (!filePath.empty())
+						{
+							Utils::MaterialSerializer materialSerializer(component.material);
+							materialSerializer.Serialize(filePath);
 						}
 					}
-					ImGui::PopStyleColor();
-				}
-				else {
-					if (ImGui::InputText("Material", buffer, sizeof(buffer))) {
-						component.name = buffer;
-					}
+
+					ImGui::EndPopup();
 				}
 
-				
 
+
+				char buffer[255];
+				strcpy_s(buffer, sizeof(buffer), component.path.c_str());
+
+				ImGui::BeginDisabled();
+				ImGui::InputText("##Material", buffer, sizeof(buffer));
+				ImGui::EndDisabled();
+			
+				ImGui::SameLine();
+				if (ImGui::Button("Select")) {
+					std::string path = FileDialogs::OpenFile("Hazel Scene (*.material)\0*.material\0");
+					component.path = path;
+					Utils::MaterialSerializer materialSerializer(component.material);
+					materialSerializer.Deserialize(path);
+				}
+		
 
 				if (!component.material)
 					return;
@@ -465,6 +510,7 @@ namespace Hazel {
 				// Draw Uniform 
 
 				Ref<Shader> shader = component.material->GetShader();
+				Ref<Material> material = component.material;
 				for (const auto& uniform : shader->GetUniforms()) {
 
 
@@ -476,45 +522,78 @@ namespace Hazel {
 						break;
 					case Hazel::ShaderDataType::Float:
 					{
-						ImGui::DragFloat(uniformName.c_str(), uniform->GetData<float>(), 0.01);
+						ImGui::DragFloat(uniformName.c_str(), material->GetData<float>(uniformName), 0.01);
 					}
-						break;
+					break;
 					case Hazel::ShaderDataType::Float2:
 					case Hazel::ShaderDataType::Vec2:
-						ImGui::DragFloat2(uniformName.c_str(), &uniform->GetData<glm::vec2>()->x, 0.01);
+						ImGui::DragFloat2(uniformName.c_str(), &material->GetData<glm::vec2>(uniformName)->x, 0.01);
 						break;
 					case Hazel::ShaderDataType::Float3:
 					case Hazel::ShaderDataType::Vec3:
-						ImGui::DragFloat3(uniformName.c_str(), &uniform->GetData<glm::vec3>()->x, 0.001);
+						ImGui::DragFloat3(uniformName.c_str(), &material->GetData<glm::vec3>(uniformName)->x, 0.001);
 						break;
 					case Hazel::ShaderDataType::Float4:
 					case Hazel::ShaderDataType::Vec4:
-						ImGui::DragFloat4(uniformName.c_str(), &uniform->GetData<glm::vec4>()->x, 0.001);
+						ImGui::DragFloat4(uniformName.c_str(), &material->GetData<glm::vec4>(uniformName)->x, 0.001);
 						break;
 					case Hazel::ShaderDataType::Mat3:
 					case Hazel::ShaderDataType::Mat4:
 						break;
 					case Hazel::ShaderDataType::Int:
-						ImGui::DragInt(uniformName.c_str(), uniform->GetData<int>(), 0.001);
+						ImGui::DragInt(uniformName.c_str(), material->GetData<int>(uniformName), 0.001);
 						break;
 					case Hazel::ShaderDataType::Int2:
-						ImGui::DragInt2(uniformName.c_str(), static_cast<int*>(uniform->GetData<int>()), 0.001);
+						ImGui::DragInt2(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
 						break;
 					case Hazel::ShaderDataType::Int3:
-						ImGui::DragInt3(uniformName.c_str(), static_cast<int*>(uniform->GetData<int>()), 0.001);
+						ImGui::DragInt3(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
 						break;
 					case Hazel::ShaderDataType::Int4:
-						ImGui::DragInt4(uniformName.c_str(), static_cast<int*>(uniform->GetData<int>()), 0.001);
+						ImGui::DragInt4(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
 						break;
 					case Hazel::ShaderDataType::Bool:
-						ImGui::Checkbox(uniformName.c_str(), uniform->GetData<bool>());
+						ImGui::Checkbox(uniformName.c_str(), material->GetData<bool>(uniformName));
 						break;
+					case Hazel::ShaderDataType::Sampler2D:
+					{
+
+						auto texture = material->GetData<Texture2D>(uniformName);
+						std::string imageButtonName = "imageButton##" + uniformName;
+						if (texture && texture->IsLoaded()) {
+							if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })){
+								std::string path = FileDialogs::OpenFile("Hazel Scene (*.png;*.jpg)\0*.png;*.jpg\0");
+								TextureLibrary::Load(path);
+								material->SetData(uniformName, TextureLibrary::Get(path));
+							}
+						}
+						else if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
+							std::string path = FileDialogs::OpenFile("Hazel Scene (*.png;*.jpg)\0*.png;*.jpg\0");
+							TextureLibrary::Load(path);
+							material->SetData(uniformName, TextureLibrary::Get(path));
+						}
+
+						ImGui::SameLine();
+						ImGui::Text(uniformName.c_str());
+
+						if (ImGui::BeginDragDropTarget()) {
+
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+								const wchar_t* rawPath = (const wchar_t*)payload->Data;
+								std::filesystem::path path(rawPath);
+								TextureLibrary::Load(path.string());
+								material->SetData(uniformName, TextureLibrary::Get(path.string()));
+							}
+
+							ImGui::EndDragDropTarget();
+						}
+					}
 					default:
 						break;
 					}
 
 
-				
+
 				}
 
 			});

@@ -1,0 +1,7 @@
+Material: Shader
+Shader: assets/Shaders/Shader.glsl
+Uniforms:
+  - u_Albedo: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911_color.png
+  - ambientFactor: 0
+  - diffuseFactor: 0
+  - specFactor: 150000

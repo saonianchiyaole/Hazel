@@ -6,6 +6,9 @@
 
 namespace Hazel {
 
+
+	std::unordered_map<std::string, std::shared_ptr<Hazel::Texture2D>> TextureLibrary::m_Textures;
+
 	/*Ref<Texture2D> Texture2D::Create(const std::string& path) {
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
@@ -44,6 +47,32 @@ namespace Hazel {
 			return nullptr;
 	}
 
+	Ref<Texture2D> Texture2D::PreCreate()
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return std::make_shared<OpenGLTexture2D>();
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
+	Texture2D* Texture2D::PreCreateNakedPointer()
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return new OpenGLTexture2D();
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
 	void Texture2D::SetType(TextureType type)
 	{
 		m_Type = type;
@@ -52,6 +81,16 @@ namespace Hazel {
 	TextureType Texture2D::GetType()
 	{
 		return m_Type;
+	}
+
+	uint32_t Texture2D::GetSlot()
+	{
+		return m_Slot;
+	}
+
+	void Texture2D::SetSlot(uint32_t slot)
+	{
+		m_Slot = slot;
 	}
 
 
@@ -67,6 +106,40 @@ namespace Hazel {
 	std::string Texture2D::GetPath() const
 	{
 		return m_Path;
+	}
+	
+	void TextureLibrary::Add(const Ref<Texture2D> texture)
+	{
+		auto& path = texture->GetPath();
+		if (Exists(path))
+		{
+			HZ_CORE_ERROR("This Texture : {} already exist", path);
+			return;
+		}
+		m_Textures[path] = texture;
+	}
+
+	void TextureLibrary::Load(const std::string& path)
+	{
+		if(Exists(path))
+		{
+			HZ_CORE_ERROR("This Texture : {} already exist", path);
+			return;
+		}
+
+		Ref<Texture2D> texture = Texture2D::Create(path);
+		m_Textures[path] = texture;
+	}
+
+	
+	bool TextureLibrary::Exists(const std::string& path)
+	{
+		return m_Textures.find(path) != m_Textures.end();
+	}
+
+	Ref<Texture2D> TextureLibrary::Get(const std::string& path)
+	{
+		return m_Textures[path];
 	}
 
 }

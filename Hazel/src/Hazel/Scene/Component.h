@@ -199,7 +199,7 @@ namespace Hazel {
 
 	struct MaterialComponent {
 		Ref<Material> material;
-		std::string name;
+		std::string path;
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent& other) = default;
 		MaterialComponent(Ref<Material> materialVal) : material(material){}

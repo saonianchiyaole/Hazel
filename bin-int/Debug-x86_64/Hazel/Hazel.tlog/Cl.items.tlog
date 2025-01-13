@@ -38,6 +38,7 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\SceneSerializer.cpp;G:\Proje
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scene\ScriptableEntity.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ScriptableEntity.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scripting\ScriptEngine.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ScriptEngine.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Scripting\ScriptGlue.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ScriptGlue.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Utils\MaterialSerializer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\MaterialSerializer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLBuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLBuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLContext.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLFramebuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLFramebuffer.obj

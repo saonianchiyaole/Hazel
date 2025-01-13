@@ -243,6 +243,12 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLShaderUniform.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Utils\MaterialSerializer.h">
+      <Filter>src\Hazel\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Utils\YAML.h">
+      <Filter>src\Hazel\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -400,6 +406,9 @@
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLShaderUniform.cpp">
       <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Utils\MaterialSerializer.cpp">
+      <Filter>src\Hazel\Utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

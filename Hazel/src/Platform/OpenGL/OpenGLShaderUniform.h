@@ -10,7 +10,7 @@ namespace Hazel {
 	public:
 		OpenGLShaderUniform(std::string name, ShaderDataType type);
 
-		virtual void Submit(GLint shaderID) override;
+		virtual void Submit(GLint shaderID, void* data) override;
 	private:
 		int32_t m_OpenGLType;
 	};
