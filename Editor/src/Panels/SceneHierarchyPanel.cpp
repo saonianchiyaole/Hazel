@@ -181,12 +181,12 @@ namespace Hazel {
 			ImGui::Separator();
 			ImGui::PopStyleVar(
 			);
-			
+
 			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, componentName.c_str());
 
 
 			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-			
+
 			if (ImGui::Button("..", ImVec2{ lineHeight, lineHeight }))
 			{
 				ImGui::OpenPopup("ComponentSettings");
@@ -463,7 +463,7 @@ namespace Hazel {
 				}
 
 				if (ImGui::Button(context.c_str())) {
-					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.fbx)\0*.fbx\0");
+					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.fbx;*obj)\0*.fbx;*obj\0");
 					meshComponent.SetMesh(MakeRef<Mesh>(filePath, entity.GetHandle()));
 				}
 
@@ -472,10 +472,13 @@ namespace Hazel {
 
 		DrawComponent<MaterialComponent>(entity, "Material", [&](auto& component)
 			{
+
+				
+
 				if (ImGui::BeginPopup("ComponentSettings"))
 				{
 					if (ImGui::MenuItem("Save as..")) {
-						std::string filePath = FileDialogs::SaveFile("Hazel Scene (*.material)\0*.material\0");
+						std::string filePath = FileDialogs::SaveFile("Hazel Material (*.material)\0*.material\0");
 						if (!filePath.empty())
 						{
 							Utils::MaterialSerializer materialSerializer(component.material);
@@ -492,25 +495,48 @@ namespace Hazel {
 				strcpy_s(buffer, sizeof(buffer), component.path.c_str());
 
 				ImGui::BeginDisabled();
-				ImGui::InputText("##Material", buffer, sizeof(buffer));
+				ImGui::InputText("Material##Material", buffer, sizeof(buffer));
 				ImGui::EndDisabled();
-			
+
 				ImGui::SameLine();
-				if (ImGui::Button("Select")) {
-					std::string path = FileDialogs::OpenFile("Hazel Scene (*.material)\0*.material\0");
-					component.path = path;
-					Utils::MaterialSerializer materialSerializer(component.material);
-					materialSerializer.Deserialize(path);
+				if (ImGui::Button("Select##MaterialSelect")) {
+					std::string path = FileDialogs::OpenFile("Hazel material (*.material)\0*.material\0");
+					if (!path.empty()) {
+						component.path = path;
+						if (!component.material)
+							component.material = MakeRef<Material>();
+						Utils::MaterialSerializer materialSerializer(component.material);
+						materialSerializer.Deserialize(path);
+					}
 				}
-		
+
+				if (component.material)
+					strcpy_s(buffer, sizeof(buffer), component.material->GetShader()->GetName().c_str());
+				else
+					strcpy_s(buffer, sizeof(buffer), "");
+				ImGui::BeginDisabled();
+				ImGui::InputText("Shader##Shader", buffer, sizeof(buffer));
+				ImGui::EndDisabled();
+
+				ImGui::SameLine();
+				if (ImGui::Button("Select##ShaderSelect")) {
+					std::string path = FileDialogs::OpenFile("Hazel shader (*.glsl)\0*.glsl\0");
+					if (!path.empty()) {
+						auto newShader = ShaderLibrary::Load(path);
+						if(!component.material)
+							component.material = MakeRef<Material>();
+						component.material->SetShader(newShader);
+					}
+				}
+
 
 				if (!component.material)
 					return;
 
 				// Draw Uniform 
-
 				Ref<Shader> shader = component.material->GetShader();
 				Ref<Material> material = component.material;
+				
 				for (const auto& uniform : shader->GetUniforms()) {
 
 
@@ -561,20 +587,17 @@ namespace Hazel {
 						auto texture = material->GetData<Texture2D>(uniformName);
 						std::string imageButtonName = "imageButton##" + uniformName;
 						if (texture && texture->IsLoaded()) {
-							if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })){
-								std::string path = FileDialogs::OpenFile("Hazel Scene (*.png;*.jpg)\0*.png;*.jpg\0");
+							if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
+								std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg)\0*.png;*.jpg\0");
 								TextureLibrary::Load(path);
 								material->SetData(uniformName, TextureLibrary::Get(path));
 							}
 						}
 						else if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
-							std::string path = FileDialogs::OpenFile("Hazel Scene (*.png;*.jpg)\0*.png;*.jpg\0");
+							std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg)\0*.png;*.jpg\0");
 							TextureLibrary::Load(path);
 							material->SetData(uniformName, TextureLibrary::Get(path));
 						}
-
-						ImGui::SameLine();
-						ImGui::Text(uniformName.c_str());
 
 						if (ImGui::BeginDragDropTarget()) {
 
@@ -587,6 +610,11 @@ namespace Hazel {
 
 							ImGui::EndDragDropTarget();
 						}
+
+						ImGui::SameLine();
+						ImGui::Text(uniformName.c_str());
+
+
 					}
 					default:
 						break;

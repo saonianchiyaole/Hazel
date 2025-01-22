@@ -129,7 +129,17 @@ namespace Hazel {
 
 	void Material::Submit()
 	{
+		SetTexturesSlot();
+
 		m_Shader->Submit(m_Data);
+	}
+
+	void Material::SetTexturesSlot()
+	{
+		for (auto it : m_NameToTextureAndSlot) {
+			auto [texture, slot] = it.second;
+			texture->SetSlot(slot);
+		}
 	}
 
 	Ref<Shader> Material::GetShader()
@@ -143,7 +153,6 @@ namespace Hazel {
 		{
 			m_Shader = shader;
 			m_Data.clear();
-
 
 			for (auto uniform : m_Shader->GetUniforms()) {
 				m_Data[uniform->GetName()] = Utils::AllocateMemoryByShaderDataType(uniform->GetType());

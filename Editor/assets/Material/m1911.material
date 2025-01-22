@@ -1,7 +1,10 @@
-Material: Shader
-Shader: assets/Shaders/Shader.glsl
+Material: ""
+Shader: assets/Shaders/Standard.glsl
 Uniforms:
+  - u_Normal: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911_normal.png
   - u_Albedo: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911_color.png
-  - ambientFactor: 0
-  - diffuseFactor: 0
-  - specFactor: 150000
+  - u_Roughness: assets\m1911\m1911_roughness.png
+  - u_Metalness: assets\m1911\m1911_metalness.png
+  - ambientFactor: 0.09
+  - diffuseFactor: 0.28
+  - specFactor: 0.9

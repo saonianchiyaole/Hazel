@@ -22,8 +22,9 @@ namespace Hazel {
 			out << YAML::Key << "Uniforms" << YAML::BeginSeq;
 
 			for (const auto& uniform : m_Material->GetShader()->GetUniforms()) {
-
-				SerializeUniform(out, uniform, m_Material->GetData<void*>(uniform->GetName()));
+				void* data = m_Material->GetData<void*>(uniform->GetName());
+				if (data)
+					SerializeUniform(out, uniform, data);
 			}
 
 			out << YAML::EndSeq;
@@ -58,9 +59,9 @@ namespace Hazel {
 			for (auto uniform : shader->GetUniforms()) {
 				s_NameToShaderUniform[uniform->GetName()] = uniform;
 			}
-			
 
-			
+
+
 
 			HZ_CORE_TRACE("Deserializing material '{0}'", data["Material"].as<std::string>());
 
@@ -77,7 +78,8 @@ namespace Hazel {
 				std::string shaderUniformName = it->first.as<std::string>();
 
 				Ref<ShaderUniform> shaderUniform = s_NameToShaderUniform[shaderUniformName];
-				
+				if (!shaderUniform)
+					continue;
 				//m_Material->SetData(key, uniform[key].as<void*>());*/
 
 				switch (shaderUniform->GetType())
@@ -136,7 +138,7 @@ namespace Hazel {
 					break;
 				}
 
-				
+
 			}
 		}
 
@@ -184,7 +186,7 @@ namespace Hazel {
 		void MaterialSerializer::DeserializeUniform(Ref<ShaderUniform> shaderUniform, void* data)
 		{
 
-			
+
 		}
 
 	}

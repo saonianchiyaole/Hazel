@@ -8,6 +8,12 @@
 namespace Hazel {
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 	{
+		HZ_CORE_INFO("Open Texture filePath {0}", path);
+		if (path.empty()) {
+			HZ_CORE_WARN("This is Not Texture file!");
+			return;
+		}
+
 
 		m_Path = path;
 
@@ -23,10 +29,17 @@ namespace Hazel {
 		if (channels == 4) {
 			m_InternalFormat = GL_RGBA8;
 			m_DataFormat = GL_RGBA;
+			m_Type = GL_UNSIGNED_BYTE;
 		}
 		else if (channels == 3) {
 			m_InternalFormat = GL_RGB8;
 			m_DataFormat = GL_RGB;
+			m_Type = GL_UNSIGNED_BYTE;
+		}
+		else if (channels == 2) {
+			m_InternalFormat = GL_RG8;
+			m_DataFormat = GL_RG;
+			m_Type = GL_UNSIGNED_BYTE;
 		}
 
 		HZ_CORE_ASSERT(m_InternalFormat && m_DataFormat, "Image's format is not supported !");
@@ -41,7 +54,7 @@ namespace Hazel {
 		glTexParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
-		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, m_Type, data);
 
 		m_Loaded = true;
 

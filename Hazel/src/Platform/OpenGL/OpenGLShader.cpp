@@ -356,6 +356,7 @@ namespace Hazel {
 
 		this->m_Uniforms.clear();
 
+		glDeleteProgram(m_RendererID);
 		std::string shaderSource = ReadFile(m_Path);
 		Compile(Preprocess(shaderSource));
 		return true;

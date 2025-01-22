@@ -9,6 +9,11 @@
 
 namespace Hazel {
 
+	namespace Utils {
+		std::string GetShaderName(std::string path);
+	}
+
+
 	class Shader {
 	public:
 		Shader() = default;

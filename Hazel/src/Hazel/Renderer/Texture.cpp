@@ -119,16 +119,17 @@ namespace Hazel {
 		m_Textures[path] = texture;
 	}
 
-	void TextureLibrary::Load(const std::string& path)
+	Ref<Texture2D> TextureLibrary::Load(const std::string& path)
 	{
 		if(Exists(path))
 		{
 			HZ_CORE_ERROR("This Texture : {} already exist", path);
-			return;
+			return m_Textures[path];
 		}
 
 		Ref<Texture2D> texture = Texture2D::Create(path);
-		m_Textures[path] = texture;
+		Add(texture);
+		return texture;
 	}
 
 	

@@ -1,5 +1,23 @@
 Scene: Untitled
 Entities:
+  - Entity: 9783073696524057698
+    TagComponent:
+      Tag: Phong Gun
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 17399632842228297536
+    TagComponent:
+      Tag: Gun
+    TransformComponent:
+      Translate: [1, 1, 1]
+      Rotation: [0, -0, 0.05235988]
+      Scale: [0.69, 0.69, 0.69]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\M1911Materials.fbx
+    MaterialComponent:
+      Path: assets\Material\m1911.material
   - Entity: 2058834786711790100
     TagComponent:
       Tag: Light
@@ -9,14 +27,3 @@ Entities:
       Scale: [1, 1, 1]
     LightComponent:
       Color: [1, 1, 1]
-  - Entity: 17399632842228297536
-    TagComponent:
-      Tag: Gun
-    TransformComponent:
-      Translate: [1, 1, 1]
-      Rotation: [0, -0, 0.05235988]
-      Scale: [0.69, 0.69, 0.69]
-    MeshComponent:
-      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\m1911.fbx
-    MaterialComponent:
-      Path: assets\Material\m1911.material

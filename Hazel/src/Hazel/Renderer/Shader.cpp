@@ -10,7 +10,15 @@ namespace Hazel {
 	
 	std::unordered_map<std::string, std::shared_ptr<Hazel::Shader>> Hazel::ShaderLibrary::m_Shaders;
 
-	
+	namespace Utils {
+		std::string GetShaderName(std::string filepath) {
+			int lastSlash = filepath.find_last_of("/\\");
+			lastSlash = lastSlash == std::string::npos ? 0 : lastSlash;
+			int lastDot = filepath.find_last_of('.');
+			int count = lastDot == std::string::npos ? filepath.size() - lastSlash - 1 : lastDot - lastSlash - 1;
+			return filepath.substr(lastSlash + 1, count);
+		}
+	}
 
 	std::vector<Ref<ShaderUniform>> Shader::GetUniforms()
 	{
@@ -83,6 +91,9 @@ namespace Hazel {
 
 	Ref<Shader> ShaderLibrary::Load(const std::string& path)
 	{
+		std::string name = Utils::GetShaderName(path);
+		if (Exists(name))
+			return m_Shaders[name];
 		auto shader = Shader::Create(path);
 		Add(shader);
 		return shader;
@@ -90,6 +101,8 @@ namespace Hazel {
 
 	Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& path)
 	{
+		if (Exists(name))
+			return m_Shaders[name];
 		auto shader = Shader::Create(path);
 		Add(name, shader);
 		return shader;

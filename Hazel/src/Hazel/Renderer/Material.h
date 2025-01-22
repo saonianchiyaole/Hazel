@@ -78,10 +78,22 @@ namespace Hazel {
 			if (m_Data.find(name) == m_Data.end())
 				return;
 
+		
 			for (const auto& uniform : m_Shader->GetUniforms()) {
 				if (uniform->GetName() == name && Utils::isDataFormatCorrect<Texture2D>(uniform->GetType()))
 				{
+					if (!m_Data[name] && m_NameToTextureAndSlot.find(name) == m_NameToTextureAndSlot.end()) {
+						static size_t slotIndex = 0;
+						m_NameToTextureAndSlot[name] = { data, slotIndex };
+						slotIndex++;
+					}
+					else {
+						m_NameToTextureAndSlot[name] = { data, m_NameToTextureAndSlot[name].second };
+					}
+
 					m_Data[name] = data.get();
+					
+				
 					break;
 				}
 			}
@@ -90,6 +102,8 @@ namespace Hazel {
 
 
 		void Submit();
+		void SetTexturesSlot();
+
 
 		Ref<Shader> GetShader();
 
@@ -105,7 +119,8 @@ namespace Hazel {
 
 		std::string m_Name;
 		Ref<Shader> m_Shader;
-
+		
+		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
 		std::unordered_map<std::string, void*> m_Data;
 
 	};

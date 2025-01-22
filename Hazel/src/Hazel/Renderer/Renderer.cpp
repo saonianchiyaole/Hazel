@@ -21,8 +21,8 @@ namespace Hazel {
 		s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
 		s_SceneData->lightUniformBuffer = UniformBuffer::Create(sizeof(LightUniformBuffer), 1);
 
-		ShaderLibrary::Load("assets/Shaders/Shader.glsl");
-		s_SceneData->defaultShader = ShaderLibrary::Get("Shader");
+		ShaderLibrary::Load("assets/Shaders/Standard.glsl");
+		s_SceneData->defaultShader = ShaderLibrary::Get("Standard");
 
 
 		//Set Dufault Light Uniform

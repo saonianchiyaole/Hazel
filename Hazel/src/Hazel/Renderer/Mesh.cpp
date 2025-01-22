@@ -30,6 +30,17 @@ namespace Hazel {
 				break;
 			}
 		}
+
+		glm::mat4 Mat4FromAssimpMat4(const aiMatrix4x4& matrix)
+		{
+			glm::mat4 result;
+			//the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
+			result[0][0] = matrix.a1; result[1][0] = matrix.a2; result[2][0] = matrix.a3; result[3][0] = matrix.a4;
+			result[0][1] = matrix.b1; result[1][1] = matrix.b2; result[2][1] = matrix.b3; result[3][1] = matrix.b4;
+			result[0][2] = matrix.c1; result[1][2] = matrix.c2; result[2][2] = matrix.c3; result[3][2] = matrix.c4;
+			result[0][3] = matrix.d1; result[1][3] = matrix.d2; result[2][3] = matrix.d3; result[3][3] = matrix.d4;
+			return result;
+		}
 	}
 
 
@@ -60,16 +71,7 @@ namespace Hazel {
 	};
 
 
-	glm::mat4 Mat4FromAssimpMat4(const aiMatrix4x4& matrix)
-	{
-		glm::mat4 result;
-		//the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
-		result[0][0] = matrix.a1; result[1][0] = matrix.a2; result[2][0] = matrix.a3; result[3][0] = matrix.a4;
-		result[0][1] = matrix.b1; result[1][1] = matrix.b2; result[2][1] = matrix.b3; result[3][1] = matrix.b4;
-		result[0][2] = matrix.c1; result[1][2] = matrix.c2; result[2][2] = matrix.c3; result[3][2] = matrix.c4;
-		result[0][3] = matrix.d1; result[1][3] = matrix.d2; result[2][3] = matrix.d3; result[3][3] = matrix.d4;
-		return result;
-	}
+	
 
 	Mesh::Mesh(std::string path, entt::entity entityID)
 		:m_FilePath(path)
@@ -168,8 +170,7 @@ namespace Hazel {
 					parentPath /= std::string(aiTexPath.data);
 					std::string texturePath = parentPath.string();
 					HZ_CORE_INFO("Mesh : Albedo map path = {0}", texturePath);
-					auto texture = Texture2D::Create(texturePath);
-
+					auto texture = TextureLibrary::Load(texturePath);
 					if (texture->IsLoaded()) {
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Albedo);
@@ -186,7 +187,7 @@ namespace Hazel {
 					parentPath /= std::string(aiTexPath.data);
 					std::string texturePath = parentPath.string();
 					HZ_CORE_INFO("Mesh : Normal map path = {0}", texturePath);
-					auto texture = Texture2D::Create(texturePath);
+					auto texture = TextureLibrary::Load(texturePath);
 					if (texture->IsLoaded()) {
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Normal);
@@ -199,7 +200,29 @@ namespace Hazel {
 
 				}
 
-				// TODO:Roughness map
+				//Roughness map
+				if (aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS)
+				{
+					// TODO: Temp - this should be handled by Hazel's filesystem
+					std::filesystem::path modelpath = path;
+					auto parentPath = modelpath.parent_path();
+					parentPath /= std::string(aiTexPath.data);
+					std::string texturePath = parentPath.string();
+					HZ_CORE_INFO("Mesh : Roughness map path = {0}", texturePath);
+					auto texture = TextureLibrary::Load(texturePath);
+					if (texture->IsLoaded())
+					{
+						m_Textures.push_back(texture);
+						texture->SetType(TextureType::Roughness);
+					}
+					else
+					{
+						HZ_CORE_ERROR("    Could not load texture: {0}", texturePath);
+					}
+				}
+				else
+				{
+				}
 				// TODO:Metalness map
 
 
@@ -250,7 +273,7 @@ namespace Hazel {
 
 	void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
 	{
-		glm::mat4 transform = parentTransform * Mat4FromAssimpMat4(node->mTransformation);
+		glm::mat4 transform = parentTransform * Utils::Mat4FromAssimpMat4(node->mTransformation);
 
 		for (size_t i = 0; i < node->mNumMeshes; i++) {
 			uint32_t mesh = node->mMeshes[i];

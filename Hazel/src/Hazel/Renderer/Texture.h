@@ -4,7 +4,7 @@
 namespace Hazel {
 
 	enum class TextureType {
-		None, Albedo, Roughness, Metalness, Normal
+		None, Albedo, Roughness, Metalness, Normal, Other
 	};
 
 
@@ -46,6 +46,10 @@ namespace Hazel {
 		virtual const uint32_t GetRendererID() = 0;
 		bool IsLoaded() { return m_Loaded; }
 
+		bool operator == (Texture2D& other) {
+			return this->m_Path == other.m_Path;
+		}
+
 	protected:
 		std::string m_Path;
 		uint32_t m_Width, m_Height;
@@ -58,7 +62,7 @@ namespace Hazel {
 	class TextureLibrary {
 	public:
 		static void Add(const Ref<Texture2D> texture);
-		static void Load(const std::string& path);
+		static Ref<Texture2D> Load(const std::string& path);
 		
 		static bool Exists(const std::string& name);
 		static Ref<Texture2D> Get(const std::string& name);

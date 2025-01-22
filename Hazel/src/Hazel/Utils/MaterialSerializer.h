@@ -24,7 +24,6 @@ namespace Hazel {
 			bool SerializeUniform(YAML::Emitter& out, Ref<ShaderUniform> shaderUniform, void * data);
 			void DeserializeUniform(Ref<ShaderUniform> shaderUniform, void* data);
 
-
 		private:
 			Ref<Material> m_Material;
 			

@@ -29,6 +29,7 @@ namespace Hazel {
 	private:
 		unsigned int m_InternalFormat = 0;
 		unsigned int m_DataFormat = 0;
+		unsigned int m_Type = 0;
 		uint32_t m_RendererID;
 	};
 }

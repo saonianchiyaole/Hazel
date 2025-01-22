@@ -317,8 +317,8 @@ namespace Hazel {
 				auto materialComponent = entity["MaterialComponent"];
 				if (materialComponent) {
 					auto& material = deserializedEntity.AddComponent<MaterialComponent>();
-					material.material = MakeRef<Material>();
 					material.path = materialComponent["Path"].as<std::string>();
+					material.material = MakeRef<Material>();
 
 					Utils::MaterialSerializer materialSerializer(material.material);
 					materialSerializer.Deserialize(material.path);
