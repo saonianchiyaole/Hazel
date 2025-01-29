@@ -16,6 +16,8 @@ namespace Hazel {
 	static bool s_GLFWInitialized = false;
 
 	static void GLFWErrorCallback(int error, const char* description) {
+		if (error == 65539)
+			return;
 		HZ_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
 	}
 

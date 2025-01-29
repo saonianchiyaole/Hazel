@@ -109,7 +109,7 @@ public:
 	}
 
 	bool OnKeyPressedEvent(Hazel::KeyPressedEvent& e) {
-		HZ_INFO("{0}", e);
+		//HZ_INFO("{0}", e);
 		return false;
 	}
 private:

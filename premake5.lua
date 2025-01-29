@@ -17,6 +17,7 @@ IncludeDir["GLAD"] = "vendor/GLAD/include"
 IncludeDir["imgui"] = "vendor/imgui"
 IncludeDir["glm"] = "vendor/glm"
 IncludeDir["stb_image"] = "vendor/stb_image"
+IncludeDir["spdlog"] = "vendor/spdlog/include"
 IncludeDir["entt"] = "vendor/entt"
 IncludeDir["yaml"] = "vendor/yaml-cpp/include"
 IncludeDir["ImGuizmo"] = "vendor/ImGuizmo"
@@ -24,10 +25,17 @@ IncludeDir["box2d"] = "vendor/box2d/include"
 IncludeDir["mono"] = "vendor/mono/include"
 IncludeDir["assimp"] = "vendor/assimp/include"
 
-SolutionDir = "G:/Project/visualStudio/Hazel"
+
 
 
 -- Initialize LibDir
+
+scriptDir = path.getdirectory(debug.getinfo(1, "S").source:sub(2))
+
+
+SolutionDir = scriptDir
+print("Script file path :", SolutionDir)
+
 LibDir = {} 
 LibDir["mono"] = "%{SolutionDir}/vendor/mono/lib/%{cfg.buildcfg}"
 
@@ -78,7 +86,7 @@ project "Hazel"
 	includedirs
 	{
 		"$(SolutionDir)Hazel/src",
-		"$(SolutionDir)vendor/spdlog/include",
+		"%{IncludeDir.spdlog}",
 		"$(SolutionDir)vendor/GLFW/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.GLAD}",

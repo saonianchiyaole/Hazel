@@ -9,6 +9,9 @@
 
 #Files
 
+!vendor/assimp/lib/*
+!vendor/mono/lib/*
+
 
 # User-specific files
 *.rsuser

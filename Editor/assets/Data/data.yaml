@@ -15,7 +15,7 @@ Entities:
       Rotation: [0, -0, 0.05235988]
       Scale: [0.69, 0.69, 0.69]
     MeshComponent:
-      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\M1911Materials.fbx
+      FilePath: assets\m1911\M1911Materials.fbx
     MaterialComponent:
       Path: assets\Material\m1911.material
   - Entity: 2058834786711790100

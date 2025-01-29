@@ -345,7 +345,6 @@ namespace Hazel {
 
 	bool Editor::OnMoustLeftButtonClicked(Hazel::MouseButtonPressedEvent& event)
 	{
-
 		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(HZ_KEY_LEFT_ALT) && m_IsViewportHovered && (!ImGuizmo::IsOver() || !m_HierarchyPanel.GetSelectedEntity())) {
 			if (m_HoveredEntity.GetHandle() == entt::null) {
 
