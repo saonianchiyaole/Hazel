@@ -9,7 +9,9 @@
 
 #Files
 
+!vendor/assimp/lib/
 !vendor/assimp/lib/*
+!vendor/mono/lib/
 !vendor/mono/lib/*
 
 
