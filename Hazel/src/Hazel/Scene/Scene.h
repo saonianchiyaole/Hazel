@@ -7,6 +7,7 @@
 #include "glm/glm.hpp"
 #include "Hazel/Core/UUID.h"
 
+
 class b2World;
 
 namespace Hazel {
@@ -15,8 +16,11 @@ namespace Hazel {
 		Edit = 0,
 		Play = 1
 	};
-
+	
+	
+	class TextureCube;
 	class Entity;
+
 	class Scene {
 	public:
 
@@ -52,6 +56,11 @@ namespace Hazel {
 
 		void SetViewPortSize(glm::vec2 viewPortSize);
 
+
+		void SetSkybox(Ref<TextureCube> skybox);
+		Ref<TextureCube> GetSkybox();
+
+
 		SceneState GetState() {
 			return m_State;
 		}
@@ -66,6 +75,7 @@ namespace Hazel {
 
 		b2World* m_PhysicsWorld;
 
+		Ref<TextureCube> m_Skybox;
 
 		std::unordered_map<UUID, entt::entity> m_UUIDToEntity;
 

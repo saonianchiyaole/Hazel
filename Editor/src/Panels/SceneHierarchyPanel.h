@@ -11,6 +11,9 @@
 namespace Hazel {
 	
 	class SceneHierarchyPanel {
+
+		friend class Editor;
+
 	public:
 		SceneHierarchyPanel();
 		SceneHierarchyPanel(const Ref<Scene> context);

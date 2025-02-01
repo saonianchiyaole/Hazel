@@ -25,10 +25,12 @@ namespace Hazel {
 		bool OnKeyPressed(KeyPressedEvent& e);
 
 		void OpenScene(std::filesystem::path filepath);
-
+		
+		//
 		void UI_ToolBar();
 		void ColliderVisiable();
 		void DrawGuizmo();
+		void SceneSetting();
 
 	private:
 		Hazel::Ref<Hazel::OrthographicCameraController> m_CameraController;
@@ -41,6 +43,9 @@ namespace Hazel {
 		Hazel::Ref<Hazel::Texture2D> m_Texture;
 		Hazel::Ref<Hazel::Texture2D> m_Texture1;
 		Hazel::Ref<Hazel::Texture2D> m_Texture2;
+
+		std::vector<Ref<Texture2D>> m_SkyboxTextures;
+		Ref<TextureCube> m_SkyboxTextureCube;
 
 		Hazel::Ref<Hazel::Framebuffer> m_Framebuffer;
 		Hazel::FramebufferSpecification m_FramebufferSpecification;

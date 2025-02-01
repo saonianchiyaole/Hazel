@@ -14,6 +14,47 @@ namespace Hazel {
 
 	Renderer::SceneData* Renderer::s_SceneData = new Renderer::SceneData;
 
+
+	float skyboxVertices[] = {
+		// Positions         
+		-1.0f, -1.0f, -1.0f,  // 0
+		 1.0f, -1.0f, -1.0f,  // 1
+		 1.0f,  1.0f, -1.0f,  // 2
+		-1.0f,  1.0f, -1.0f,  // 3
+		-1.0f, -1.0f,  1.0f,  // 4
+		 1.0f, -1.0f,  1.0f,  // 5
+		 1.0f,  1.0f,  1.0f,  // 6
+		-1.0f,  1.0f,  1.0f   // 7
+	};
+
+	uint32_t skyboxIndices[] = {
+		// Front face
+		0, 2, 1,
+		0, 3, 2,
+
+		// Back face
+		4, 6, 5,
+		4, 7, 6,
+
+		// Left face
+		0, 7, 3,
+		0, 4, 7,
+
+		// Right face
+		1, 6, 2,
+		1, 5, 6,
+
+		// Bottom face
+		0, 5, 1,
+		0, 4, 5,
+
+		// Top face
+		3, 6, 2,
+		3, 7, 6
+	};
+
+
+
 	void Renderer::Init() {
 		RenderCommand::Init();
 		Renderer2D::Init();
@@ -24,6 +65,19 @@ namespace Hazel {
 		ShaderLibrary::Load("assets/Shaders/Standard.glsl");
 		s_SceneData->defaultShader = ShaderLibrary::Get("Standard");
 
+		ShaderLibrary::Load("assets/Shaders/Skybox.glsl");
+		s_SceneData->skyboxShader = ShaderLibrary::Get("Skybox");
+
+		s_SceneData->skybox = VertexArray::Create();
+		BufferLayout skyboxBufferLayout = std::vector<Hazel::BufferElement>{
+			{Hazel::ShaderDataType::Float3, "a_Position" }
+		};
+		Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
+		skyboxVertexBuffer->SetLayout(skyboxBufferLayout);
+		s_SceneData->skybox->AddVertexBuffer(skyboxVertexBuffer);
+
+		Ref<IndexBuffer> skyboxIndexBuffer = IndexBuffer::Create(skyboxIndices, sizeof(skyboxIndices) / sizeof(uint32_t));
+		s_SceneData->skybox->SetIndexBuffer(skyboxIndexBuffer);
 
 		//Set Dufault Light Uniform
 	}
@@ -40,6 +94,9 @@ namespace Hazel {
 		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
 
 		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
+
+		s_SceneData->skyboxShader->SetMat4("u_View", camera.GetViewMatrix());
+		s_SceneData->skyboxShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
 	}
 
 	void Renderer::BeginScene(const EditorCamera& camera)
@@ -54,6 +111,8 @@ namespace Hazel {
 
 		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
 
+		s_SceneData->skyboxShader->SetMat4("u_View", camera.GetViewMatrix());
+		s_SceneData->skyboxShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
 	}
 
 	void Renderer::EndScene()
@@ -81,8 +140,6 @@ namespace Hazel {
 
 
 		RenderCommand::DrawIndexed(mesh->m_VertexArray);
-
-
 	}
 
 	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material)
@@ -121,6 +178,15 @@ namespace Hazel {
 
 		s_SceneData->lightUniformBuffer->SetData(&lightUniformBufferData, sizeof(LightUniformBuffer), 0); 
 	}
+
+	void Renderer::SubmitSkybox(Ref<TextureCube> skyboxTextures)
+	{
+		s_SceneData->skybox->Bind();
+		s_SceneData->skyboxShader->Bind();
+		
+		RenderCommand::DrawIndexed(s_SceneData->skybox);
+	}
+
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
 	{

@@ -44,6 +44,8 @@ namespace Hazel {
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material);
 
 		static void SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent);
+		static void SubmitSkybox(Ref<TextureCube> skyboxTextures);
+
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
@@ -56,11 +58,13 @@ namespace Hazel {
 			glm::mat4 ViewProjectionMatrix;
 
 			Ref<Shader> defaultShader;
+			Ref<Shader> skyboxShader;
 
 			Ref<UniformBuffer> cameraUniformBuffer;
 			Ref<UniformBuffer> lightUniformBuffer;
-
+			Ref<VertexArray> skybox;
 		};
+
 		static SceneData* s_SceneData;
 	};
 

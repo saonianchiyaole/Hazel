@@ -143,4 +143,40 @@ namespace Hazel {
 		return m_Textures[path];
 	}
 
+	Ref<TextureCube> TextureCube::Create(std::vector<Ref<Texture2D>> textures)
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return MakeRef<OpenGLTextureCube>(textures);
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
+	Ref<TextureCube> TextureCube::Create()
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return MakeRef<OpenGLTextureCube>();
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
+	std::vector<Ref<Texture2D>> TextureCube::GetTexutres()
+	{
+		return m_Textures;
+	}
+
+	bool TextureCube::IsLoaded()
+	{
+		return m_IsLoaded;
+	}
+
 }

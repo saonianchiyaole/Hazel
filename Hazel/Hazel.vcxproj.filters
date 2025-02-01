@@ -49,6 +49,9 @@
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Hazel\UI">
+      <UniqueIdentifier>{754e39ed-ba7f-4529-8d3a-09ddb1afe58c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\vendor\ImGuizmo\ImGuizmo.h">
@@ -249,6 +252,9 @@
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\UI\UI.h">
+      <Filter>src\Hazel\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -409,6 +415,9 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\UI\UI.cpp">
+      <Filter>src\Hazel\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

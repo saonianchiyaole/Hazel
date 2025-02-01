@@ -60,4 +60,15 @@ namespace Hazel {
 	{
 		glLineWidth(width);
 	}
+	void OpenGLRendererAPI::SetDepthTest(bool value)
+	{
+		if (value)
+			glDisable(GL_DEPTH_TEST);
+		else
+			glEnable(GL_DEPTH_TEST);
+	}
+	void OpenGLRendererAPI::SetDepthMask(bool value)
+	{
+		glDepthMask(value);
+	}
 }

@@ -206,6 +206,7 @@
     <ClInclude Include="src\Hazel\Scene\ScriptableEntity.h" />
     <ClInclude Include="src\Hazel\Scripting\ScriptEngine.h" />
     <ClInclude Include="src\Hazel\Scripting\ScriptGlue.h" />
+    <ClInclude Include="src\Hazel\UI\UI.h" />
     <ClInclude Include="src\Hazel\Utils\MaterialSerializer.h" />
     <ClInclude Include="src\Hazel\Utils\PlatformUtils.h" />
     <ClInclude Include="src\Hazel\Utils\YAML.h" />
@@ -265,6 +266,7 @@
     <ClCompile Include="src\Hazel\Scene\ScriptableEntity.cpp" />
     <ClCompile Include="src\Hazel\Scripting\ScriptEngine.cpp" />
     <ClCompile Include="src\Hazel\Scripting\ScriptGlue.cpp" />
+    <ClCompile Include="src\Hazel\UI\UI.cpp" />
     <ClCompile Include="src\Hazel\Utils\MaterialSerializer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />

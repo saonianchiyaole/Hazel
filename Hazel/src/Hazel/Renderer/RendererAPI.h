@@ -22,6 +22,8 @@ namespace Hazel {
 		virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) = 0;
 		virtual void SetLineWidth(float width) = 0;
 
+		virtual void SetDepthTest(bool value) = 0;
+		virtual void SetDepthMask(bool value) = 0;
 
 		static 	API GetAPI() { return s_API; }
 

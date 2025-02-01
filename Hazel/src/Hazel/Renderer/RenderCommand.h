@@ -30,6 +30,12 @@ namespace Hazel {
 		static void SetLineWidth(float width) {
 			s_RendererAPI->SetLineWidth(width);
 		}
+		static void SetDepthTest(bool value) {
+			s_RendererAPI->SetDepthTest(value);
+		}
+		static void SetDepthMask(bool value) {
+			s_RendererAPI->SetDepthMask(value);
+		}
 		static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); }
 		static void Clear() { s_RendererAPI->Clear(); }
 

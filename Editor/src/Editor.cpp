@@ -9,7 +9,7 @@
 
 #include "Hazel/Renderer/Renderer2D.h"
 #include "entt.hpp"
-
+#include "Hazel/UI/UI.h"
 //#include "Hazel/Utils/PlatformUtils.h"
 #include "Platform/Windows/WindowsUtils.cpp"
 
@@ -39,8 +39,19 @@ namespace Hazel {
 		m_FramebufferSpecification.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 		m_Framebuffer = Hazel::Framebuffer::Create(m_FramebufferSpecification);
 
-
 		m_EditorScene.reset(new Scene);
+
+		m_SkyboxTextures.resize(6);
+		m_SkyboxTextures[0] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_RT.jpg");
+		m_SkyboxTextures[1] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_LF.jpg");
+		m_SkyboxTextures[2] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_UP.jpg");
+		m_SkyboxTextures[3] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_DN.jpg");
+		m_SkyboxTextures[4] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_FR.jpg");
+		m_SkyboxTextures[5] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_BK.jpg");
+
+		m_SkyboxTextureCube = TextureCube::Create(m_SkyboxTextures);
+		m_EditorScene->SetSkybox(m_SkyboxTextureCube);
+
 		m_ActiveScene = m_EditorScene;
 
 		m_HierarchyPanel.SetContext(m_ActiveScene);
@@ -82,7 +93,7 @@ namespace Hazel {
 		m_Framebuffer->Bind();
 		Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		Hazel::RenderCommand::Clear();
-		
+
 		int textureValue = -1;
 		m_Framebuffer->ClearAttachment(1, (void*)&textureValue);
 		static float angle = 0.0f;
@@ -97,18 +108,6 @@ namespace Hazel {
 			break;
 		}
 
-		/*m_MeshShader->Bind();
-		static float rotation;
-		rotation += (float)ts;
-		glm::mat4 transform = glm::rotate(glm::mat4(1.0f), rotation, {1.0f, 0.0f, 0.0f});
-		m_MeshShader->SetMat4("u_Transform", transform);
-		m_MeshShader->SetMat4("u_View", m_EditorCamera.GetViewMatrix());
-		m_MeshShader->SetMat4("u_Projection", m_EditorCamera.GetProjectionMatrix());
-		m_Mesh.m_VertexArray->Bind();
-		RenderCommand::DrawIndexed(m_Mesh.m_VertexArray);*/
-		
-
-		
 
 		//Get Pixel value
 		glm::vec2 mousePos = *(glm::vec2*)&ImGui::GetMousePos();
@@ -256,12 +255,12 @@ namespace Hazel {
 		ImGui::Begin("Shader");
 		for (const auto& shader : ShaderLibrary::m_Shaders) {
 
-			
+
 			ImGui::Text("%s", shader.second->GetName().c_str());
 			ImGui::SameLine();
 
 			std::string buttonName = "Reload##" + shader.first;
-			if (ImGui::Button(buttonName.c_str())){
+			if (ImGui::Button(buttonName.c_str())) {
 				shader.second->Reload();
 			}
 		}
@@ -311,16 +310,7 @@ namespace Hazel {
 		// ViewPort End
 
 
-		//Test
-		//ImGui::Begin("Check Texture");
-		//ImGui::Image((void*)m_Mesh.m_Textures[0]->GetRendererID(),{ (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-		//ImGui::End();
-		 
-		 
-		 
-		//Test End
-
-
+		SceneSetting();
 
 		m_HierarchyPanel.OnImGuiRender();
 		m_ContentBrowserPanel.OnImGuiRender();
@@ -499,15 +489,15 @@ namespace Hazel {
 		auto quadGroup = m_ActiveScene->m_Registry.view<TransformComponent, BoxCollider2DComponent>();
 		for (auto entityID : quadGroup) {
 			const auto& [transformComponent, boxCollider2D] = quadGroup.get<TransformComponent, BoxCollider2DComponent>(entityID);
-			glm::mat4 transform = glm::translate(transformComponent.transform, {boxCollider2D.offset, 0.0f});
-			Renderer2D::DrawRect(transform, {0.0f, 1.0f, 0.0f, 1.0f}, (int)entityID);
+			glm::mat4 transform = glm::translate(transformComponent.transform, { boxCollider2D.offset, 0.0f });
+			Renderer2D::DrawRect(transform, { 0.0f, 1.0f, 0.0f, 1.0f }, (int)entityID);
 		}
 
 		auto circleGroup = m_ActiveScene->m_Registry.view<TransformComponent, CircleCollider2DComponent>();
 		for (auto entityID : circleGroup) {
 			const auto& [transformComponent, circleCollider2D] = circleGroup.get<TransformComponent, CircleCollider2DComponent>(entityID);
 			glm::mat4 transform = glm::translate(transformComponent.transform, { circleCollider2D.offset, 0.0f });
-			Renderer2D::DrawCircle(transform, {0.0f, 1.0f, 0.0f, 1.0f}, 0.07f, 0.0025f , (int)entityID);
+			Renderer2D::DrawCircle(transform, { 0.0f, 1.0f, 0.0f, 1.0f }, 0.07f, 0.0025f, (int)entityID);
 		}
 
 		Renderer2D::EndScene();
@@ -579,6 +569,82 @@ namespace Hazel {
 
 			}
 		}
+	}
+
+	void Editor::SceneSetting()
+	{
+		//Scene Setting
+		ImGui::Begin("Scene Setting");
+
+		static bool isSkyboxSettingShowned = false;
+
+		if (ImGui::Button("Set Skybox")) {
+			isSkyboxSettingShowned = true;
+		}
+
+		if (isSkyboxSettingShowned)
+		{
+			ImGui::Begin("Skybox Setting");
+
+			Ref<TextureCube> textureCube = m_ActiveScene->GetSkybox();
+
+			std::vector<Ref<Texture2D>> textures;
+			if (textureCube)
+				textures = textureCube->GetTexutres();
+
+			std::function<void(Ref<Texture2D>&, void*)> dragDropFunc = [&](Ref<Texture2D>& texture, void* data) {
+				const wchar_t* rawPath = (const wchar_t*)data;
+				std::filesystem::path path(rawPath);
+				texture = TextureLibrary::Load(path.string());
+				};
+
+			const std::string lable[6] = {
+				"Right\n(+X)", "Left\n(-X)", "Up\n(+Y)", "Down\n(-Y)", "Front\n(+Z)", "Back\n(-Z)"
+			};
+
+			uint32_t emptyRendererID = m_HierarchyPanel.m_EmptyTexture->GetRendererID();
+			ImGui::Columns(2, 0, false);
+
+			for (size_t i = 0; i < 6; i++) {
+
+				std::string strID = lable[i];
+				uint32_t rendererID = (textures.empty() || !textures[i]) ? emptyRendererID : textures[i]->GetRendererID();;
+				ImGui::ImageButton(strID.c_str(), (ImTextureID)rendererID, { 50, 50 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+						const wchar_t* rawPath = (const wchar_t*)payload->Data;
+						std::filesystem::path path(rawPath);
+						if (!m_ActiveScene->GetSkybox()) {
+							m_ActiveScene->SetSkybox(TextureCube::Create());
+						}
+						m_ActiveScene->GetSkybox()->SetTexture(TextureLibrary::Load(path.string()), i);
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::TextWrapped(strID.c_str());			
+				ImGui::NextColumn();
+						
+			}
+			ImGui::Columns(1);
+
+
+			ImVec2 windowSize = ImGui::GetWindowSize();
+			ImVec2 buttonSize = ImVec2(150, 30);
+
+			ImGui::SetCursorPosX(windowSize.x / 2 - buttonSize.x / 2);
+			if (ImGui::Button("Done", buttonSize)) {
+				isSkyboxSettingShowned = false;
+			}
+
+			ImGui::End();
+
+
+		}
+
+
+
+		ImGui::End();
+		//Scene Setting End
 	}
 
 }

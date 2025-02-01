@@ -21,15 +21,24 @@ namespace Hazel {
 		virtual void Bind(uint32_t slot = 0) const override;
 
 		virtual const uint32_t GetRendererID() override;
-
+	
 		virtual bool operator ==(Texture& other) const override {
 			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
 		}
 
+		friend class OpenGLTextureCube;
 	private:
-		unsigned int m_InternalFormat = 0;
-		unsigned int m_DataFormat = 0;
-		unsigned int m_Type = 0;
+		uint32_t m_RendererID;
+	};
+
+
+	class OpenGLTextureCube : public TextureCube{
+	public:
+		OpenGLTextureCube();
+		OpenGLTextureCube(std::vector<Ref<Texture2D>> textures);
+		virtual uint32_t GetRendererID() override;
+		virtual void SetTexture(Ref<Texture2D> texture, uint32_t slot) override;
+	private:
 		uint32_t m_RendererID;
 	};
 }

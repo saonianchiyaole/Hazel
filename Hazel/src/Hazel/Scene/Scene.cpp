@@ -43,6 +43,8 @@ namespace Hazel {
 		Ref<Scene> dst;
 		dst.reset(new Scene);
 
+		dst->m_Skybox = src->m_Skybox;
+
 		const auto& srcRegistry = src->GetRegistry();
 		const auto& dstRegistry = dst->GetRegistry();
 
@@ -246,10 +248,13 @@ namespace Hazel {
 		}
 
 
-
+		Renderer::BeginScene(camera);
+		//Skybox
+		if(m_Skybox->IsLoaded())
+			Renderer::SubmitSkybox(m_Skybox);
+		
 		// 3D part
 		auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
-		Renderer::BeginScene(camera);
 
 		for (auto entityID : meshGroup) {
 			
@@ -258,7 +263,8 @@ namespace Hazel {
 
 			auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
 			if (mesh.mesh && mesh.type != Invalid)
-			{Entity entity = { entityID, this };
+			{
+				Entity entity = { entityID, this };
 				if (!entity.HasComponent<MaterialComponent>())
 					Renderer::SubmitMesh(mesh.mesh, transform);
 				else {
@@ -339,7 +345,7 @@ namespace Hazel {
 
 
 			//Light
-			auto LightGroup = m_Registry.group<TransformComponent, LightComponent>();
+			auto LightGroup = m_Registry.view<TransformComponent, LightComponent>();
 			for (auto entityID : LightGroup) {
 				auto& [transform, light] = LightGroup.get<TransformComponent, LightComponent>(entityID);
 
@@ -347,11 +353,15 @@ namespace Hazel {
 				// Material submit
 			}
 
-
-
+			//Skybox
+			Renderer::BeginScene(*mainCamera);
+			if (m_Skybox->IsLoaded())
+				Renderer::SubmitSkybox(m_Skybox);
+		 
+		
 			// 3D part
 			auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
-			Renderer::BeginScene(*mainCamera);
+			
 
 			for (auto entityID : meshGroup) {
 
@@ -360,7 +370,8 @@ namespace Hazel {
 				auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
 				if (mesh.mesh && mesh.type != Invalid)
 				{
-					if(!entity.HasComponent<MaterialComponent>())
+					Entity entity = { entityID, this };
+					if (!entity.HasComponent<MaterialComponent>())
 						Renderer::SubmitMesh(mesh.mesh, transform);
 					else {
 						Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().material);
@@ -379,6 +390,16 @@ namespace Hazel {
 		m_ViewPortSize = viewPortSize;
 		if (GetPrimaryCamera() != nullptr)
 			GetPrimaryCamera()->SetAspectRatio(viewPortSize.x / viewPortSize.y);
+	}
+
+	void Scene::SetSkybox(Ref<TextureCube> skybox)
+	{
+		m_Skybox = skybox;
+	}
+
+	Ref<TextureCube> Scene::GetSkybox()
+	{
+		return m_Skybox;
 	}
 
 	Scene* Scene::Raw()
