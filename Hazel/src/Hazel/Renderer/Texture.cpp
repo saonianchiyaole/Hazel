@@ -156,6 +156,19 @@ namespace Hazel {
 			return nullptr;
 	}
 
+	Ref<TextureCube> TextureCube::Create(const std::string& path)
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return MakeRef<OpenGLTextureCube>(path);
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
 	Ref<TextureCube> TextureCube::Create()
 	{
 		switch (Renderer::GetAPI()) {

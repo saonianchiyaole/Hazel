@@ -85,6 +85,7 @@ namespace Hazel {
 	class TextureCube{
 	public:
 		static Ref<TextureCube> Create(std::vector<Ref<Texture2D>> textures);
+		static Ref<TextureCube> Create(const std::string& path);
 		static Ref<TextureCube> Create();
 		virtual uint32_t GetRendererID() = 0;
 		std::vector<Ref<Texture2D>> GetTexutres();

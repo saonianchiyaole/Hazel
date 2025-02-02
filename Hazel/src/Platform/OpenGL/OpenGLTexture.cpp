@@ -174,6 +174,14 @@ namespace Hazel {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 		m_IsLoaded = true;
 	}
+
+
+	OpenGLTextureCube::OpenGLTextureCube(const std::string& path)
+	{
+
+		m_IsLoaded = true;
+	}
+
 	uint32_t OpenGLTextureCube::GetRendererID()
 	{
 		return m_RendererID;
