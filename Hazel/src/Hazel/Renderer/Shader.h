@@ -13,6 +13,13 @@ namespace Hazel {
 		std::string GetShaderName(std::string path);
 	}
 
+	enum class ShaderType {
+		Null = 0,
+		VertexShader, FragmentShader,
+		ComputeShader, VertAndFragShader
+	};
+
+
 
 	class Shader {
 	public:
@@ -52,6 +59,7 @@ namespace Hazel {
 		std::string m_Name;
 		std::string m_Path;
 		std::vector<Ref<ShaderUniform>> m_Uniforms;
+		ShaderType m_Type;
 
 	};
 

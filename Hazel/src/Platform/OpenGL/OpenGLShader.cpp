@@ -20,6 +20,9 @@ namespace Hazel {
 		else if (type == "fragment" || type == "pixel") {
 			return GL_FRAGMENT_SHADER;
 		}
+		else if (type == "compute") {
+			return GL_COMPUTE_SHADER;
+		}
 		HZ_CORE_ASSERT(false, "Invaild shader type specified!");
 	}
 
@@ -82,12 +85,20 @@ namespace Hazel {
 		const char* typeToken = "#type";
 		size_t typeTokenLength = strlen(typeToken);
 		size_t pos = src.find(typeToken, 0);
+
 		while (pos != std::string::npos) {
 			size_t eol = src.find_first_of("\r\n", pos);
 			HZ_CORE_ASSERT(eol != std::string::npos, "Syntax error");
 			size_t begin = pos + typeTokenLength + 1;
 			std::string type = src.substr(begin, eol - begin);
-			HZ_CORE_ASSERT(type == "vertex" || type == "fragment" || type == "pixel", "Invaild shader type specified!");
+			HZ_CORE_ASSERT(type == "vertex" || type == "fragment" || type == "pixel" || type == "compute", "Invaild shader type specified!");
+
+			if (type == "vertex" || type == "fragment" || type == "pixel") {
+				m_Type == ShaderType::VertAndFragShader;
+			}
+			else if (type == "compute") {
+				m_Type = ShaderType::ComputeShader;
+			}
 
 			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
 			pos = src.find(typeToken, nextLinePos);

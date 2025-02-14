@@ -1,17 +1,25 @@
 #pragma once
 
-#include "Hazel/Core/Core.h"
 
 
 namespace Hazel {
 
 	class Shader;
+	class TextureCube;
 
-	class EnvironmentMap {
+	class Environment {
 	public:
-		static Ref<EnvironmentMap> Create();
-	private:
+		static Ref<Environment> Create(std::string filepath);
+
+		Ref<TextureCube> GetEnvironmentMap() { return m_EnvFiltered; }
+		Ref<TextureCube> GetIrradianceMap() { return m_IrradianceMap; }
+
+	protected:
 		static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;
+
+		Ref<TextureCube> m_EnvFiltered;
+		Ref<TextureCube> m_IrradianceMap;
+
 	};
 
 

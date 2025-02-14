@@ -36,7 +36,12 @@ namespace Hazel {
 	public:
 		OpenGLTextureCube();
 		OpenGLTextureCube(std::vector<Ref<Texture2D>> textures);
+		OpenGLTextureCube(TextureFormat format, const uint32_t width, const uint32_t height);
 		OpenGLTextureCube(const std::string& path);
+		~OpenGLTextureCube();
+
+		virtual void Bind(uint32_t slot = 0) override;
+
 		virtual uint32_t GetRendererID() override;
 		virtual void SetTexture(Ref<Texture2D> texture, uint32_t slot) override;
 	private:

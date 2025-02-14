@@ -36,3 +36,4 @@
 #include "Hazel/Renderer/Texture.h"
 #include "Hazel/Renderer/Framebuffer.h"
 #include "Hazel/Renderer/Mesh.h"
+#include "Hazel/Renderer/Environment.h"

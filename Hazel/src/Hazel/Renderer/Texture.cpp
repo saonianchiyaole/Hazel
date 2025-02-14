@@ -107,7 +107,7 @@ namespace Hazel {
 	{
 		return m_Path;
 	}
-	
+
 	void TextureLibrary::Add(const Ref<Texture2D> texture)
 	{
 		auto& path = texture->GetPath();
@@ -121,18 +121,19 @@ namespace Hazel {
 
 	Ref<Texture2D> TextureLibrary::Load(const std::string& path)
 	{
-		if(Exists(path))
+		if (Exists(path))
 		{
 			HZ_CORE_ERROR("This Texture : {} already exist", path);
 			return m_Textures[path];
 		}
 
 		Ref<Texture2D> texture = Texture2D::Create(path);
+
 		Add(texture);
 		return texture;
 	}
 
-	
+
 	bool TextureLibrary::Exists(const std::string& path)
 	{
 		return m_Textures.find(path) != m_Textures.end();
@@ -163,6 +164,19 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return MakeRef<OpenGLTextureCube>(path);
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
+	Ref<TextureCube> TextureCube::Create(TextureFormat format, const uint32_t width, const uint32_t height)
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return MakeRef<OpenGLTextureCube>(format, width, height);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

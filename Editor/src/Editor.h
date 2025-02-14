@@ -47,6 +47,9 @@ namespace Hazel {
 		std::vector<Ref<Texture2D>> m_SkyboxTextures;
 		Ref<TextureCube> m_SkyboxTextureCube;
 
+		Ref<Environment> m_Environment;
+
+
 		Hazel::Ref<Hazel::Framebuffer> m_Framebuffer;
 		Hazel::FramebufferSpecification m_FramebufferSpecification;
 

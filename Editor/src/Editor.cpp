@@ -44,20 +44,24 @@ namespace Hazel {
 		m_SkyboxTextures.resize(6);
 		m_SkyboxTextures[0] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_RT.jpg");
 		m_SkyboxTextures[1] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_LF.jpg");
-		m_SkyboxTextures[2] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_UP.jpg");
-		m_SkyboxTextures[3] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_DN.jpg");
-		m_SkyboxTextures[4] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_FR.jpg");
-		m_SkyboxTextures[5] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_BK.jpg");
+		m_SkyboxTextures[2] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_DN.jpg");
+		m_SkyboxTextures[3] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_UP.jpg");
+		m_SkyboxTextures[4] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_BK.jpg");
+		m_SkyboxTextures[5] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_FR.jpg");
 
 		m_SkyboxTextureCube = TextureCube::Create(m_SkyboxTextures);
-		m_EditorScene->SetSkybox(m_SkyboxTextureCube);
+		//m_EditorScene->SetSkybox(m_SkyboxTextureCube);
 
+
+		//TextureLibrary::Load("assets/environment/birchwood_4k.hdr");
+		m_Environment = Environment::Create("assets/environment/rooitou_park_4k.hdr");
+		m_EditorScene->SetSkybox(m_Environment->GetEnvironmentMap());
 		m_ActiveScene = m_EditorScene;
 
 		m_HierarchyPanel.SetContext(m_ActiveScene);
 		m_ContentBrowserPanel = { "assets" };
 
-		m_EditorCamera = { 90.0f, 1280.f / 720.f, 0.001f, 1000.f };
+		m_EditorCamera = { 60.0f, 1280.f / 720.f, 0.001f, 1000.f };
 
 
 		//m_Mesh = Mesh("assets/m1911/m1911.fbx");

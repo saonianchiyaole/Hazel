@@ -60,7 +60,7 @@ namespace Hazel {
 		void SetSlot(uint32_t slot);
 
 		virtual const uint32_t GetRendererID() = 0;
-		bool IsLoaded() { return m_Loaded; }
+		bool IsLoaded() { return m_IsLoaded; }
 
 		bool operator == (Texture2D& other) {
 			return this->m_Path == other.m_Path;
@@ -77,23 +77,42 @@ namespace Hazel {
 		unsigned int m_DataFormat = 0;
 		unsigned int m_DataType = 0;
 		
-		bool m_Loaded = false;
+		bool m_IsLoaded = false;
 		bool m_IsHDR = false;
 	};
 
 
 	class TextureCube{
 	public:
+		friend class Environment;
+		friend class OpenGLEnvironment;
+
 		static Ref<TextureCube> Create(std::vector<Ref<Texture2D>> textures);
 		static Ref<TextureCube> Create(const std::string& path);
+		static Ref<TextureCube> Create(TextureFormat format, const uint32_t width, const uint32_t height);
 		static Ref<TextureCube> Create();
+
+		virtual void Bind(uint32_t slot = 0) = 0;
 		virtual uint32_t GetRendererID() = 0;
 		std::vector<Ref<Texture2D>> GetTexutres();
 		virtual void SetTexture(Ref<Texture2D> texture, uint32_t slot) = 0;
 		bool IsLoaded();
 	protected:
+
+
+		void SetIsLoaded(bool value) { m_IsLoaded = value; }
+
 		std::vector<Ref<Texture2D>> m_Textures;
+
+		TextureFormat m_TextureFormat;
+		unsigned int m_InternalFormat = 0;
+		unsigned int m_DataFormat = 0;
+		unsigned int m_DataType = 0;
+		std::string m_Path;
+		uint32_t m_Width, m_Height;
+
 		bool m_IsLoaded = false;
+		bool m_IsHDR = false;
 	};
 
 

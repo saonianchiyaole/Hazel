@@ -3,7 +3,7 @@
 
 #include "stb_image.h"
 #include "glad/glad.h"
-
+#include <set>
 
 #define POSITIVE_X 0;
 #define NEGATIVE_X 1;
@@ -13,17 +13,31 @@
 #define NEGATIVE_Z 5;
 
 namespace Hazel {
-	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
-	{
+
+	namespace Utils {
+		static GLenum HazelToOpenGLTextureFormat(TextureFormat format) {
+			switch (format)
+			{
+			case Hazel::TextureFormat::RGB:     return GL_RGB;
+			case Hazel::TextureFormat::RGBA:    return GL_RGBA;
+			case Hazel::TextureFormat::Float16: return GL_RGBA16F;
+			}
+			HZ_CORE_ASSERT(false, "Unknown texture format!");
+			return 0;
+		}
+	}
+
+
+	OpenGLTexture2D::OpenGLTexture2D(const std::string& path) {
+		m_Path = path;
 		HZ_CORE_INFO("Open Texture filePath {0}", path);
+		static const std::set<std::string> supportedExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".hdr" };
 		std::filesystem::path checkpath = path;
-		if (checkpath.extension().string() != ".jpg" && checkpath.extension().string() != ".png") {
+		if (supportedExtensions.count(checkpath.extension().string()) <= 0) {
 			HZ_CORE_WARN("This is Not Texture file!");
 			return;
 		}
 
-
-		m_Path = path;
 
 		stbi_set_flip_vertically_on_load(true); // ¼ÓÔØÍ¼ÏñÊ±·­×ªYÖá
 
@@ -34,7 +48,9 @@ namespace Hazel {
 
 
 		int width, height, channels;
-		stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		stbi_uc* data;
+
+		data = m_IsHDR ? (uint8_t*)stbi_loadf(path.c_str(), &width, &height, &channels, 0) : stbi_load(path.c_str(), &width, &height, &channels, 0);
 		HZ_CORE_ASSERT(data, "Failed to load image!");
 		m_Width = width;
 		m_Height = height;
@@ -56,7 +72,7 @@ namespace Hazel {
 		else if (channels == 3 && m_IsHDR) {
 			m_TextureFormat = TextureFormat::Float16;
 
-			m_InternalFormat = GL_RGB16F;
+			m_InternalFormat = GL_RGBA16F;
 			m_DataFormat = GL_RGB;
 			m_DataType = GL_FLOAT;
 		}
@@ -81,7 +97,7 @@ namespace Hazel {
 
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, m_DataType, data);
 
-		m_Loaded = true;
+		m_IsLoaded = true;
 
 		stbi_image_free(data);
 	}
@@ -112,7 +128,7 @@ namespace Hazel {
 		uint32_t bpp = m_DataFormat == GL_RGBA ? 4 : 3;
 		HZ_CORE_ASSERT(size == m_Width * m_Height * bpp, "Data must be entire texture");
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
-		m_Loaded = true;
+		m_IsLoaded = true;
 	}
 
 
@@ -136,9 +152,11 @@ namespace Hazel {
 	//LDR TextureCube
 	OpenGLTextureCube::OpenGLTextureCube(std::vector<Ref<Texture2D>> textures)
 	{
+		if (textures.size() != 6)
+			return;
+
 		glCreateBuffers(1, &m_RendererID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
-
 
 		for (size_t i = 0; i < textures.size(); i++) {
 
@@ -175,11 +193,40 @@ namespace Hazel {
 		m_IsLoaded = true;
 	}
 
+	OpenGLTextureCube::OpenGLTextureCube(TextureFormat format, const uint32_t width, const uint32_t height)
+	{
+		m_Width = width;
+		m_Height = height;
+		m_TextureFormat = format;
+		m_InternalFormat = Utils::HazelToOpenGLTextureFormat(format);
+
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID);
+		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, width, height);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	}
+
 
 	OpenGLTextureCube::OpenGLTextureCube(const std::string& path)
 	{
 
 		m_IsLoaded = true;
+	}
+
+	OpenGLTextureCube::~OpenGLTextureCube()
+	{
+		glDeleteTextures(1, &m_RendererID);
+	}
+
+	void OpenGLTextureCube::Bind(uint32_t slot)
+	{
+		glBindTextureUnit(slot, m_RendererID);
 	}
 
 	uint32_t OpenGLTextureCube::GetRendererID()

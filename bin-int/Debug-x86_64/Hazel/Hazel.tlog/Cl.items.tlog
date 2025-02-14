@@ -14,6 +14,7 @@ E:\project\visualStudio\Hazel\Hazel\src\Hazel\Math\Math.cpp;E:\project\visualStu
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Buffer.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Buffer.obj
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Camera.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Camera.obj
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\EditorCamera.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\EditorCamera.obj
+E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Environment.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Environment.obj
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Framebuffer.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Framebuffer.obj
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\GraphicsContext.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\GraphicsContext.obj
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Lightt.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Lightt.obj
@@ -42,6 +43,7 @@ E:\project\visualStudio\Hazel\Hazel\src\Hazel\UI\UI.cpp;E:\project\visualStudio\
 E:\project\visualStudio\Hazel\Hazel\src\Hazel\Utils\MaterialSerializer.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\MaterialSerializer.obj
 E:\project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLBuffer.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLBuffer.obj
 E:\project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLContext.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLContext.obj
+E:\project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLEnvironment.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLEnvironment.obj
 E:\project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLFramebuffer.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLFramebuffer.obj
 E:\project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLRendererAPI.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLRendererAPI.obj
 E:\project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLShader.cpp;E:\project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLShader.obj

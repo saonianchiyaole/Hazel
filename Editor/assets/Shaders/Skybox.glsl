@@ -11,7 +11,7 @@ out vec3 v_Position;
 
 void main() {
 
-    v_Position = normalize(a_Position);
+    v_Position = a_Position;
     mat4 view = mat4(mat3(u_View));
     gl_Position =  u_Projection * view * vec4(a_Position, 1.0); 
 }

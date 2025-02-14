@@ -67,6 +67,8 @@ namespace Hazel {
 
 		ShaderLibrary::Load("assets/Shaders/Skybox.glsl");
 		s_SceneData->skyboxShader = ShaderLibrary::Get("Skybox");
+		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
+
 
 		s_SceneData->skybox = VertexArray::Create();
 		BufferLayout skyboxBufferLayout = std::vector<Hazel::BufferElement>{
@@ -183,6 +185,7 @@ namespace Hazel {
 	{
 		s_SceneData->skybox->Bind();
 		s_SceneData->skyboxShader->Bind();
+		skyboxTextures->Bind();
 		
 		RenderCommand::DrawIndexed(s_SceneData->skybox);
 	}
