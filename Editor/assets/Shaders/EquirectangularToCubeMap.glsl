@@ -35,5 +35,6 @@ void main()
     vec2 uv = vec2(phi / (2.0 * PI) + 0.5, theta / PI);
 
 	vec4 color = texture(u_EquirectangularTex, uv);
+
 	imageStore(o_CubeMap, ivec3(gl_GlobalInvocationID), color);
 }

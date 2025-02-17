@@ -41,21 +41,6 @@ namespace Hazel {
 
 		m_EditorScene.reset(new Scene);
 
-		m_SkyboxTextures.resize(6);
-		m_SkyboxTextures[0] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_RT.jpg");
-		m_SkyboxTextures[1] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_LF.jpg");
-		m_SkyboxTextures[2] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_DN.jpg");
-		m_SkyboxTextures[3] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_UP.jpg");
-		m_SkyboxTextures[4] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_BK.jpg");
-		m_SkyboxTextures[5] = TextureLibrary::Load("assets/skyboxs/室内天空盒之一_textures/shinei-_FR.jpg");
-
-		m_SkyboxTextureCube = TextureCube::Create(m_SkyboxTextures);
-		//m_EditorScene->SetSkybox(m_SkyboxTextureCube);
-
-
-		//TextureLibrary::Load("assets/environment/birchwood_4k.hdr");
-		m_Environment = Environment::Create("assets/environment/rooitou_park_4k.hdr");
-		m_EditorScene->SetSkybox(m_Environment->GetEnvironmentMap());
 		m_ActiveScene = m_EditorScene;
 
 		m_HierarchyPanel.SetContext(m_ActiveScene);
@@ -197,13 +182,13 @@ namespace Hazel {
 			if (ImGui::BeginMenu("Options"))
 			{
 				if (ImGui::MenuItem("Open...")) {
-					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.yaml)\0*.yaml\0");
+					std::string filePath = FileDialogs::OpenFile("Hazel Scene (*.scene)\0*.scene\0");
 					OpenScene(filePath);
 				}
 				ImGui::Separator();
 
 				if (ImGui::MenuItem("SaveAs...")) {
-					std::string filePath = FileDialogs::SaveFile("Hazel Scene (*.yaml)\0*.yaml\0");
+					std::string filePath = FileDialogs::SaveFile("Hazel Scene (*.scene)\0*.scene\0");
 					if (!filePath.empty())
 					{
 						SceneSerializer sceneSerializer(m_EditorScene);
@@ -213,11 +198,11 @@ namespace Hazel {
 
 				if (ImGui::MenuItem("Save", "Ctrl+S")) {
 					SceneSerializer sceneSerializer(m_EditorScene);
-					sceneSerializer.Serialize("assets\\Data\\data.yaml");
+					sceneSerializer.Serialize("assets\\Data\\data.scene");
 				}
 				if (ImGui::MenuItem("SaveAndClose")) {
 					SceneSerializer sceneSerializer(m_EditorScene);
-					sceneSerializer.Serialize("assets\\Data\\data.yaml");
+					sceneSerializer.Serialize("assets\\Data\\data.scene");
 					Application::GetInstance().Close();
 				}
 
@@ -294,7 +279,8 @@ namespace Hazel {
 
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
 				const wchar_t* path = (const wchar_t*)payload->Data;
-				OpenScene(path);
+				
+				ProcessFile(path);
 			}
 
 			ImGui::EndDragDropTarget();
@@ -396,10 +382,7 @@ namespace Hazel {
 	void Editor::OpenScene(std::filesystem::path filepath)
 	{
 		HZ_CORE_INFO("Open Scene filePath {0}", filepath.string());
-		if (filepath.string().find(".yaml") == std::string::npos) {
-			HZ_CORE_WARN("This is Not Scene file!");
-			return;
-		}
+		
 		m_EditorScene.reset(new Scene);
 		m_ActiveScene = m_EditorScene;
 		m_HierarchyPanel = { m_ActiveScene };
@@ -408,6 +391,22 @@ namespace Hazel {
 		sceneSerializer.Deserialize(filepath.string());
 
 		m_ActiveScene->SetViewPortSize(m_ViewportSize);
+	}
+
+	void Editor::ProcessFile(std::filesystem::path filepath)
+	{
+		static const std::set<std::string> supportedExtensions = { ".scene", ".hdr" };
+		if (supportedExtensions.count(filepath.extension().string()) <= 0) {
+			HZ_CORE_WARN("This is Not valid file!");
+			return;
+		}
+		
+		if (filepath.extension().string() == ".scene") {
+			OpenScene(filepath);
+		}
+		else if (filepath.extension().string() == ".hdr") {
+			m_ActiveScene->SetEnvironment(Environment::Create(filepath.string()));
+		}
 	}
 
 	void Editor::UI_ToolBar()

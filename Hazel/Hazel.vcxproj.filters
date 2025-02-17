@@ -28,6 +28,9 @@
     <Filter Include="src\Hazel\Scripting">
       <UniqueIdentifier>{F258AC9D-5EBA-89AB-E727-D05D5388C06A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Hazel\UI">
+      <UniqueIdentifier>{1D45776D-09A8-0612-B22D-3FC89E6FD294}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Hazel\Utils">
       <UniqueIdentifier>{506D16B4-BCF8-8378-C509-076D3114E078}</UniqueIdentifier>
     </Filter>
@@ -48,9 +51,6 @@
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Hazel\UI">
-      <UniqueIdentifier>{754e39ed-ba7f-4529-8d3a-09ddb1afe58c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +132,9 @@
     <ClInclude Include="src\Hazel\Renderer\EditorCamera.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\Environment.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\Framebuffer.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
@@ -207,6 +210,9 @@
     <ClInclude Include="src\Hazel\Scripting\ScriptGlue.h">
       <Filter>src\Hazel\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\UI\UI.h">
+      <Filter>src\Hazel\UI</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Utils\MaterialSerializer.h">
       <Filter>src\Hazel\Utils</Filter>
     </ClInclude>
@@ -220,6 +226,9 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLEnvironment.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h">
@@ -251,15 +260,6 @@
     </ClInclude>
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Hazel\UI\UI.h">
-      <Filter>src\Hazel\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Hazel\Renderer\Environment.h">
-      <Filter>src\Hazel\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLEnvironment.h">
-      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -309,6 +309,9 @@
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\EditorCamera.cpp">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Renderer\Environment.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\Framebuffer.cpp">
@@ -383,6 +386,9 @@
     <ClCompile Include="src\Hazel\Scripting\ScriptGlue.cpp">
       <Filter>src\Hazel\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\UI\UI.cpp">
+      <Filter>src\Hazel\UI</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Utils\MaterialSerializer.cpp">
       <Filter>src\Hazel\Utils</Filter>
     </ClCompile>
@@ -390,6 +396,9 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLEnvironment.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp">
@@ -421,15 +430,6 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hazel\UI\UI.cpp">
-      <Filter>src\Hazel\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hazel\Renderer\Environment.cpp">
-      <Filter>src\Hazel\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLEnvironment.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -3,6 +3,12 @@
 
 namespace Hazel {
 
+
+	namespace Utils {
+		uint32_t CalculateMipmapCount(uint32_t width, uint32_t height);
+	}
+
+
 	enum class TextureType {
 		None, Albedo, Roughness, Metalness, Normal, Other
 	};
@@ -38,25 +44,28 @@ namespace Hazel {
 		~Texture2D() = default;
 		//static Ref<Texture2D> Create(const std::string& path);
 
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
-		std::string GetPath() const;
-
 		static Ref<Texture2D> Create(const uint32_t width, const uint32_t height);
 		static Ref<Texture2D> Create(std::filesystem::path path);
 		// Pre create to allocate memory
 		static Ref<Texture2D> PreCreate();
 		static Texture2D* PreCreateNakedPointer();
 
-		virtual void SetData(const void* data, const uint32_t size) = 0;
-		virtual void SetType(TextureType type);
+		//Get
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
+		std::string GetPath() const;
 
+		TextureType GetType();
+		TextureFormat GetTextureFormat() { return m_TextureFormat; }
 		unsigned int GetDataFormat() { return m_DataFormat; }
 		unsigned int GetInternalFormat() { return m_InternalFormat; }
 		unsigned int GetDataType() { return m_DataType; }
 
-		TextureType GetType();
 		uint32_t GetSlot();
+
+		//Set
+		virtual void SetData(const void* data, const uint32_t size) = 0;
+		virtual void SetType(TextureType type);
 		void SetSlot(uint32_t slot);
 
 		virtual const uint32_t GetRendererID() = 0;
@@ -92,11 +101,18 @@ namespace Hazel {
 		static Ref<TextureCube> Create(TextureFormat format, const uint32_t width, const uint32_t height);
 		static Ref<TextureCube> Create();
 
+		//Get 
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
+		std::string GetPath() const;
+		uint32_t GetMipmapCount();
+
 		virtual void Bind(uint32_t slot = 0) = 0;
 		virtual uint32_t GetRendererID() = 0;
 		std::vector<Ref<Texture2D>> GetTexutres();
 		virtual void SetTexture(Ref<Texture2D> texture, uint32_t slot) = 0;
 		bool IsLoaded();
+		bool IsHDR();
 	protected:
 
 

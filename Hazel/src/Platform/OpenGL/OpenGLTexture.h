@@ -41,7 +41,7 @@ namespace Hazel {
 		~OpenGLTextureCube();
 
 		virtual void Bind(uint32_t slot = 0) override;
-
+		
 		virtual uint32_t GetRendererID() override;
 		virtual void SetTexture(Ref<Texture2D> texture, uint32_t slot) override;
 	private:

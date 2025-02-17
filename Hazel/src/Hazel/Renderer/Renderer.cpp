@@ -9,6 +9,8 @@
 #include "Hazel/Renderer/Texture.h"
 #include "Hazel/Scene/Component.h"
 #include "Hazel/Renderer/VertexArray.h"
+#include "Hazel/Renderer/Environment.h"
+
 
 namespace Hazel {
 
@@ -67,7 +69,7 @@ namespace Hazel {
 
 		ShaderLibrary::Load("assets/Shaders/Skybox.glsl");
 		s_SceneData->skyboxShader = ShaderLibrary::Get("Skybox");
-		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
+		
 
 
 		s_SceneData->skybox = VertexArray::Create();
@@ -119,6 +121,7 @@ namespace Hazel {
 
 	void Renderer::EndScene()
 	{
+		s_SceneData->environment = nullptr;
 	}
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform)
 	{
@@ -158,6 +161,12 @@ namespace Hazel {
 		material->GetShader()->Bind();
 		material->Submit();
 		material->GetShader()->SetMat4("u_Transform", transformComponent.transform);
+		
+		if(s_SceneData->environment)
+		{
+			s_SceneData->environment->GetIrradianceMap()->Bind(10);
+			material->GetShader()->SetInt("u_EnvIrradiance", 10);
+		}
 		mesh->m_VertexArray->Bind();
 
 
@@ -183,11 +192,35 @@ namespace Hazel {
 
 	void Renderer::SubmitSkybox(Ref<TextureCube> skyboxTextures)
 	{
+		RenderCommand::SetDepthMask(false);
 		s_SceneData->skybox->Bind();
 		s_SceneData->skyboxShader->Bind();
+		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
+		s_SceneData->skyboxShader->SetMat4("u_View", s_SceneData->ViewMatrix);
+		s_SceneData->skyboxShader->SetMat4("u_Projection", s_SceneData->ProjectionMatrix);
 		skyboxTextures->Bind();
 		
 		RenderCommand::DrawIndexed(s_SceneData->skybox);
+
+		RenderCommand::SetDepthMask(true);
+	}
+
+	void Renderer::SubmitEnvironment(Ref<Environment> environment)
+	{
+		RenderCommand::SetDepthMask(false);
+
+		s_SceneData->skybox->Bind();
+		s_SceneData->skyboxShader->Bind();
+		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
+		s_SceneData->skyboxShader->SetMat4("u_View", s_SceneData->ViewMatrix);
+		s_SceneData->skyboxShader->SetMat4("u_Projection", s_SceneData->ProjectionMatrix);
+		environment->GetEnvironmentMap()->Bind();
+		s_SceneData->environment = environment;
+
+		RenderCommand::DrawIndexed(s_SceneData->skybox);
+
+		RenderCommand::SetDepthMask(true);
+
 	}
 
 

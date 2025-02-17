@@ -6,6 +6,18 @@
 
 namespace Hazel {
 
+	namespace Utils {
+		uint32_t Hazel::Utils::CalculateMipmapCount(uint32_t width, uint32_t height)
+		{
+			uint32_t levels = 1;
+			while ((width | height) >> levels)
+				levels++;
+
+			return levels;
+		}
+	}
+
+
 
 	std::unordered_map<std::string, std::shared_ptr<Hazel::Texture2D>> TextureLibrary::m_Textures;
 
@@ -196,6 +208,26 @@ namespace Hazel {
 			return nullptr;
 	}
 
+	uint32_t TextureCube::GetWidth() const
+	{
+		return m_Width;
+	}
+
+	uint32_t TextureCube::GetHeight() const
+	{
+		return m_Height;
+	}
+
+	std::string TextureCube::GetPath() const
+	{
+		return m_Path;
+	}
+
+	uint32_t TextureCube::GetMipmapCount()
+	{
+		return Utils::CalculateMipmapCount(m_Width, m_Height);
+	}
+
 	std::vector<Ref<Texture2D>> TextureCube::GetTexutres()
 	{
 		return m_Textures;
@@ -206,4 +238,10 @@ namespace Hazel {
 		return m_IsLoaded;
 	}
 
+	bool TextureCube::IsHDR()
+	{
+		return m_IsHDR;
+	}
+
 }
+

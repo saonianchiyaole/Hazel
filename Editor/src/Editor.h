@@ -26,6 +26,8 @@ namespace Hazel {
 
 		void OpenScene(std::filesystem::path filepath);
 		
+		void ProcessFile(std::filesystem::path filepath);
+
 		//
 		void UI_ToolBar();
 		void ColliderVisiable();

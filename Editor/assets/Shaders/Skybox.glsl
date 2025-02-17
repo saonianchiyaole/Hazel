@@ -29,7 +29,7 @@ in vec3 v_Position;
 void main() {
 
     vec3 position = vec3(v_Position.x, -v_Position.y, v_Position.z);
-    color = texture(u_SkyBox, position);
+    color = textureLod(u_SkyBox, position, 0.1);
     //color = vec4(v_Position, 1.0);
     entityID = -1;
 }

@@ -45,7 +45,7 @@ namespace Hazel {
 
 		static void SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent);
 		static void SubmitSkybox(Ref<TextureCube> skyboxTextures);
-
+		static void SubmitEnvironment(Ref<Environment> environment);
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
@@ -60,9 +60,12 @@ namespace Hazel {
 			Ref<Shader> defaultShader;
 			Ref<Shader> skyboxShader;
 
+			Ref<Camera> primaryCamera;
+
 			Ref<UniformBuffer> cameraUniformBuffer;
 			Ref<UniformBuffer> lightUniformBuffer;
 			Ref<VertexArray> skybox;
+			Ref<Environment> environment;
 		};
 
 		static SceneData* s_SceneData;

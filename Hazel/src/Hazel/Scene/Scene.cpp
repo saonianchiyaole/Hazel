@@ -8,7 +8,7 @@
 #include "Hazel/Renderer/Renderer.h"
 #include "Hazel/Renderer/Renderer2D.h"
 #include "Hazel/Scripting/ScriptEngine.h"
-
+#include "Hazel/Renderer/Environment.h"
 
 
 // Box2D
@@ -250,8 +250,8 @@ namespace Hazel {
 
 		Renderer::BeginScene(camera);
 		//Skybox
-		if(m_Skybox->IsLoaded())
-			Renderer::SubmitSkybox(m_Skybox);
+		if(m_Environment && m_Environment->IsLoaded())
+			Renderer::SubmitEnvironment(m_Environment);
 		
 		// 3D part
 		auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
@@ -385,6 +385,11 @@ namespace Hazel {
 		}
 	}
 
+	Ref<Environment> Scene::GetEnvironment()
+	{
+		return m_Environment;
+	}
+
 	void Scene::SetViewPortSize(glm::vec2 viewPortSize)
 	{
 		m_ViewPortSize = viewPortSize;
@@ -395,6 +400,18 @@ namespace Hazel {
 	void Scene::SetSkybox(Ref<TextureCube> skybox)
 	{
 		m_Skybox = skybox;
+	}
+
+	void Scene::SetSkybox(Ref<Environment> environment)
+	{
+		m_Environment = environment;
+		m_Skybox = m_Environment->GetEnvironmentMap();
+	}
+
+	void Scene::SetEnvironment(Ref<Environment> environment)
+	{
+		m_Environment = environment;
+		m_Skybox = m_Environment->GetEnvironmentMap();
 	}
 
 	Ref<TextureCube> Scene::GetSkybox()

@@ -20,7 +20,7 @@ namespace Hazel {
 	
 	class TextureCube;
 	class Entity;
-
+	class Environment;
 	class Scene {
 	public:
 
@@ -54,10 +54,16 @@ namespace Hazel {
 		void OnUpdateEditor(Timestep ts, const EditorCamera& camera);
 		void OnUpdateRuntime(Timestep ts);
 
+		
+		Ref<Environment> GetEnvironment();
+		
+		
 		void SetViewPortSize(glm::vec2 viewPortSize);
-
-
+		
 		void SetSkybox(Ref<TextureCube> skybox);
+		void SetSkybox(Ref<Environment> environment);
+		void SetEnvironment(Ref<Environment> environment);
+
 		Ref<TextureCube> GetSkybox();
 
 
@@ -76,6 +82,7 @@ namespace Hazel {
 		b2World* m_PhysicsWorld;
 
 		Ref<TextureCube> m_Skybox;
+		Ref<Environment> m_Environment;
 
 		std::unordered_map<UUID, entt::entity> m_UUIDToEntity;
 

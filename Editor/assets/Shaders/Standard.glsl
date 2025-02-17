@@ -101,6 +101,8 @@ uniform sampler2D u_Normal;
 uniform sampler2D u_Roughness;
 uniform sampler2D u_Metalness;
 
+uniform samplerCube u_EnvIrradiance;
+
 uniform float ambientFactor;
 uniform float diffuseFactor;
 uniform float specFactor;
@@ -231,10 +233,34 @@ vec3 FresnelSchlick(vec3 F0, float NdotH){
 }
 
 
-vec4 PBRLighting(){
+vec4 IBL(vec3 F0){
+	
+	vec3 result = vec3(0.0);
 
 	vec3 L = -light.direction.xyz;
-	vec3 F0 = mix(Fdielectric, m_PBRParams.albedo, m_PBRParams.metalness);
+	vec3 N = m_PBRParams.normal;
+	vec3 H = normalize(m_PBRParams.view + L);
+
+	float NdotV = m_PBRParams.NdotV;
+	float NdotL = max(dot(L, N), 0.0f);
+	float NdotH = max(dot(N, H), 0.0f);
+
+	//diffuse
+	vec3 F = FresnelSchlick(F0, NdotH);
+	vec3 kd = vec3(1.0f) - F;
+	kd *= 1.0 - m_PBRParams.metalness;
+	result += textureLod(u_EnvIrradiance, m_PBRParams.normal, 0).rgb * m_PBRParams.albedo * kd;
+
+	//specular
+
+	return vec4(result, 1.0);
+
+}
+
+vec4 PBRLighting(vec3 F0){
+
+	vec3 L = -light.direction.xyz;
+	
 	vec3 N = m_PBRParams.normal;
 	vec3 H = normalize(m_PBRParams.view + L);
 	
@@ -268,6 +294,7 @@ void main()
 	vec4 albedoAndTransparency = texture(u_Albedo, vs_Input.TexCoord);
 	float transparency = albedoAndTransparency.w;
 	m_PBRParams.normal = normalize(2.0 * texture(u_Normal, vs_Input.TexCoord).xyz - 1.0f);
+	m_PBRParams.normal = normalize(vs_Input.WorldNormals * m_PBRParams.normal);
 	m_PBRParams.view = normalize(vs_Input.cameraPosition.xyz - vs_Input.WorldPosition);
 	m_PBRParams.NdotV = max(dot(m_PBRParams.normal, m_PBRParams.view), 0.0);
 	m_PBRParams.albedo = albedoAndTransparency.xyz;
@@ -276,10 +303,12 @@ void main()
 
 	vec4 ambientIntensity = vec4(0.09f, 0.09f, 0.09f, 0.0f) * vec4(m_PBRParams.albedo, 0.0f);
 
-	vec4 lightContribution = PBRLighting(); 
+	vec3 F0 = mix(Fdielectric, m_PBRParams.albedo, m_PBRParams.metalness);
+	vec4 lightContribution = PBRLighting(F0); 
+	vec4 IBLContribution = IBL(F0);
 	//vec4 lightContribution = PhongLighting();
 
-	color = lightContribution + ambientIntensity;
+	color = lightContribution + IBLContribution;
 
 	IDColor = vs_Input.EntityID;
 }

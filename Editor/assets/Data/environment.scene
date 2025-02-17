@@ -1,0 +1,25 @@
+Scene: Untitled
+Environment:
+  IsHDR: true
+  Path: assets\environment\rooitou_park_4k.hdr
+Entities:
+  - Entity: 13393534262819874296
+    TagComponent:
+      Tag: Gun
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\M1911Materials.fbx
+    MaterialComponent:
+      Path: G:\Project\visualStudio\Hazel\Editor\assets\Material\m1911.material
+  - Entity: 10710981757158666919
+    TagComponent:
+      Tag: Light
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 3.1415927, 0]
+      Scale: [1, 1, 1]
+    LightComponent:
+      Color: [1, 1, 1]

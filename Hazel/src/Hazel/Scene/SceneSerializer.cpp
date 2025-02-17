@@ -9,7 +9,7 @@
 
 #include "Hazel/Utils/YAML.h"
 #include "Hazel/Utils/MaterialSerializer.h"
-
+#include "Hazel/Renderer/Environment.h"
 
 namespace Hazel {
 
@@ -173,6 +173,19 @@ namespace Hazel {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
+		
+		//environment
+		Ref<Environment> environment = m_Scene->GetEnvironment();
+
+		if (environment && environment->IsLoaded()) {
+			out << YAML::Key << "Environment";
+			out << YAML::BeginMap;
+			out << YAML::Key << "IsHDR" << YAML::Value << environment->GetEnvironmentMap()->IsHDR();
+			out << YAML::Key << "Path" << YAML::Value << environment->GetEnvironmentMap()->GetPath();
+			out << YAML::EndMap;
+		}
+
+		
 		out << YAML::Key << "Entities" << YAML::BeginSeq;
 		auto view = m_Scene->GetRegistry().view<entt::entity>();
 		for (auto& entityID : view) {
@@ -210,6 +223,16 @@ namespace Hazel {
 		std::string sceneName = data["Scene"].as<std::string>();
 		HZ_CORE_TRACE("Deserializing scene '{0}'", sceneName);
 
+
+		//Skybox
+
+		if (data["Environment"]) {
+			auto environment = data["Environment"];
+			std::string path = environment["Path"].as<std::string>();
+			m_Scene->SetEnvironment(Environment::Create(path));
+		}
+
+		//Entity
 		auto entities = data["Entities"];
 		if (entities) {
 			for (auto entity : entities) {
