@@ -6,9 +6,11 @@
 
 namespace Hazel {
 
-	Ref<Shader> Environment::equirectangularConversionShader = nullptr;
-	Ref<Shader> Environment::envFilteringShader = nullptr;
-	Ref<Shader> Environment::envIrradianceShader = nullptr;
+	Ref<Shader> Environment::s_EquirectangularConversionShader = nullptr;
+	Ref<Shader> Environment::s_EnvFilteringShader = nullptr;
+	Ref<Shader> Environment::s_EnvIrradianceShader = nullptr;
+	Ref<Shader> Environment::s_GenerateBRDFLUTShader = nullptr;
+	Ref<Texture2D> Environment::s_BRDFLUT = nullptr;
 
 	Ref<Environment> Environment::Create(std::string filepath)
 	{

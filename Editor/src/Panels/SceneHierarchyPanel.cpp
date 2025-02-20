@@ -49,7 +49,7 @@ namespace Hazel {
 		if (m_Context)
 		{
 			if (ImGui::BeginPopupContextWindow(0, 1)) {
-				if (ImGui::MenuItem("Create New Entity")) {
+				if (ImGui::MenuItem("Create Empty Entity")) {
 					m_Context->CreateEntity("Empty Entity");
 				}
 
@@ -218,8 +218,11 @@ namespace Hazel {
 
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
 	{
+
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+
 		if (entity.HasComponent<TagComponent>()) {
-			if (ImGui::TreeNodeEx((void*)typeid(TagComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Tag")) {
+			if (ImGui::TreeNodeEx((void*)typeid(TagComponent).hash_code(), treeNodeFlags, "Tag")) {
 				auto& tag = entity.GetComponent<TagComponent>().tag;
 
 				char buffer[256];
@@ -234,6 +237,11 @@ namespace Hazel {
 
 		if (entity.HasComponent<TransformComponent>()) {
 			auto& transform = entity.GetComponent<TransformComponent>();
+			
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+			ImGui::Separator();
+			ImGui::PopStyleVar(
+			);
 
 			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform")) {
 
@@ -553,15 +561,21 @@ namespace Hazel {
 					break;
 					case Hazel::ShaderDataType::Float2:
 					case Hazel::ShaderDataType::Vec2:
-						ImGui::DragFloat2(uniformName.c_str(), &material->GetData<glm::vec2>(uniformName)->x, 0.01);
+						ImGui::DragFloat2(uniformName.c_str(), glm::value_ptr(*material->GetData<glm::vec2>(uniformName)), 0.01);
 						break;
 					case Hazel::ShaderDataType::Float3:
 					case Hazel::ShaderDataType::Vec3:
-						ImGui::DragFloat3(uniformName.c_str(), &material->GetData<glm::vec3>(uniformName)->x, 0.001);
+						ImGui::DragFloat3(uniformName.c_str(), glm::value_ptr(*material->GetData<glm::vec3>(uniformName)), 0.001);
 						break;
 					case Hazel::ShaderDataType::Float4:
 					case Hazel::ShaderDataType::Vec4:
-						ImGui::DragFloat4(uniformName.c_str(), &material->GetData<glm::vec4>(uniformName)->x, 0.001);
+
+					{
+						glm::vec4* value = material->GetData<glm::vec4>(uniformName);
+						ImGui::DragFloat4(uniformName.c_str(), glm::value_ptr(*value), 0.001);
+					
+					
+					}
 						break;
 					case Hazel::ShaderDataType::Mat3:
 					case Hazel::ShaderDataType::Mat4:
@@ -588,13 +602,13 @@ namespace Hazel {
 						std::string imageButtonName = "imageButton##" + uniformName;
 						if (texture && texture->IsLoaded()) {
 							if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
-								std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg)\0*.png;*.jpg\0");
+								std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg;*.tga)\0*.png;*.jpg;*.tga\0");
 								TextureLibrary::Load(path);
 								material->SetData(uniformName, TextureLibrary::Get(path));
 							}
 						}
 						else if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
-							std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg)\0*.png;*.jpg\0");
+							std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg;*.tga)\0*.png;*.jpg;*.tga\0");
 							TextureLibrary::Load(path);
 							material->SetData(uniformName, TextureLibrary::Get(path));
 						}
@@ -689,5 +703,15 @@ namespace Hazel {
 			}
 		);
 
+	}
+	Entity SceneHierarchyPanel::GenerateSphere()
+	{
+		Entity sphere = m_Context->CreateEntity("Sphere");
+		auto& meshComponent = sphere.AddComponent<MeshComponent>();
+		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Sphere1m.fbx", sphere.GetHandle()));
+		
+		//sphere.AddComponent<Material>();
+
+		return sphere;
 	}
 }

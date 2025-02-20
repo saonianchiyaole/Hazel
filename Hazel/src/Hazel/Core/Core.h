@@ -39,6 +39,10 @@ namespace Hazel {
 	template<typename T>
 	using Ref = std::shared_ptr<T>;
 
+	template<typename T>
+	using WeakRef = std::weak_ptr<T>;
+	
+	
 	template<typename T, typename ... Args>
 	constexpr Scope<T> MakeScope(Args&& ... args)
 	{
@@ -49,5 +53,6 @@ namespace Hazel {
 	{
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
+	
 
 }

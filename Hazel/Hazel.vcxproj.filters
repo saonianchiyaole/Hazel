@@ -261,6 +261,9 @@
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Core\Buffer.h">
+      <Filter>src\Hazel\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">

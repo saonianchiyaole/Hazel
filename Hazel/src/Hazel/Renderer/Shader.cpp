@@ -25,6 +25,16 @@ namespace Hazel {
 		return m_Uniforms;
 	}
 
+	Ref<ShaderUniform> Shader::GetUniform(std::string name)
+	{
+
+		for (auto uniform : m_Uniforms) {
+			if (uniform->GetName() == name)
+				return uniform;
+		}
+		return nullptr;
+	}
+
 	std::string Shader::GetPath()
 	{
 		return m_Path;
@@ -68,12 +78,24 @@ namespace Hazel {
 			return nullptr;
 	}
 
+	void Shader::AddAssocitaedMaterial(Material* material)
+	{
+		this->m_AssociatedMaterials.insert(material);
+	}
+
+	void Shader::DeleteAssocitaedMaterial(Material* material)
+	{
+		if (m_AssociatedMaterials.find(material) != m_AssociatedMaterials.end()) {
+			m_AssociatedMaterials.erase(material);
+		}
+	}
+
 	void ShaderLibrary::Add(const Ref<Shader> shader)
 	{
 		auto& name = shader->GetName();
 		if(Exists(name))
 		{
-			HZ_CORE_WARN("This Shader already exist{}", name);
+			HZ_CORE_INFO("This Shader already exist{}", name);
 			return;
 		}
 		m_Shaders[name] = shader;
@@ -83,7 +105,7 @@ namespace Hazel {
 	{
 		if (Exists(name))
 		{
-			HZ_CORE_WARN("This Shader already exist{}", name);
+			HZ_CORE_INFO("This Shader already exist{}", name);
 			return;
 		}
 		m_Shaders[name] = shader;
@@ -91,6 +113,7 @@ namespace Hazel {
 
 	Ref<Shader> ShaderLibrary::Load(const std::string& path)
 	{
+		
 		std::string name = Utils::GetShaderName(path);
 		if (Exists(name))
 			return m_Shaders[name];

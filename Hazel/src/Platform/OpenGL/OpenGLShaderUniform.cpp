@@ -113,7 +113,8 @@ namespace Hazel {
 			break;
 		}
 		case GL_BOOL: {
-			glUniform1i(location, data ? 1 : 0); 
+			bool value = *(bool*)data ? 1 : 0;
+			glUniform1i(location, value);
 			break;
 		}
 		case GL_SAMPLER_2D: {

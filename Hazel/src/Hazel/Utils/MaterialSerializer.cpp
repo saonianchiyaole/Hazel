@@ -81,6 +81,8 @@ namespace Hazel {
 				if (!shaderUniform)
 					continue;
 				//m_Material->SetData(key, uniform[key].as<void*>());*/
+				if (!uniform[shaderUniformName])
+					continue;
 
 				switch (shaderUniform->GetType())
 				{

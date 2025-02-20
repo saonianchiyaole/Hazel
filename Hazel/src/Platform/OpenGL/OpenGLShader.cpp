@@ -9,6 +9,7 @@
 #include "Platform/OpenGL/OpenGLTexture.h"
 #include <fstream>
 
+#include "Hazel/Renderer/Material.h"
 
 namespace Hazel {
 
@@ -206,9 +207,6 @@ namespace Hazel {
 			GLint size;
 			glGetActiveUniform(m_RendererID, i, sizeof(name), nullptr, &size, &type, name);
 
-			//Ref<OpenGLShaderUniform> shaderUniform;
-
-			bool isAccpetableUniform = false;
 			switch (type) {
 			case GL_FLOAT: 
 				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Float));
@@ -222,8 +220,7 @@ namespace Hazel {
 				//isAccpetableUniform = true;
 				break;
 			case GL_FLOAT_VEC4:
-				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Vec4));
-				//isAccpetableUniform = true;
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Vec4));
 				break;
 			case GL_FLOAT_MAT3 : 
 				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat3));
@@ -235,7 +232,7 @@ namespace Hazel {
 				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Int));
 				break;
 			case GL_BOOL:
-				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Bool));
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Bool));
 				break;
 			case GL_SAMPLER_2D : 
 			{
@@ -250,18 +247,30 @@ namespace Hazel {
 			}			
 		}
 
-		//Set ShaderUniform Block 
+		////Remove ShaderUniform Block 
+		//GLint blockIndex = glGetUniformBlockIndex(m_RendererID, "CameraUniform");
+		//if (blockIndex != GL_INVALID_INDEX) {
+		//	GLint numUniformsInBlock = 0;
+		//	glGetActiveUniformBlockiv(m_RendererID, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &numUniformsInBlock);
+
+		//	for (GLint i = 0; i < numUniformsInBlock; ++i) {
+		//		GLint uniformIndex;
+		//		glGetActiveUniformBlockiv(m_RendererID, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, &uniformIndex);
+		//		// 进一步通过 glGetActiveUniform 获取 uniform 具体信息
+		//	}
+		//}
 
 
+		HZ_CORE_INFO("Load Shader {0} Succesfully", m_Path);
 		return true;
 	}
 
 
-	void OpenGLShader::Submit(std::unordered_map<std::string, void*> data)
+	void OpenGLShader::Submit(std::unordered_map<std::string, Buffer>& data)
 	{
 
 		for (const auto& uniform : m_Uniforms) {
-			uniform->Submit(m_RendererID, data[uniform->GetName()]);
+			uniform->Submit(m_RendererID, data[uniform->GetName()].Read<void*>());
 		}
 	}
 
@@ -370,6 +379,11 @@ namespace Hazel {
 		glDeleteProgram(m_RendererID);
 		std::string shaderSource = ReadFile(m_Path);
 		Compile(Preprocess(shaderSource));
+
+		for (auto material : m_AssociatedMaterials) {
+			material->ReloadShader();
+		}
+
 		return true;
 	}
 

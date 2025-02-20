@@ -96,113 +96,25 @@ struct PBRParameters{
 
 PBRParameters m_PBRParams;
 
-uniform sampler2D u_Albedo;
-uniform sampler2D u_Normal;
-uniform sampler2D u_Roughness;
-uniform sampler2D u_Metalness;
+uniform sampler2D u_AlbedoTex;
+uniform sampler2D u_NormalTex;
+uniform sampler2D u_RoughnessTex;
+uniform sampler2D u_MetalnessTex;
 
 uniform samplerCube u_EnvIrradiance;
+uniform sampler2D u_BRDFLUT;
+uniform samplerCube u_EnvRadiance;
 
-uniform float ambientFactor;
-uniform float diffuseFactor;
-uniform float specFactor;
+uniform vec4 u_Albedo;
+uniform vec4 u_Test;
+uniform float u_Roughness;
+uniform float u_Metalness;
 
-// ---------------------------------------------------------------------------------------------------
-// The following code (from Unreal Engine 4's paper) shows how to filter the environment map
-// for different roughnesses. This is mean to be computed offline and stored in cube map mips,
-// so turning this on online will cause poor performance
-// float RadicalInverse_VdC(uint bits) 
-// {
-//     bits = (bits << 16u) | (bits >> 16u);
-//     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-//     bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-//     bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-//     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-//     return float(bits) * 2.3283064365386963e-10; // / 0x100000000
-// }
-
-// vec2 Hammersley(uint i, uint N)
-// {
-//     return vec2(float(i)/float(N), RadicalInverse_VdC(i));
-// }
-
-// vec3 ImportanceSampleGGX(vec2 Xi, float Roughness, vec3 N)
-// {
-// 	float a = Roughness * Roughness;
-// 	float Phi = 2 * PI * Xi.x;
-// 	float CosTheta = sqrt( (1 - Xi.y) / ( 1 + (a*a - 1) * Xi.y ) );
-// 	float SinTheta = sqrt( 1 - CosTheta * CosTheta );
-// 	vec3 H;
-// 	H.x = SinTheta * cos( Phi );
-// 	H.y = SinTheta * sin( Phi );
-// 	H.z = CosTheta;
-// 	vec3 UpVector = abs(N.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0);
-// 	vec3 TangentX = normalize( cross( UpVector, N ) );
-// 	vec3 TangentY = cross( N, TangentX );
-// 	// Tangent to world space
-// 	return TangentX * H.x + TangentY * H.y + N * H.z;
-// }
-
-// float TotalWeight = 0.0;
-
-// vec3 PrefilterEnvMap(float Roughness, vec3 R)
-// {
-// 	vec3 N = R;
-// 	vec3 V = R;
-// 	vec3 PrefilteredColor = vec3(0.0);
-// 	int NumSamples = 1024;
-// 	for(int i = 0; i < NumSamples; i++)
-// 	{
-// 		vec2 Xi = Hammersley(i, NumSamples);
-// 		vec3 H = ImportanceSampleGGX(Xi, Roughness, N);
-// 		vec3 L = 2 * dot(V, H) * H - V;
-// 		float NoL = clamp(dot(N, L), 0.0, 1.0);
-// 		if (NoL > 0)
-// 		{
-// 			PrefilteredColor += texture(u_EnvRadianceTex, L).rgb * NoL;
-// 			TotalWeight += NoL;
-// 		}
-// 	}
-// 	return PrefilteredColor / TotalWeight;
-// }
-
-// ---------------------------------------------------------------------------------------------------
-
-
-
-
-vec4 PhongLighting(){
-	
-	
-	vec3 view = normalize(vs_Input.cameraPosition.xyz - vs_Input.WorldPosition);
-	vec3 lightDir = normalize(-light.direction.xyz);
-	
-	vec3 normal = texture(u_Normal, vs_Input.TexCoord).xyz;
-	normal = normalize(normal * 2.0 - 1.0);
-	normal = normalize(vs_Input.WorldNormals * normal);
-
-
-	vec4 albedo = texture(u_Albedo, vs_Input.TexCoord);
-	float transparency = albedo.w; 
-
-	
-
-	float ambient = ambientFactor;
-
-	float diffuse = diffuseFactor * max(dot(normal, lightDir), 0.0f);
-	
-	vec3 halfNormal = normalize(lightDir + view);
-	float specular = specFactor * pow(max(dot(halfNormal, normal), 0), 32);
-
-
-	return vec4((ambient + diffuse + specular) * light.color.xyz * albedo.xyz, transparency);
-	//return m_PBRParams.roughness
-}
-
-
-void GetNormalFormNormalMap(vec2 coord){
-
-}
+//toggle
+uniform bool u_UseAlbedoTex;
+uniform bool u_UseNormalTex;
+uniform bool u_UseRoughnessTex;
+uniform bool u_UseMetalnessTex;
 
 //Geometry
 float GeometrySchlickGGX(float NdotV, float k){
@@ -232,6 +144,10 @@ vec3 FresnelSchlick(vec3 F0, float NdotH){
 	return F0 + (1 - F0) * pow(1 - NdotH, 5);
 }
 
+vec3 fresnelSchlickRoughness(vec3 F0, float NdotH, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotH, 5.0);
+} 
 
 vec4 IBL(vec3 F0){
 	
@@ -245,14 +161,20 @@ vec4 IBL(vec3 F0){
 	float NdotL = max(dot(L, N), 0.0f);
 	float NdotH = max(dot(N, H), 0.0f);
 
+	vec3 Lr = 2.0 * m_PBRParams.NdotV * m_PBRParams.normal - m_PBRParams.view;
 	//diffuse
-	vec3 F = FresnelSchlick(F0, NdotH);
+	vec3 F = fresnelSchlickRoughness(F0, NdotV, m_PBRParams.roughness);
 	vec3 kd = vec3(1.0f) - F;
 	kd *= 1.0 - m_PBRParams.metalness;
 	result += textureLod(u_EnvIrradiance, m_PBRParams.normal, 0).rgb * m_PBRParams.albedo * kd;
 
 	//specular
+	int u_EnvRadianceTexLevels = textureQueryLevels(u_EnvRadiance);
+	vec3 specularIrradiance = textureLod(u_EnvRadiance, Lr, (m_PBRParams.roughness) * u_EnvRadianceTexLevels).rgb;
+	vec2 specularBRDF = texture(u_BRDFLUT, vec2(m_PBRParams.NdotV,  m_PBRParams.roughness)).rg;
+	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
 
+	result += specularIBL;
 	return vec4(result, 1.0);
 
 }
@@ -291,15 +213,21 @@ vec4 PBRLighting(vec3 F0){
 
 void main()
 {
-	vec4 albedoAndTransparency = texture(u_Albedo, vs_Input.TexCoord);
+	vec4 albedoAndTransparency = u_UseAlbedoTex == true ? texture(u_AlbedoTex, vs_Input.TexCoord) : u_Albedo;
 	float transparency = albedoAndTransparency.w;
-	m_PBRParams.normal = normalize(2.0 * texture(u_Normal, vs_Input.TexCoord).xyz - 1.0f);
-	m_PBRParams.normal = normalize(vs_Input.WorldNormals * m_PBRParams.normal);
+
+	if(u_UseNormalTex == true){
+		m_PBRParams.normal = normalize(2.0 * texture(u_NormalTex, vs_Input.TexCoord).xyz - 1.0f);
+		m_PBRParams.normal = normalize(vs_Input.WorldNormals * m_PBRParams.normal);
+	}
+	else {
+		m_PBRParams.normal = vs_Input.Normal;
+	}
 	m_PBRParams.view = normalize(vs_Input.cameraPosition.xyz - vs_Input.WorldPosition);
 	m_PBRParams.NdotV = max(dot(m_PBRParams.normal, m_PBRParams.view), 0.0);
 	m_PBRParams.albedo = albedoAndTransparency.xyz;
-	m_PBRParams.roughness = texture(u_Roughness, vs_Input.TexCoord).x;
-	m_PBRParams.metalness = texture(u_Metalness, vs_Input.TexCoord).x;
+	m_PBRParams.roughness = u_UseRoughnessTex ? texture(u_RoughnessTex, vs_Input.TexCoord).x : u_Roughness;
+	m_PBRParams.metalness = u_UseMetalnessTex ? texture(u_MetalnessTex, vs_Input.TexCoord).x : u_Metalness;
 
 	vec4 ambientIntensity = vec4(0.09f, 0.09f, 0.09f, 0.0f) * vec4(m_PBRParams.albedo, 0.0f);
 
@@ -308,7 +236,9 @@ void main()
 	vec4 IBLContribution = IBL(F0);
 	//vec4 lightContribution = PhongLighting();
 
-	color = lightContribution + IBLContribution;
+	u_Test;
 
+	color = lightContribution + IBLContribution;
+	
 	IDColor = vs_Input.EntityID;
 }

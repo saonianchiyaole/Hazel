@@ -202,7 +202,7 @@ namespace Hazel {
 		std::string path;
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent& other) = default;
-		MaterialComponent(Ref<Material> materialVal) : material(material){}
+		MaterialComponent(Ref<Material> materialVal) : material(materialVal){}
 
 	};
 

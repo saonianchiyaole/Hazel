@@ -46,12 +46,17 @@ namespace Hazel {
 		static void SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent);
 		static void SubmitSkybox(Ref<TextureCube> skyboxTextures);
 		static void SubmitEnvironment(Ref<Environment> environment);
+		
+		static uint32_t GetNextEmptyTextureSlot();
+
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
 		static void OnWindowResize(uint32_t width, uint32_t height);
-
+		static Ref<Material> GetDefaultPBRMaterial();
+		static Ref<Material> GetDefaultPhongMaterial();
 	private:
+		
 		struct SceneData {
 			glm::mat4 ViewMatrix;
 			glm::mat4 ProjectionMatrix;
@@ -59,6 +64,8 @@ namespace Hazel {
 
 			Ref<Shader> defaultShader;
 			Ref<Shader> skyboxShader;
+			Ref<Material> defaultPBRMaterial;
+			Ref<Material> defaultPhongMaterial;
 
 			Ref<Camera> primaryCamera;
 
@@ -66,6 +73,9 @@ namespace Hazel {
 			Ref<UniformBuffer> lightUniformBuffer;
 			Ref<VertexArray> skybox;
 			Ref<Environment> environment;
+
+			const uint32_t maxTextureSlot = 32;
+			uint32_t textureSlotIndex;
 		};
 
 		static SceneData* s_SceneData;

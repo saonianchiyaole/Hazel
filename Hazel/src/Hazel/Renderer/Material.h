@@ -3,6 +3,7 @@
 #include "Hazel/Renderer/Shader.h"
 #include "Hazel/Renderer/ShaderUniform.h"
 #include "Hazel/Renderer/Texture.h"
+#include "Hazel/Core/Buffer.h"
 
 namespace Hazel {
 
@@ -16,9 +17,9 @@ namespace Hazel {
 		template<typename T>
 		inline T* GetData(std::string name)
 		{
-			if (m_Data.find(name) != m_Data.end() && m_Data[name] != nullptr)
+			if (m_Data.find(name) != m_Data.end() && m_Data[name].data != nullptr)
 			{
-				return (T*)m_Data[name];
+				return m_Data[name].Read<T>();
 			}
 			return nullptr;
 		}
@@ -32,7 +33,7 @@ namespace Hazel {
 			for (const auto& uniform : m_Shader->GetUniforms()) {
 				if (uniform->GetName() == name && Utils::isDataFormatCorrect<T>(uniform->GetType()))
 				{
-					*(T*)m_Data[name] = data;
+					m_Data[name].Write(&data, sizeof(T));
 
 					break;
 				}
@@ -49,7 +50,7 @@ namespace Hazel {
 			for (const auto& uniform : m_Shader->GetUniforms()) {
 				if (uniform->GetName() == name && Utils::isDataFormatCorrect<T>(uniform->GetType()))
 				{
-					*(T*)m_Data[name] = *data;
+					m_Data[name].Write(data, sizeof(T));
 					break;
 				}
 			}
@@ -65,7 +66,7 @@ namespace Hazel {
 			for (const auto& uniform : m_Shader->GetUniforms()) {
 				if (uniform->GetName() == name && Utils::isDataFormatCorrect<T>(uniform->GetType()))
 				{
-					*(T*)m_Data[name] = *data.get();
+					m_Data[name].Write(data.get(), sizeof(T));
 					break;
 				}
 			}
@@ -91,9 +92,7 @@ namespace Hazel {
 						m_NameToTextureAndSlot[name] = { data, m_NameToTextureAndSlot[name].second };
 					}
 
-					m_Data[name] = data.get();
-					
-				
+					m_Data[name].data = data.get();
 					break;
 				}
 			}
@@ -104,12 +103,15 @@ namespace Hazel {
 		void Submit();
 		void SetTexturesSlot();
 
-
 		Ref<Shader> GetShader();
+
+		void ReloadShader();
 
 		void SetShader(Ref<Shader> shader);
 		std::string GetName();
 		void SetName(std::string name);
+
+		uint32_t GetSampleUniformAmount();
 
 	private:
 
@@ -120,9 +122,15 @@ namespace Hazel {
 		std::string m_Name;
 		Ref<Shader> m_Shader;
 		
-		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
-		std::unordered_map<std::string, void*> m_Data;
+		bool m_UseAlbedoTex = false;
+		bool m_UseNormalTex = false;
+		bool m_UseRoughnessTex = false;
+		bool m_UseMetalnessTex = false;
 
+		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
+		//std::unordered_map<std::string, void*> m_Data;
+
+		std::unordered_map<std::string, Buffer> m_Data;
 	};
 
 }

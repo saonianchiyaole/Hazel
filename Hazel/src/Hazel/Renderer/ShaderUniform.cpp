@@ -17,7 +17,147 @@ namespace Hazel {
 
 
 
+		void FreeMemoryByShaderDataType(ShaderDataType type, void* data) {
+			switch (type)
+			{
+			case Hazel::ShaderDataType::None:
+				break;
+			case Hazel::ShaderDataType::Float:
+			{
+				float* ptr = (float*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Float2:
+			{
+				glm::vec2* ptr = (glm::vec2*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Float3:
+			{
+				glm::vec3* ptr = (glm::vec3*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Float4:
+			{
+				glm::vec4* ptr = (glm::vec4*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Vec2:
+			{
+				glm::vec2* ptr = (glm::vec2*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Vec3:
+			{
+				glm::vec3* ptr = (glm::vec3*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Vec4:
+			{
+				glm::vec4* ptr = (glm::vec4*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Mat3:
+			{
+				glm::mat3* ptr = (glm::mat3*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Mat4:
+			{
+				glm::mat4* ptr = (glm::mat4*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Int:
+			{
+				int32_t* ptr = (int32_t*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Int2:
+			{
+				glm::vec2* ptr = (glm::vec2*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Int3:
+			{
+				glm::vec3* ptr = (glm::vec3*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Int4:
+			{
+				glm::vec4* ptr = (glm::vec4*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Bool:
+			{
+				bool* ptr = (bool*)data;
+				delete ptr;
+				break;
+			}
+			case Hazel::ShaderDataType::Sampler2D:
+			{
+				//Do nothing, Let Texture library handle this
+			}
+			default:
+				break;
+			}
+		}
 
+		uint64_t GetAllocatedMemoryByShaderDataType(ShaderDataType type)
+		{
+			switch (type)
+			{
+			case Hazel::ShaderDataType::None:
+				break;
+			case Hazel::ShaderDataType::Float:
+				return sizeof(float);
+			case Hazel::ShaderDataType::Float2:
+				return sizeof(glm::vec2);
+			case Hazel::ShaderDataType::Float3:
+				return sizeof(glm::vec3);
+			case Hazel::ShaderDataType::Float4:
+				return sizeof(glm::vec4);
+			case Hazel::ShaderDataType::Vec2:
+				return sizeof(glm::vec2);
+			case Hazel::ShaderDataType::Vec3:
+				return sizeof(glm::vec3);
+			case Hazel::ShaderDataType::Vec4:
+				return sizeof(glm::vec4);
+			case Hazel::ShaderDataType::Mat3:
+				return sizeof(glm::mat3);
+			case Hazel::ShaderDataType::Mat4:
+				return sizeof(glm::mat4);
+			case Hazel::ShaderDataType::Int:
+				return sizeof(int);
+			case Hazel::ShaderDataType::Int2:
+				return sizeof(glm::vec2);
+			case Hazel::ShaderDataType::Int3:
+				return sizeof(glm::vec3);
+			case Hazel::ShaderDataType::Int4:
+				return sizeof(glm::vec4);
+			case Hazel::ShaderDataType::Bool:
+				return sizeof(bool);
+			case Hazel::ShaderDataType::Sampler2D:
+			{
+				return 0;
+			}
+			default:
+				break;
+			}
+		}
+		
 
 		void* AllocateMemoryByShaderDataType(ShaderDataType type, size_t amount) {
 			switch (type)

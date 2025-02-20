@@ -18,8 +18,9 @@ namespace Hazel {
 		static GLenum HazelToOpenGLTextureFormat(TextureFormat format) {
 			switch (format)
 			{
+			case Hazel::TextureFormat::RG:		return GL_RG;
 			case Hazel::TextureFormat::RGB:     return GL_RGB;
-			case Hazel::TextureFormat::RGBA:    return GL_RGBA;
+			case Hazel::TextureFormat::RGBA:    return GL_RGBA8;
 			case Hazel::TextureFormat::Float16: return GL_RGBA16F;
 			}
 			HZ_CORE_ASSERT(false, "Unknown texture format!");
@@ -31,7 +32,7 @@ namespace Hazel {
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path) {
 		m_Path = path;
 		HZ_CORE_INFO("Open Texture filePath {0}", path);
-		static const std::set<std::string> supportedExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".hdr" };
+		static const std::set<std::string> supportedExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".hdr", ".tga"};
 		std::filesystem::path checkpath = path;
 		if (supportedExtensions.count(checkpath.extension().string()) <= 0) {
 			HZ_CORE_WARN("This is Not Texture file!");
@@ -109,6 +110,23 @@ namespace Hazel {
 		m_InternalFormat = GL_RGBA8;
 		m_DataFormat = GL_RGBA;
 
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
+
+		glTexParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	}
+	OpenGLTexture2D::OpenGLTexture2D(TextureFormat format, const uint32_t width, const uint32_t height)
+	{
+		m_Width = width;
+		m_Height = height;
+
+		m_InternalFormat = Utils::HazelToOpenGLTextureFormat(format);
+	
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
 		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
 

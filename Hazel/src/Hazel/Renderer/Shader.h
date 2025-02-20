@@ -6,6 +6,7 @@
 #include "glad/glad.h"
 
 #include "Hazel/Renderer/ShaderUniform.h"
+#include "Hazel/Core/Buffer.h"
 
 namespace Hazel {
 
@@ -20,8 +21,12 @@ namespace Hazel {
 	};
 
 
+	class Material;
 
 	class Shader {
+
+	friend class Material;
+
 	public:
 		Shader() = default;
 		virtual ~Shader() = default;
@@ -47,8 +52,9 @@ namespace Hazel {
 
 
 
-		virtual void Submit(std::unordered_map<std::string, void*> data) = 0;
+		virtual void Submit(std::unordered_map<std::string, Buffer>& data) = 0;
 		std::vector<Ref<ShaderUniform>> GetUniforms();
+		Ref<ShaderUniform> GetUniform(std::string);
 		std::string GetPath();
 		//Ref<ShaderUniform> GetUniform(std::string name);
 
@@ -56,11 +62,17 @@ namespace Hazel {
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& filepath);
 	protected:
+		void AddAssocitaedMaterial(Material* material);
+		void DeleteAssocitaedMaterial(Material* material);
+
 		std::string m_Name;
 		std::string m_Path;
 		std::vector<Ref<ShaderUniform>> m_Uniforms;
+		uint32_t m_SampleUniformAmount = 0;
 		ShaderType m_Type;
 
+		std::unordered_set<Material*> m_AssociatedMaterials;
+		
 	};
 
 

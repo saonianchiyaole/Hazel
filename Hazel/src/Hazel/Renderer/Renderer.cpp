@@ -61,6 +61,8 @@ namespace Hazel {
 		RenderCommand::Init();
 		Renderer2D::Init();
 
+		s_SceneData->textureSlotIndex = 0;
+
 		s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
 		s_SceneData->lightUniformBuffer = UniformBuffer::Create(sizeof(LightUniformBuffer), 1);
 
@@ -82,6 +84,11 @@ namespace Hazel {
 
 		Ref<IndexBuffer> skyboxIndexBuffer = IndexBuffer::Create(skyboxIndices, sizeof(skyboxIndices) / sizeof(uint32_t));
 		s_SceneData->skybox->SetIndexBuffer(skyboxIndexBuffer);
+
+		//
+		/*s_SceneData->defaultPhongMaterial = MakeRef<Material>(ShaderLibrary::Load("assets/Shaders/Phong.glsl"));
+		s_SceneData->defaultPhongMaterial->SetData();*/
+
 
 		//Set Dufault Light Uniform
 	}
@@ -122,6 +129,7 @@ namespace Hazel {
 	void Renderer::EndScene()
 	{
 		s_SceneData->environment = nullptr;
+		s_SceneData->textureSlotIndex = 0;
 	}
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform)
 	{
@@ -162,15 +170,26 @@ namespace Hazel {
 		material->Submit();
 		material->GetShader()->SetMat4("u_Transform", transformComponent.transform);
 		
+		s_SceneData->textureSlotIndex += material->GetSampleUniformAmount();
+
+		//SetEnvironment Map
 		if(s_SceneData->environment)
-		{
-			s_SceneData->environment->GetIrradianceMap()->Bind(10);
-			material->GetShader()->SetInt("u_EnvIrradiance", 10);
+		{		
+			s_SceneData->environment->GetIrradianceMap()->Bind(s_SceneData->textureSlotIndex);
+			material->GetShader()->SetInt("u_EnvIrradiance", s_SceneData->textureSlotIndex++);
+
+			material->GetShader()->SetInt("u_BRDFLUT", s_SceneData->textureSlotIndex);
+			Environment::GetBRDFLUT()->Bind(s_SceneData->textureSlotIndex++);
+
+			s_SceneData->environment->GetEnvironmentMap()->Bind(s_SceneData->textureSlotIndex);
+			material->GetShader()->SetInt("u_EnvRadiance", s_SceneData->textureSlotIndex++);
 		}
 		mesh->m_VertexArray->Bind();
 
 
 		RenderCommand::DrawIndexed(mesh->m_VertexArray);
+
+		s_SceneData->textureSlotIndex = 0;
 
 	}
 
@@ -223,9 +242,22 @@ namespace Hazel {
 
 	}
 
+	uint32_t Renderer::GetNextEmptyTextureSlot()
+	{
+		return s_SceneData->textureSlotIndex++;
+	}
+
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
 	{
 		RenderCommand::SetViewPort(0, 0, width, height);
+	}
+	Ref<Material> Renderer::GetDefaultPBRMaterial()
+	{
+		return s_SceneData->defaultPBRMaterial;
+	}
+	Ref<Material> Renderer::GetDefaultPhongMaterial()
+	{
+		return s_SceneData->defaultPhongMaterial;
 	}
 }

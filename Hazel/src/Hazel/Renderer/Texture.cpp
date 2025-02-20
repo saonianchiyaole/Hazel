@@ -15,6 +15,20 @@ namespace Hazel {
 
 			return levels;
 		}
+
+		template<typename T>
+		uint32_t GetSizeOfTextureType() {
+
+			if(std::issub)
+			switch (Renderer::GetAPI()) {
+			case RendererAPI::API::None:
+				HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+			case RendererAPI::API::OpenGL:
+				return sizeof(OpenGLTexture2D);
+			}
+			HZ_CORE_ASSERT(false, "Can't recognize the API!")
+				return nullptr;
+		}
 	}
 
 
@@ -40,6 +54,19 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLTexture2D>(width, height);
+
+		}
+		HZ_CORE_ASSERT(false, "Can't recognize the API!")
+			return nullptr;
+	}
+
+	Ref<Texture2D> Texture2D::Create(TextureFormat format, const uint32_t width, const uint32_t height)
+	{
+		switch (Renderer::GetAPI()) {
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
+		case RendererAPI::API::OpenGL:
+			return std::make_shared<OpenGLTexture2D>(format, width, height);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

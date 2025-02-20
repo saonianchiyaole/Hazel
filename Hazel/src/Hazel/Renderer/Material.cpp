@@ -7,122 +7,25 @@ namespace Hazel {
 
 	Material::Material(Ref<Shader> shader)
 	{
-		m_Shader = shader;
+		SetShader(shader);
 		m_Name = shader->GetName();
 
-		for (auto uniform : m_Shader->GetUniforms()) {
-			m_Data[uniform->GetName()] = Utils::AllocateMemoryByShaderDataType(uniform->GetType());
-		}
 	}
 
 	Material::~Material()
 	{
-		FreeMemory();
+		//FreeMemory();
+
+		m_Shader->DeleteAssocitaedMaterial(this);
 	}
 
 	void Material::FreeMemory()
 	{
-
-		for (const auto& uniform : m_Shader->GetUniforms())
+		for (auto& it : m_Data)
 		{
-			ShaderDataType type = uniform->GetType();
-			void* data = m_Data[uniform->GetName()];
-
-			switch (type)
-			{
-			case Hazel::ShaderDataType::None:
-				break;
-			case Hazel::ShaderDataType::Float:
-			{
-				float* ptr = (float*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Float2:
-			{
-				glm::vec2* ptr = (glm::vec2*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Float3:
-			{
-				glm::vec3* ptr = (glm::vec3*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Float4:
-			{
-				glm::vec4* ptr = (glm::vec4*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Vec2:
-			{
-				glm::vec2* ptr = (glm::vec2*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Vec3:
-			{
-				glm::vec3* ptr = (glm::vec3*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Vec4:
-			{
-				glm::vec4* ptr = (glm::vec4*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Mat3:
-			{
-				glm::mat3* ptr = (glm::mat3*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Mat4:
-			{
-				glm::mat4* ptr = (glm::mat4*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Int:
-			{
-				int32_t* ptr = (int32_t*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Int2:
-			{
-				glm::vec2* ptr = (glm::vec2*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Int3:
-			{
-				glm::vec3* ptr = (glm::vec3*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Int4:
-			{
-				glm::vec4* ptr = (glm::vec4*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Bool:
-			{
-				bool* ptr = (bool*)data;
-				delete ptr;
-				break;
-			}
-			case Hazel::ShaderDataType::Sampler2D:
-			{
-				//Do nothing, Let Texture library handle this
-			}
-			default:
-				break;
-			}
+			std::string name = it.first;
+			//Buffer buffer = it.second;
+			it.second.Free();
 		}
 	}
 
@@ -147,16 +50,47 @@ namespace Hazel {
 		return m_Shader;
 	}
 
+	void Material::ReloadShader()
+	{
+		//m_Data Check
+
+		for (auto it = m_Data.begin(); it != m_Data.end(); ) {
+			if (!m_Shader->GetUniform(it->first)) {
+				it = m_Data.erase(it);  
+			}
+			else {
+				++it;  
+			}
+		}
+
+
+		//m_Shader
+
+		for (auto& uniform : m_Shader->GetUniforms()) {
+
+			if (m_Data.find(uniform->GetName()) == m_Data.end()) {
+				m_Data[uniform->GetName()].Allocate(Utils::GetAllocatedMemoryByShaderDataType(uniform->GetType()));
+				m_Data[uniform->GetName()].ZeroInitialize();
+			}
+		}
+
+	}
+
 	void Material::SetShader(Ref<Shader> shader)
 	{
 		if (!m_Shader || m_Shader->GetPath() != shader->GetPath())
 		{
 			m_Shader = shader;
+			FreeMemory();
 			m_Data.clear();
 
 			for (auto uniform : m_Shader->GetUniforms()) {
-				m_Data[uniform->GetName()] = Utils::AllocateMemoryByShaderDataType(uniform->GetType());
+				//m_Data[uniform->GetName()] = Utils::AllocateMemoryByShaderDataType(uniform->GetType());
+				m_Data[uniform->GetName()].Allocate(Utils::GetAllocatedMemoryByShaderDataType(uniform->GetType()));
+				m_Data[uniform->GetName()].ZeroInitialize();
 			}
+
+			shader->AddAssocitaedMaterial(this);
 		}
 	}
 
@@ -170,7 +104,10 @@ namespace Hazel {
 		m_Name = name;
 	}
 
-
+	uint32_t Material::GetSampleUniformAmount()
+	{
+		return m_NameToTextureAndSlot.size();
+	}
 
 
 }

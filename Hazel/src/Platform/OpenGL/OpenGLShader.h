@@ -46,7 +46,7 @@ namespace Hazel {
 		virtual const GLint GetRendererID() override;
 
 
-		virtual void Submit(std::unordered_map<std::string, void*> data) override;
+		virtual void Submit(std::unordered_map<std::string, Buffer>& data) override;
 		
 
 

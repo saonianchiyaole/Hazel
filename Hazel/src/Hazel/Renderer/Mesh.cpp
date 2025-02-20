@@ -178,6 +178,7 @@ namespace Hazel {
 				}
 				else {
 					// set material color to aiColor 
+					
 				}
 
 				//NormalMaps

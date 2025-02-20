@@ -6,6 +6,9 @@ namespace Hazel {
 
 	namespace Utils {
 		uint32_t CalculateMipmapCount(uint32_t width, uint32_t height);
+
+		template<typename T>
+		uint32_t GetSizeOfTextureType();
 	}
 
 
@@ -38,6 +41,7 @@ namespace Hazel {
 
 	friend class OpenGLTextureCube;
 	friend class TextureCube;
+	friend class OpenGLEnvironment;
 
 	public:
 		Texture2D() = default;
@@ -45,6 +49,7 @@ namespace Hazel {
 		//static Ref<Texture2D> Create(const std::string& path);
 
 		static Ref<Texture2D> Create(const uint32_t width, const uint32_t height);
+		static Ref<Texture2D> Create(TextureFormat format, const uint32_t width, const uint32_t height);
 		static Ref<Texture2D> Create(std::filesystem::path path);
 		// Pre create to allocate memory
 		static Ref<Texture2D> PreCreate();
@@ -76,6 +81,9 @@ namespace Hazel {
 		}
 
 	protected:
+
+		void SetIsLoaded(bool value) { m_IsLoaded = value; }
+
 		std::string m_Path;
 		uint32_t m_Width, m_Height;
 		TextureType m_Type = TextureType::None;

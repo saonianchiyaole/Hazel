@@ -29,6 +29,9 @@ namespace Hazel {
 		void DrawComponent(Entity& entity, std::string componentName, Function func);
 
 
+		Entity GenerateSphere();
+
+
 		inline Entity GetSelectedEntity() const{
 			return m_SelectedEntity;
 		}

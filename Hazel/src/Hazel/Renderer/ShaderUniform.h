@@ -8,6 +8,8 @@ namespace Hazel {
 	namespace Utils {
 
 		void* AllocateMemoryByShaderDataType(ShaderDataType type, size_t amount = 1);
+		void FreeMemoryByShaderDataType(ShaderDataType type, void* data);
+		uint64_t GetAllocatedMemoryByShaderDataType(ShaderDataType type);
 
 		template<typename T>
 		bool isDataFormatCorrect(ShaderDataType m_Type) {

@@ -3,6 +3,26 @@ Environment:
   IsHDR: true
   Path: assets\environment\rooitou_park_4k.hdr
 Entities:
+  - Entity: 17139446858384217105
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [49.327377, -2.2640827, 1.1827621]
+      Rotation: [-0.10888385, 1.348618, 1.4187016]
+      Scale: [0.9999978, 0.9999972, 0.99999875]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\Cerberus_by_Andrew_Maximov\Cerberus_LP.FBX
+    MaterialComponent:
+      Path: G:\Project\visualStudio\Hazel\Editor\assets\Material\m1911.material
+  - Entity: 10710981757158666919
+    TagComponent:
+      Tag: Light
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, -3.4382987, 0]
+      Scale: [1, 1, 1]
+    LightComponent:
+      Color: [1, 1, 1]
   - Entity: 13393534262819874296
     TagComponent:
       Tag: Gun
@@ -14,12 +34,3 @@ Entities:
       FilePath: G:\Project\visualStudio\Hazel\Editor\assets\m1911\M1911Materials.fbx
     MaterialComponent:
       Path: G:\Project\visualStudio\Hazel\Editor\assets\Material\m1911.material
-  - Entity: 10710981757158666919
-    TagComponent:
-      Tag: Light
-    TransformComponent:
-      Translate: [0, 0, 0]
-      Rotation: [0, 3.1415927, 0]
-      Scale: [1, 1, 1]
-    LightComponent:
-      Color: [1, 1, 1]
