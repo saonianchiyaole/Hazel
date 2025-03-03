@@ -54,6 +54,7 @@ namespace Hazel {
 		static void SubmitSkybox(Ref<TextureCube> skyboxTextures);
 		static void SubmitEnvironment(Ref<Environment> environment);
 		
+
 		static uint32_t GetNextEmptyTextureSlot();
 
 		static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = false);
@@ -87,7 +88,7 @@ namespace Hazel {
 
 			Ref<Material> defaultPBRMaterial;
 			Ref<Material> defaultPhongMaterial;
-			Ref<Material> skyboxMayerial;
+			Ref<Material> skyboxMaterial;
 
 			Ref<Camera> primaryCamera;
 

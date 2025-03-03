@@ -25,13 +25,13 @@ in vec2 v_TexCoord;
 
 void main(){
 
-    float gamma     = 2.2;
+    float gamma     = 1.44;
 	float pureWhite = 1.0;
 
     vec4 color = texture(u_Texture, v_TexCoord);
 
-    o_Color = color;
-    //o_Color = vec4(pow(color.rgb, vec3(1.0 / gamma)), 1.0);
+    //o_Color = color;
+    o_Color = vec4(pow(color.rgb, vec3(1.0 / gamma)), 1.0);
 
 }
 

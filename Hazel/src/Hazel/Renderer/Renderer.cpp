@@ -100,8 +100,8 @@ namespace Hazel {
 
 			s_SceneData->defaultPBRMaterial = Material::Create("assets/Material/Standard.material");
 
-			s_SceneData->skyboxMayerial = Material::Create();
-			s_SceneData->skyboxMayerial->SetShader(s_SceneData->skyboxShader);
+			s_SceneData->skyboxMaterial = Material::Create();
+			s_SceneData->skyboxMaterial->SetShader(s_SceneData->skyboxShader);
 		}
 		//Set Dufault Light Uniform
 
@@ -249,12 +249,12 @@ namespace Hazel {
 
 	void Renderer::SubmitSkybox(Ref<TextureCube> skyboxTextures)
 	{
-		RenderCommand::SetDepthMask(false);
 		s_SceneData->skybox->Bind();
 		s_SceneData->skyboxShader->Bind();
 		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
 		s_SceneData->skyboxShader->SetMat4("u_View", s_SceneData->ViewMatrix);
 		s_SceneData->skyboxShader->SetMat4("u_Projection", s_SceneData->ProjectionMatrix);
+
 
 		//s_SceneData->skyboxMayerial->SetData<int>("u_SkyBox", 0);
 		//s_SceneData->skyboxMayerial->SetData("u_View", s_SceneData->ViewMatrix);
@@ -263,26 +263,12 @@ namespace Hazel {
 		skyboxTextures->Bind();
 		
 		RenderCommand::DrawIndexed(s_SceneData->skybox);
-
-		RenderCommand::SetDepthMask(true);
 	}
 
 	void Renderer::SubmitEnvironment(Ref<Environment> environment)
 	{
-		RenderCommand::SetDepthMask(false);
-
-		s_SceneData->skybox->Bind();
-		s_SceneData->skyboxShader->Bind();
-		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
-		s_SceneData->skyboxShader->SetMat4("u_View", s_SceneData->ViewMatrix);
-		s_SceneData->skyboxShader->SetMat4("u_Projection", s_SceneData->ProjectionMatrix);
-		environment->GetEnvironmentMap()->Bind();
+		
 		s_SceneData->environment = environment;
-
-		RenderCommand::DrawIndexed(s_SceneData->skybox);
-
-		RenderCommand::SetDepthMask(true);
-
 	}
 
 	uint32_t Renderer::GetNextEmptyTextureSlot()
@@ -319,6 +305,19 @@ namespace Hazel {
 		
 		
 		if(s_SceneData->environment)
+		{
+
+			RenderCommand::SetDepthMask(false);
+			//Draw SkyBox
+			s_SceneData->skyboxShader->Bind();
+			s_SceneData->skyboxShader->SetInt("u_Skybox", 0);
+			s_SceneData->skyboxShader->SetMat4("u_View", s_SceneData->ViewMatrix);
+			s_SceneData->skyboxShader->SetMat4("u_Projection", s_SceneData->ProjectionMatrix);
+			s_SceneData->environment->GetEnvironmentMap()->Bind();
+
+			RenderCommand::DrawIndexed(s_SceneData->skybox);
+			RenderCommand::SetDepthMask(true);
+			//Draw mesh
 			for (auto& dc : s_SceneData->drawList) {
 				s_SceneData->textureSlotIndex = 0;
 
@@ -336,12 +335,11 @@ namespace Hazel {
 				dc.material->GetShader()->SetInt("u_EnvRadiance", s_SceneData->textureSlotIndex++);
 
 				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
-				
-				dc.mesh->m_VertexArray->Bind();
 
 				RenderCommand::DrawIndexed(dc.mesh->m_VertexArray);
 
 			}
+		}
 		else {
 			for (auto& dc : s_SceneData->drawList) {
 				s_SceneData->textureSlotIndex = 0;
@@ -349,7 +347,6 @@ namespace Hazel {
 				dc.material->Submit();
 				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
 
-				dc.mesh->m_VertexArray->Bind();
 				RenderCommand::DrawIndexed(dc.mesh->m_VertexArray);
 			}
 		}
