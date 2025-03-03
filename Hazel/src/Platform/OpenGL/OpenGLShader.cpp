@@ -8,7 +8,7 @@
 #include "Hazel/Renderer/ShaderUniform.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
 #include <fstream>
-
+#include <unordered_set>
 #include "Hazel/Renderer/Material.h"
 
 namespace Hazel {
@@ -113,7 +113,7 @@ namespace Hazel {
 
 	bool OpenGLShader::Compile(const std::unordered_map<GLenum, std::string> shaderSourcescode)
 	{
-		
+		HZ_CORE_INFO("Loading Shader {0}", m_Path);
 		GLint program = glCreateProgram();
 		std::vector<GLint> shaderIDs(shaderSourcescode.size());
 		for (auto& kv : shaderSourcescode) {
@@ -199,6 +199,26 @@ namespace Hazel {
 
 		uint32_t textureSlot = 0;
 
+		std::unordered_set<std::string> removedList = { "u_Transform", "u_View", "u_Projection", "u_BRDFLUT" };
+
+		////Remove ShaderUniform Block 
+		GLint blockIndex = glGetUniformBlockIndex(m_RendererID, "LightUniform");
+		if (blockIndex != GL_INVALID_INDEX) {
+			GLint numUniformsInBlock = 0;
+			glGetActiveUniformBlockiv(m_RendererID, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &numUniformsInBlock);
+			
+			std::vector<GLint> uniformIndex(numUniformsInBlock);
+			glGetActiveUniformBlockiv(m_RendererID, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndex.data());
+
+			for (GLint i = 0; i < numUniformsInBlock; ++i) {
+				char name[256];
+				GLenum type;
+				GLint size;
+				glGetActiveUniform(m_RendererID, uniformIndex[i], sizeof(name), nullptr, &size, &type, name);
+				removedList.insert(name);
+
+			}
+		}
 
 		for (GLint i = 0; i < uniformCount; ++i) {
 
@@ -206,6 +226,12 @@ namespace Hazel {
 			GLenum type;
 			GLint size;
 			glGetActiveUniform(m_RendererID, i, sizeof(name), nullptr, &size, &type, name);
+
+			
+
+			if (removedList.find(name) != removedList.end()) {
+				continue;
+			}
 
 			switch (type) {
 			case GL_FLOAT: 
@@ -223,10 +249,10 @@ namespace Hazel {
 				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Vec4));
 				break;
 			case GL_FLOAT_MAT3 : 
-				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat3));
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat3));
 				break;
 			case GL_FLOAT_MAT4 : 
-				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat4));
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat4));
 				break;
 			case GL_INT: 
 				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Int));
@@ -246,22 +272,14 @@ namespace Hazel {
 				break;
 			}			
 		}
+		
 
-		////Remove ShaderUniform Block 
-		//GLint blockIndex = glGetUniformBlockIndex(m_RendererID, "CameraUniform");
-		//if (blockIndex != GL_INVALID_INDEX) {
-		//	GLint numUniformsInBlock = 0;
-		//	glGetActiveUniformBlockiv(m_RendererID, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &numUniformsInBlock);
 
-		//	for (GLint i = 0; i < numUniformsInBlock; ++i) {
-		//		GLint uniformIndex;
-		//		glGetActiveUniformBlockiv(m_RendererID, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, &uniformIndex);
-		//		// 进一步通过 glGetActiveUniform 获取 uniform 具体信息
-		//	}
-		//}
+		
 
 
 		HZ_CORE_INFO("Load Shader {0} Succesfully", m_Path);
+		
 		return true;
 	}
 

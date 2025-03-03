@@ -4,6 +4,7 @@
 #include "stb_image.h"
 #include "glad/glad.h"
 #include <set>
+#include "fstream"
 
 #define POSITIVE_X 0;
 #define NEGATIVE_X 1;
@@ -30,8 +31,12 @@ namespace Hazel {
 
 
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path) {
+		
+		
+		
 		m_Path = path;
 		HZ_CORE_INFO("Open Texture filePath {0}", path);
+		
 		static const std::set<std::string> supportedExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".hdr", ".tga"};
 		std::filesystem::path checkpath = path;
 		if (supportedExtensions.count(checkpath.extension().string()) <= 0) {
@@ -126,7 +131,9 @@ namespace Hazel {
 		m_Height = height;
 
 		m_InternalFormat = Utils::HazelToOpenGLTextureFormat(format);
-	
+		m_DataType = format == TextureFormat::Float16 ? GL_FLOAT : GL_UNSIGNED_BYTE;
+		m_DataFormat = m_InternalFormat;
+
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
 		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
 

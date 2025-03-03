@@ -30,7 +30,8 @@ namespace Hazel {
 
 
 		Entity GenerateSphere();
-
+		Entity GenerateCube();
+		Entity GeneratePlane();
 
 		inline Entity GetSelectedEntity() const{
 			return m_SelectedEntity;

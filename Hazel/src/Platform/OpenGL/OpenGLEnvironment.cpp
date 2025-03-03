@@ -4,6 +4,9 @@
 #include "Hazel/Renderer/Shader.h"
 #include "Hazel/Renderer/Texture.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+
 namespace Hazel {
 
 
@@ -24,7 +27,7 @@ namespace Hazel {
 		}
 
 		const uint32_t cubemapSize = 2048;
-		const uint32_t irradianceMapSize = 32;
+		const uint32_t irradianceMapSize = 128;
 		const uint32_t BRDFLUTSize = 512;
 
 		Ref<TextureCube> envUnfiltered = TextureCube::Create(TextureFormat::Float16, cubemapSize, cubemapSize);
@@ -100,19 +103,42 @@ namespace Hazel {
 
 		//BRDFLUT
 		if (!s_BRDFLUT || !s_BRDFLUT->IsLoaded()) {
-			s_BRDFLUT = Texture2D::Create(TextureFormat::Float16, BRDFLUTSize, BRDFLUTSize);
-			if (!s_GenerateBRDFLUTShader) {
-				s_GenerateBRDFLUTShader = ShaderLibrary::Load("assets/Shaders/GenerateBRDFLUT.glsl");
-			}
-			//submit
+			
+			s_BRDFLUT = Texture2D::Create("assets/environment/BRDFLUT.hdr");
+			
+			if (!s_BRDFLUT || !s_BRDFLUT->IsLoaded())
 			{
-				s_GenerateBRDFLUTShader->Bind();
-				glBindImageTexture(0, s_BRDFLUT->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-				glDispatchCompute(s_BRDFLUT->GetWidth() / 32, s_BRDFLUT->GetHeight() / 32, 1);
-				s_BRDFLUT->SetIsLoaded(true);
+				s_BRDFLUT = Texture2D::Create(TextureFormat::Float16, BRDFLUTSize, BRDFLUTSize);
+				if (!s_GenerateBRDFLUTShader) {
+					s_GenerateBRDFLUTShader = ShaderLibrary::Load("assets/Shaders/GenerateBRDFLUT.glsl");
+				}
+				//submit
+				{
+					s_GenerateBRDFLUTShader->Bind();
+					glBindImageTexture(0, s_BRDFLUT->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+					glDispatchCompute(s_BRDFLUT->GetWidth() / 32, s_BRDFLUT->GetHeight() / 32, 1);
+					s_BRDFLUT->SetIsLoaded(true);
+
+
+					uint64_t size = BRDFLUTSize * BRDFLUTSize * 4 * 4;
+					void* data = malloc(size);
+
+					glBindTexture(GL_TEXTURE_2D, s_BRDFLUT->GetRendererID());
+					glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, data);
+					glBindTexture(GL_TEXTURE_2D, 0);
+
+					const char* filename = "assets/environment/BRDFLUT.hdr";
+					int stride = BRDFLUTSize * 4;
+					stbi_flip_vertically_on_write(true);
+					int success = stbi_write_hdr(filename, BRDFLUTSize, BRDFLUTSize, 4, (float*)data);
+
+					free(data);
+				}
 			}
 
 		}
+
+		glBindTextureUnit(0, 0);
 	}
 
 }

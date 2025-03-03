@@ -195,7 +195,11 @@ namespace Hazel {
 		glDeleteFramebuffers(1, &m_RendererID);
 		glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
 		glDeleteTextures(1, &m_DepthAttachment);
+		
 		m_Specification = spec;
+		m_ColorAttachments.clear();
+		m_DepthAttachment = 0;
+
 		RenderCommand::SetViewPort(0, 0, m_Specification.width, m_Specification.height);
 		Invalidate();
 	}
@@ -234,6 +238,10 @@ namespace Hazel {
 	const uint32_t OpenGLFramebuffer::GetDpethAttachment()
 	{
 		return m_DepthAttachment;
+	}
+	const void OpenGLFramebuffer::BindTexture(uint32_t index, uint32_t slot)
+	{
+		glBindTextureUnit(slot, m_ColorAttachments[index]);
 	}
 	void OpenGLFramebuffer::Bind()
 	{

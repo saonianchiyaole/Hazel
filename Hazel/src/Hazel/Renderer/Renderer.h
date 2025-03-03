@@ -9,7 +9,7 @@
 #include "Hazel/Renderer/EditorCamera.h"
 
 #include "Hazel/Scene/Component.h"
-
+#include "Hazel/Renderer/RenderPass.h"
 
 namespace Hazel {
 	
@@ -28,6 +28,13 @@ namespace Hazel {
 		glm::vec4 position;
 	};
 
+	struct DrawCommand {
+		Ref<Mesh> mesh;
+		Ref<Material> material;
+		glm::mat4 transform;
+	};
+
+	// this should be Scene Renderer
 	class Renderer {
 	public:
 
@@ -49,9 +56,21 @@ namespace Hazel {
 		
 		static uint32_t GetNextEmptyTextureSlot();
 
+		static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = false);
+		static void EndRenderPass();
 
 		inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
+
+		//RenderPass Function
+		static void GeometryPass();
+		static void CompositePass();
+
+		static void FlushDrawList();
+		static Ref<Framebuffer> GetGeometryPassFramebuffer();
+		static Ref<Framebuffer> GetCompositePassFramebuffer();
+
+		static void SetViewportSize(uint32_t width, uint32_t height);
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static Ref<Material> GetDefaultPBRMaterial();
 		static Ref<Material> GetDefaultPhongMaterial();
@@ -64,8 +83,11 @@ namespace Hazel {
 
 			Ref<Shader> defaultShader;
 			Ref<Shader> skyboxShader;
+			Ref<Shader> compositeShader;
+
 			Ref<Material> defaultPBRMaterial;
 			Ref<Material> defaultPhongMaterial;
+			Ref<Material> skyboxMayerial;
 
 			Ref<Camera> primaryCamera;
 
@@ -74,8 +96,19 @@ namespace Hazel {
 			Ref<VertexArray> skybox;
 			Ref<Environment> environment;
 
+			Ref<VertexArray> fullScreenQuad;
+			
+			
 			const uint32_t maxTextureSlot = 32;
 			uint32_t textureSlotIndex;
+
+			Ref<RenderPass> geometryPass;
+			Ref<RenderPass> compositePass;
+			
+
+
+			Ref<RenderPass> activePass;
+			std::vector<DrawCommand> drawList;
 		};
 
 		static SceneData* s_SceneData;

@@ -51,7 +51,7 @@ namespace Hazel
 
 		void Write(const void* data, uint64_t size, uint64_t offset = 0) {
 			HZ_CORE_ASSERT(offset + size <= this->size, "Buffer overflow!");
-			memcpy((char*)data + offset, data, size);
+			memcpy((char*)this->data + offset, data, size);
 		}
 
 		operator bool() {

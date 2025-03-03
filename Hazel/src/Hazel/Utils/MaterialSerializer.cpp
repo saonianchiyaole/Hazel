@@ -52,6 +52,7 @@ namespace Hazel {
 			std::string shaderPath = data["Shader"].as<std::string>();
 			Ref<Shader> shader = ShaderLibrary::Load(shaderPath);
 
+			m_Material->SetPath(filepath);
 			//Set Data
 			m_Material->SetShader(shader);
 
@@ -104,14 +105,14 @@ namespace Hazel {
 				case ShaderDataType::Float3:
 				case ShaderDataType::Vec3:
 				{
-					glm::vec2 data = uniform[shaderUniformName].as<glm::vec3>();
+					glm::vec3 data = uniform[shaderUniformName].as<glm::vec3>();
 					m_Material->SetData(shaderUniform->GetName(), data);
 					break;
 				}
 				case ShaderDataType::Float4:
 				case ShaderDataType::Vec4:
 				{
-					glm::vec2 data = uniform[shaderUniformName].as<glm::vec4>();
+					glm::vec4 data = uniform[shaderUniformName].as<glm::vec4>();
 					m_Material->SetData(shaderUniform->GetName(), data);
 					break;
 				}

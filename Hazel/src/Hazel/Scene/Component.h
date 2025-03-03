@@ -69,7 +69,7 @@ namespace Hazel {
 		void SetRotation(glm::vec3 rotationVal) {
 			rotation = rotationVal;
 			RecalculateTransform();
-		}
+		} 
 
 		glm::mat4 GetTransform() {
 			return transform;

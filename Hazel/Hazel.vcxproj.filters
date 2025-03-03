@@ -264,6 +264,9 @@
     <ClInclude Include="src\Hazel\Core\Buffer.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\RenderPass.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -433,6 +436,9 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Renderer\RenderPass.cpp">
+      <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

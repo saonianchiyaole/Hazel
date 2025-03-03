@@ -19,7 +19,7 @@ namespace Hazel {
 
 		virtual const uint32_t GetColorAttachment(int index = 0) override;
 		virtual const uint32_t GetDpethAttachment() override;
-
+		virtual const void BindTexture(uint32_t index, uint32_t slot = 0) override;
 
 		virtual void Bind() override;
 		virtual void Unbind() override;

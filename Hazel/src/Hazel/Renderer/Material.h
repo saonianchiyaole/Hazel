@@ -9,6 +9,7 @@ namespace Hazel {
 
 	class Material {
 	public:
+		friend class MaterialSerializer;
 
 		Material() = default;
 		Material(Ref<Shader> shader);
@@ -101,18 +102,22 @@ namespace Hazel {
 
 
 		void Submit();
-		void SetTexturesSlot();
 
 		Ref<Shader> GetShader();
+		std::string GetName();
+		uint32_t GetSampleUniformAmount();
 
 		void ReloadShader();
 
 		void SetShader(Ref<Shader> shader);
-		std::string GetName();
-		void SetName(std::string name);
+		void SetName(std::string& name);
+		void SetPath(const std::string& path);
 
-		uint32_t GetSampleUniformAmount();
+		void SetTexturesSlot();
 
+
+		static Ref<Material> Create(std::filesystem::path filepath);
+		static Ref<Material> Create();
 	private:
 
 		void FreeMemory();
@@ -121,7 +126,8 @@ namespace Hazel {
 
 		std::string m_Name;
 		Ref<Shader> m_Shader;
-		
+		std::string m_Path;
+
 		bool m_UseAlbedoTex = false;
 		bool m_UseNormalTex = false;
 		bool m_UseRoughnessTex = false;

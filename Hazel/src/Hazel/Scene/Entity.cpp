@@ -11,8 +11,11 @@ namespace Hazel {
 	Entity::Entity(entt::entity entityHandle, Scene* scene)
 		:m_EntityHandle(entityHandle), m_Scene(scene)
 	{
+
 		if (HasComponent<IDComponent>())
 			m_EntityID = GetComponent<IDComponent>().ID;
+		else
+			m_EntityID = 0;
 	}
 
 }

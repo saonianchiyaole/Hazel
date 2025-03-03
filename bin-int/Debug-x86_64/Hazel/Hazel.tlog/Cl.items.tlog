@@ -29,6 +29,7 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer.cpp;G:\Project\v
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer2D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer2D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer3D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer3D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RendererAPI.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RenderPass.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RenderPass.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Shader.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Shader.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\ShaderUniform.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ShaderUniform.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Texture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Texture.obj

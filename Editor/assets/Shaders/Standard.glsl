@@ -106,7 +106,6 @@ uniform sampler2D u_BRDFLUT;
 uniform samplerCube u_EnvRadiance;
 
 uniform vec4 u_Albedo;
-uniform vec4 u_Test;
 uniform float u_Roughness;
 uniform float u_Metalness;
 
@@ -162,6 +161,7 @@ vec4 IBL(vec3 F0){
 	float NdotH = max(dot(N, H), 0.0f);
 
 	vec3 Lr = 2.0 * m_PBRParams.NdotV * m_PBRParams.normal - m_PBRParams.view;
+	Lr.y = -Lr.y;
 	//diffuse
 	vec3 F = fresnelSchlickRoughness(F0, NdotV, m_PBRParams.roughness);
 	vec3 kd = vec3(1.0f) - F;
@@ -235,8 +235,6 @@ void main()
 	vec4 lightContribution = PBRLighting(F0); 
 	vec4 IBLContribution = IBL(F0);
 	//vec4 lightContribution = PhongLighting();
-
-	u_Test;
 
 	color = lightContribution + IBLContribution;
 	

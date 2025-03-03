@@ -17,6 +17,7 @@
 #include "Hazel/Renderer/RendererAPI.h"
 #include "Hazel/Utils/MaterialSerializer.h"
 
+
 namespace Hazel {
 	SceneHierarchyPanel::SceneHierarchyPanel()
 	{
@@ -49,10 +50,21 @@ namespace Hazel {
 		if (m_Context)
 		{
 			if (ImGui::BeginPopupContextWindow(0, 1)) {
-				if (ImGui::MenuItem("Create Empty Entity")) {
-					m_Context->CreateEntity("Empty Entity");
+				if (ImGui::MenuItem("Create Empty")) {
+					m_Context->CreateEntity("Empty");
 				}
 
+				if (ImGui::MenuItem("Sphere")) {
+					GenerateSphere();
+				}
+
+				if (ImGui::MenuItem("Cube")) {
+					GenerateCube();
+				}
+
+				if (ImGui::MenuItem("Plane")) {
+					GeneratePlane();
+				}
 				ImGui::EndPopup();
 			}
 
@@ -710,8 +722,35 @@ namespace Hazel {
 		auto& meshComponent = sphere.AddComponent<MeshComponent>();
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Sphere1m.fbx", sphere.GetHandle()));
 		
-		//sphere.AddComponent<Material>();
+		auto& materialComponent = sphere.AddComponent<MaterialComponent>();
+		materialComponent.material = Material::Create("assets/Material/Phong.material");
+		
+		return sphere;
+	}
+
+	Entity SceneHierarchyPanel::GenerateCube()
+	{
+		Entity sphere = m_Context->CreateEntity("Cube");
+		auto& meshComponent = sphere.AddComponent<MeshComponent>();
+		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Cube.fbx", sphere.GetHandle()));
+
+		auto& materialComponent = sphere.AddComponent<MaterialComponent>();
+		materialComponent.material = Material::Create("assets/Material/Phong.material");
 
 		return sphere;
+	}
+	Entity SceneHierarchyPanel::GeneratePlane()
+	{
+		Entity plane = m_Context->CreateEntity("plane");
+		auto& meshComponent = plane.AddComponent<MeshComponent>();
+		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Cube.fbx", plane.GetHandle()));
+
+		auto& materialComponent = plane.AddComponent<MaterialComponent>();
+		materialComponent.material = Material::Create("assets/Material/Phong.material");
+
+		auto& transformComponent = plane.GetComponent<TransformComponent>();
+		transformComponent.SetScale({5.0f, 0.2f, 5.0f});
+
+		return plane;
 	}
 }

@@ -38,6 +38,7 @@ namespace Hazel {
 		uint32_t width;
 		uint32_t height;
 		uint32_t samples = 1;
+		glm::vec4 clearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 		FramebufferAttachmentSpecification attachments;
 
 		bool SwapChainTarget = false;
@@ -55,6 +56,7 @@ namespace Hazel {
 		
 		virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 		virtual void ClearAttachment(uint32_t attachmentIndex, const void* value) = 0;
+		virtual const void BindTexture(uint32_t index, uint32_t slot = 0) = 0;
 
 		virtual const uint32_t GetColorAttachment(int index = 0) = 0;
 		virtual const uint32_t GetDpethAttachment() = 0;

@@ -3,6 +3,7 @@
 #include "Hazel/Renderer/Renderer.h"
 #include "Hazel/Renderer/Renderer2D.h"
 
+#include "Hazel/Core/Application.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 #include "Hazel/Renderer/OrthographicCamera.h"
 #include "Hazel/Renderer/EditorCamera.h"
@@ -10,7 +11,7 @@
 #include "Hazel/Scene/Component.h"
 #include "Hazel/Renderer/VertexArray.h"
 #include "Hazel/Renderer/Environment.h"
-
+#include "Hazel/Renderer/Framebuffer.h"
 
 namespace Hazel {
 
@@ -55,6 +56,17 @@ namespace Hazel {
 		3, 7, 6
 	};
 
+	float fullScreenQuadVertices[] = {
+		// Vertices         // TexCoord
+		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // 0 (左下角)
+		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // 1 (右下角)
+		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, // 2 (左上角)
+		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f  // 3 (右上角)
+	};
+	uint32_t fullScreenQuadIndices[] = {
+		0, 1, 2, // 第一个三角形 (左下角 -> 右下角 -> 左上角)
+		1, 3, 2  // 第二个三角形 (右下角 -> 右上角 -> 左上角)
+	};
 
 
 	void Renderer::Init() {
@@ -74,23 +86,72 @@ namespace Hazel {
 		
 
 
-		s_SceneData->skybox = VertexArray::Create();
-		BufferLayout skyboxBufferLayout = std::vector<Hazel::BufferElement>{
-			{Hazel::ShaderDataType::Float3, "a_Position" }
-		};
-		Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
-		skyboxVertexBuffer->SetLayout(skyboxBufferLayout);
-		s_SceneData->skybox->AddVertexBuffer(skyboxVertexBuffer);
+		{
+			s_SceneData->skybox = VertexArray::Create();
+			BufferLayout skyboxBufferLayout = std::vector<Hazel::BufferElement>{
+				{Hazel::ShaderDataType::Float3, "a_Position" }
+			};
+			Ref<VertexBuffer> skyboxVertexBuffer = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
+			skyboxVertexBuffer->SetLayout(skyboxBufferLayout);
+			s_SceneData->skybox->AddVertexBuffer(skyboxVertexBuffer);
 
-		Ref<IndexBuffer> skyboxIndexBuffer = IndexBuffer::Create(skyboxIndices, sizeof(skyboxIndices) / sizeof(uint32_t));
-		s_SceneData->skybox->SetIndexBuffer(skyboxIndexBuffer);
+			Ref<IndexBuffer> skyboxIndexBuffer = IndexBuffer::Create(skyboxIndices, sizeof(skyboxIndices) / sizeof(uint32_t));
+			s_SceneData->skybox->SetIndexBuffer(skyboxIndexBuffer);
 
-		//
-		/*s_SceneData->defaultPhongMaterial = MakeRef<Material>(ShaderLibrary::Load("assets/Shaders/Phong.glsl"));
-		s_SceneData->defaultPhongMaterial->SetData();*/
+			s_SceneData->defaultPBRMaterial = Material::Create("assets/Material/Standard.material");
 
-
+			s_SceneData->skyboxMayerial = Material::Create();
+			s_SceneData->skyboxMayerial->SetShader(s_SceneData->skyboxShader);
+		}
 		//Set Dufault Light Uniform
+
+
+		//Set FullScreenQuad 
+		{
+			s_SceneData->fullScreenQuad =
+				s_SceneData->fullScreenQuad = VertexArray::Create();
+			BufferLayout fullScreenQuadBufferLayout = std::vector<Hazel::BufferElement>{
+				{Hazel::ShaderDataType::Float3, "a_Position" },
+				{Hazel::ShaderDataType::Float2, "a_TexCoord" }
+
+			};
+			Ref<VertexBuffer> fullScreenQuadVertexBuffer = VertexBuffer::Create(fullScreenQuadVertices, sizeof(fullScreenQuadVertices));
+			fullScreenQuadVertexBuffer->SetLayout(fullScreenQuadBufferLayout);
+			s_SceneData->fullScreenQuad->AddVertexBuffer(fullScreenQuadVertexBuffer);
+
+			Ref<IndexBuffer> fullScreenQuadIndexBuffer = IndexBuffer::Create(fullScreenQuadIndices, sizeof(fullScreenQuadIndices) / sizeof(uint32_t));
+			s_SceneData->fullScreenQuad->SetIndexBuffer(fullScreenQuadIndexBuffer);
+		}
+
+
+		//set geometry pass
+		{
+			FramebufferSpecification geometryFramebufferSpec;
+			geometryFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
+			geometryFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
+			geometryFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
+			geometryFramebufferSpec.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+			Ref<Framebuffer> geometryTargetFramebuffer = Framebuffer::Create(geometryFramebufferSpec);
+			RenderPassSpec geometryPassSpec;
+			geometryPassSpec.targetFrameBuffer = geometryTargetFramebuffer;
+			s_SceneData->geometryPass = RenderPass::Create(geometryPassSpec);
+		}
+
+		//set composite pass
+		{
+			FramebufferSpecification compositeFramebufferSpec;
+			compositeFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
+			compositeFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
+			compositeFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8 };
+			Ref<Framebuffer> compositeTargetFramebuffer = Framebuffer::Create(compositeFramebufferSpec);
+			RenderPassSpec compositePassSpec;
+			compositePassSpec.targetFrameBuffer = compositeTargetFramebuffer;
+			s_SceneData->compositePass = RenderPass::Create(compositePassSpec);
+
+			s_SceneData->compositeShader = ShaderLibrary::Load("assets/Shaders/Composite.glsl");
+			
+		}
+
 	}
 
 	void Renderer::BeginScene(const Camera& camera)
@@ -106,8 +167,6 @@ namespace Hazel {
 
 		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
 
-		s_SceneData->skyboxShader->SetMat4("u_View", camera.GetViewMatrix());
-		s_SceneData->skyboxShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
 	}
 
 	void Renderer::BeginScene(const EditorCamera& camera)
@@ -121,15 +180,16 @@ namespace Hazel {
 		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
 
 		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
-
-		s_SceneData->skyboxShader->SetMat4("u_View", camera.GetViewMatrix());
-		s_SceneData->skyboxShader->SetMat4("u_Projection", camera.GetProjectionMatrix());
 	}
 
 	void Renderer::EndScene()
 	{
+
+		FlushDrawList();
+
 		s_SceneData->environment = nullptr;
 		s_SceneData->textureSlotIndex = 0;
+		s_SceneData->drawList.clear();
 	}
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform)
 	{
@@ -147,12 +207,13 @@ namespace Hazel {
 
 	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Shader> shader, UUID entityID)
 	{
-		shader->Bind();
-		shader->SetMat4("u_Transform", transformComponent.transform);
-		mesh->m_VertexArray->Bind();
+		//shader->Bind();
+		//shader->SetMat4("u_Transform", transformComponent.transform);
+		//mesh->m_VertexArray->Bind();
 
 
-		RenderCommand::DrawIndexed(mesh->m_VertexArray);
+		s_SceneData->drawList.push_back({ mesh, s_SceneData->defaultPBRMaterial, transformComponent.transform });
+		//RenderCommand::DrawIndexed(mesh->m_VertexArray);
 	}
 
 	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material)
@@ -164,30 +225,7 @@ namespace Hazel {
 			return;
 		}
 
-		
-
-		material->GetShader()->Bind();
-		material->Submit();
-		material->GetShader()->SetMat4("u_Transform", transformComponent.transform);
-		
-		s_SceneData->textureSlotIndex += material->GetSampleUniformAmount();
-
-		//SetEnvironment Map
-		if(s_SceneData->environment)
-		{		
-			s_SceneData->environment->GetIrradianceMap()->Bind(s_SceneData->textureSlotIndex);
-			material->GetShader()->SetInt("u_EnvIrradiance", s_SceneData->textureSlotIndex++);
-
-			material->GetShader()->SetInt("u_BRDFLUT", s_SceneData->textureSlotIndex);
-			Environment::GetBRDFLUT()->Bind(s_SceneData->textureSlotIndex++);
-
-			s_SceneData->environment->GetEnvironmentMap()->Bind(s_SceneData->textureSlotIndex);
-			material->GetShader()->SetInt("u_EnvRadiance", s_SceneData->textureSlotIndex++);
-		}
-		mesh->m_VertexArray->Bind();
-
-
-		RenderCommand::DrawIndexed(mesh->m_VertexArray);
+		s_SceneData->drawList.push_back({mesh, material, transformComponent.transform});
 
 		s_SceneData->textureSlotIndex = 0;
 
@@ -217,6 +255,11 @@ namespace Hazel {
 		s_SceneData->skyboxShader->SetInt("u_SkyBox", 0);
 		s_SceneData->skyboxShader->SetMat4("u_View", s_SceneData->ViewMatrix);
 		s_SceneData->skyboxShader->SetMat4("u_Projection", s_SceneData->ProjectionMatrix);
+
+		//s_SceneData->skyboxMayerial->SetData<int>("u_SkyBox", 0);
+		//s_SceneData->skyboxMayerial->SetData("u_View", s_SceneData->ViewMatrix);
+		//s_SceneData->skyboxMayerial->SetData("u_Projection", s_SceneData->ProjectionMatrix);
+		//s_SceneData->skyboxMayerial->SetData();
 		skyboxTextures->Bind();
 		
 		RenderCommand::DrawIndexed(s_SceneData->skybox);
@@ -247,6 +290,111 @@ namespace Hazel {
 		return s_SceneData->textureSlotIndex++;
 	}
 
+	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
+	{
+		s_SceneData->activePass = renderPass;
+		s_SceneData->activePass->GetSpecification().targetFrameBuffer->Bind();
+
+		if (clear)
+		{
+			const glm::vec4& clearColor = s_SceneData->activePass->GetSpecification().targetFrameBuffer->GetSpecification().clearColor;
+			RenderCommand::SetClearColor(clearColor);
+			RenderCommand::Clear();
+		}
+	}
+
+	void Renderer::EndRenderPass()
+	{
+		s_SceneData->activePass->GetSpecification().targetFrameBuffer->Unbind();
+		s_SceneData->activePass = nullptr;
+	}
+
+
+	void Renderer::GeometryPass()
+	{
+		Renderer::BeginRenderPass(s_SceneData->geometryPass, true);
+		
+		int textureValue = -1;
+		s_SceneData->geometryPass->GetSpecification().targetFrameBuffer->ClearAttachment(1, (void*)&textureValue);
+		
+		
+		if(s_SceneData->environment)
+			for (auto& dc : s_SceneData->drawList) {
+				s_SceneData->textureSlotIndex = 0;
+
+				dc.material->GetShader()->Bind();
+				dc.material->Submit();
+				s_SceneData->textureSlotIndex += dc.material->GetSampleUniformAmount();
+
+				s_SceneData->environment->GetIrradianceMap()->Bind(s_SceneData->textureSlotIndex);
+				dc.material->GetShader()->SetInt("u_EnvIrradiance", s_SceneData->textureSlotIndex++);
+
+				dc.material->GetShader()->SetInt("u_BRDFLUT", s_SceneData->textureSlotIndex);
+				Environment::GetBRDFLUT()->Bind(s_SceneData->textureSlotIndex++);
+
+				s_SceneData->environment->GetEnvironmentMap()->Bind(s_SceneData->textureSlotIndex);
+				dc.material->GetShader()->SetInt("u_EnvRadiance", s_SceneData->textureSlotIndex++);
+
+				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
+				
+				dc.mesh->m_VertexArray->Bind();
+
+				RenderCommand::DrawIndexed(dc.mesh->m_VertexArray);
+
+			}
+		else {
+			for (auto& dc : s_SceneData->drawList) {
+				s_SceneData->textureSlotIndex = 0;
+				dc.material->GetShader()->Bind();
+				dc.material->Submit();
+				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
+
+				dc.mesh->m_VertexArray->Bind();
+				RenderCommand::DrawIndexed(dc.mesh->m_VertexArray);
+			}
+		}
+
+		Renderer::EndRenderPass();
+	}
+
+	void Renderer::CompositePass()
+	{
+		Renderer::BeginRenderPass(s_SceneData->compositePass);
+
+		s_SceneData->geometryPass->GetSpecification().targetFrameBuffer->BindTexture(0);
+		s_SceneData->compositeShader->Bind();
+		s_SceneData->compositeShader->SetInt("u_Texture", 0);
+		s_SceneData->fullScreenQuad->Bind();
+
+		RenderCommand::DrawIndexed(s_SceneData->fullScreenQuad);
+
+		Renderer::EndRenderPass();
+
+	}
+
+	void Renderer::FlushDrawList()
+	{
+
+		GeometryPass();
+		CompositePass();
+
+	}
+
+	Ref<Framebuffer> Renderer::GetGeometryPassFramebuffer()
+	{
+		return s_SceneData->geometryPass->GetSpecification().targetFrameBuffer;
+	}
+
+	Ref<Framebuffer> Renderer::GetCompositePassFramebuffer()
+	{
+		return s_SceneData->compositePass->GetSpecification().targetFrameBuffer;
+	}
+
+	void Renderer::SetViewportSize(uint32_t width, uint32_t height)
+	{
+		s_SceneData->compositePass->GetSpecification().targetFrameBuffer->Resize(glm::vec2{ width, height });
+		s_SceneData->compositePass->GetSpecification().targetFrameBuffer->Resize(glm::vec2{ width, height });
+	}
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
 	{

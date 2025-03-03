@@ -4,6 +4,8 @@
 #include "Platform/OpenGL/OpenGLTexture.h"
 #include "Hazel/Renderer/Renderer.h"
 
+#include <fstream>
+
 namespace Hazel {
 
 	namespace Utils {
@@ -75,6 +77,10 @@ namespace Hazel {
 
 	Ref<Texture2D> Texture2D::Create(std::filesystem::path path)
 	{
+
+		if (!std::filesystem::exists(path))
+			return nullptr;
+
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")

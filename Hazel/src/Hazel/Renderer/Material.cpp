@@ -2,6 +2,8 @@
 
 #include "Hazel/Renderer/Material.h"
 
+#include "Hazel/Utils/MaterialSerializer.h"
+
 namespace Hazel {
 
 
@@ -94,12 +96,17 @@ namespace Hazel {
 		}
 	}
 
+	void Material::SetPath(const std::string& path)
+	{
+		m_Path = path;
+	}
+
 	std::string Material::GetName()
 	{
 		return m_Name;
 	}
 
-	void Material::SetName(std::string name)
+	void Material::SetName(std::string& name)
 	{
 		m_Name = name;
 	}
@@ -107,6 +114,24 @@ namespace Hazel {
 	uint32_t Material::GetSampleUniformAmount()
 	{
 		return m_NameToTextureAndSlot.size();
+	}
+
+	Ref<Material> Material::Create(std::filesystem::path filepath)
+	{
+		if (!std::filesystem::exists(filepath))
+			return nullptr;
+
+		Ref<Material> material = MakeRef<Material>();
+
+		Utils::MaterialSerializer materialSerializer(material);
+		materialSerializer.Deserialize(filepath.string());
+
+		return material;
+	}
+
+	Ref<Material> Material::Create()
+	{
+		return MakeRef<Material>();
 	}
 
 

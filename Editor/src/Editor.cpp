@@ -39,6 +39,8 @@ namespace Hazel {
 		m_FramebufferSpecification.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 		m_Framebuffer = Hazel::Framebuffer::Create(m_FramebufferSpecification);
 
+		m_Framebuffer = Renderer::GetGeometryPassFramebuffer();
+
 		m_EditorScene.reset(new Scene);
 
 		m_ActiveScene = m_EditorScene;
@@ -78,15 +80,13 @@ namespace Hazel {
 			m_EditorCamera.OnUpdate(ts);
 
 		float deltaTime = ts;
-
-		m_Framebuffer->Bind();
-		Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-		Hazel::RenderCommand::Clear();
+		
+		//m_Framebuffer->Bind();
+		//Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+		//Hazel::RenderCommand::Clear();
 
 		int textureValue = -1;
 		m_Framebuffer->ClearAttachment(1, (void*)&textureValue);
-		static float angle = 0.0f;
-		angle += 1.f;
 
 		switch (m_SceneState) {
 		case SceneState::Edit:
@@ -110,14 +110,14 @@ namespace Hazel {
 		}
 		else {
 			//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
-			int pixelVaule = m_Framebuffer->ReadPixel(1, mousePos.x, mousePos.y);
+			m_Framebuffer->Bind();
+			int pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
 			m_HoveredEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
+			m_Framebuffer->Unbind();
 		}
 
 
 		ColliderVisiable();
-
-		m_Framebuffer->Unbind();
 	}
 
 
@@ -270,9 +270,11 @@ namespace Hazel {
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
 				m_ActiveScene->SetViewPortSize(m_ViewportSize);
+				Renderer::SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 			}
-			ImGui::Image((void*)m_Framebuffer->GetColorAttachment(0), { (float)m_ViewportSize.x, (float)m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
+			Renderer::GetCompositePassFramebuffer()->Bind();
+			ImGui::Image((void*)Renderer::GetCompositePassFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+			Renderer::GetCompositePassFramebuffer()->Unbind();
 		}
 
 		if (ImGui::BeginDragDropTarget()) {
