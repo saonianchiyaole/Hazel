@@ -142,15 +142,15 @@ namespace Hazel {
 			out << YAML::EndMap;
 		}
 
-		if (entity.HasComponent<MaterialComponent>()) {
+		/*if (entity.HasComponent<MaterialComponent>()) {
 			out << YAML::Key << "MaterialComponent";
 			out << YAML::BeginMap;
 			auto& material = entity.GetComponent<MaterialComponent>();
 
-			out << YAML::Key << "Path" << YAML::Value << material.path;
+			out << YAML::Key << "Path" << YAML::Value << material;
 
 			out << YAML::EndMap;
-		}
+		}*/
 
 		if (entity.HasComponent<LightComponent>()) {
 			out << YAML::Key << "LightComponent";
@@ -162,6 +162,19 @@ namespace Hazel {
 			out << YAML::EndMap;
 		}
 
+		if (entity.HasComponent<AnimationComponent>()) {
+			out << YAML::Key << "AnimationComponent";
+			out << YAML::BeginMap;
+			out << YAML::EndMap;
+		}
+
+		if (entity.HasComponent<ScriptComponent>()) {
+			out << YAML::Key << "ScriptComponent";
+			out << YAML::BeginMap;
+			auto& scriptClassName = entity.GetComponent<ScriptComponent>().className;
+			out << YAML::Key << "ClassName" << YAML::Value << scriptClassName;
+			out << YAML::EndMap;
+		}
 
 		out << YAML::EndMap;
 
@@ -337,22 +350,29 @@ namespace Hazel {
 				}
 
 				//Material
-				auto materialComponent = entity["MaterialComponent"];
+				/*auto materialComponent = entity["MaterialComponent"];
 				if (materialComponent) {
-					auto& material = deserializedEntity.AddComponent<MaterialComponent>();
-					material.path = materialComponent["Path"].as<std::string>();
+					auto& materials = deserializedEntity.AddComponent<MaterialComponent>();
+					materials..path = materialComponent["Path"].as<std::string>();
 					material.material = MakeRef<Material>();
 
 					Utils::MaterialSerializer materialSerializer(material.material);
 					materialSerializer.Deserialize(material.path);
-
-				}
+					material.material->SetData("u_EntityID", deserializedEntity.GetHandle());
+				}*/
 
 				auto lightComponent = entity["LightComponent"];
 				if (lightComponent) {
 					auto& light = deserializedEntity.AddComponent<LightComponent>();
 					light.color = lightComponent["Color"].as<glm::vec3>();
 				}
+
+				//Animation
+				auto animationComponent = entity["AnimationComponent"];
+				if (animationComponent) {
+					deserializedEntity.AddComponent<AnimationComponent>();
+				}
+
 			}
 		}
 

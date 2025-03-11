@@ -18,6 +18,7 @@ namespace Hazel {
 
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) override;
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count) override;
+		virtual void DrawElementsBaseVertex(uint32_t indexCount, uint32_t baseIndex, uint32_t baseVertex) override;
 
 		virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
 		virtual void SetLineWidth(float width) override;

@@ -84,7 +84,11 @@ namespace Hazel {
 		ShaderLibrary::Load("assets/Shaders/Skybox.glsl");
 		s_SceneData->skyboxShader = ShaderLibrary::Get("Skybox");
 		
+		ShaderLibrary::Load("assets/Shaders/simple.glsl");
+		s_SceneData->defaultWhiteShader = ShaderLibrary::Get("simple");
 
+		//ShaderLibrary::Load("assets/Shaders/Animation.glsl");
+		//s_SceneData->animationShader = ShaderLibrary::Get("Animation");
 
 		{
 			s_SceneData->skybox = VertexArray::Create();
@@ -99,9 +103,13 @@ namespace Hazel {
 			s_SceneData->skybox->SetIndexBuffer(skyboxIndexBuffer);
 
 			s_SceneData->defaultPBRMaterial = Material::Create("assets/Material/Standard.material");
+			s_SceneData->defaultWhiteMaterial = Material::Create();
+			s_SceneData->defaultWhiteMaterial->SetShader(s_SceneData->defaultWhiteShader);
+
 
 			s_SceneData->skyboxMaterial = Material::Create();
 			s_SceneData->skyboxMaterial->SetShader(s_SceneData->skyboxShader);
+
 		}
 		//Set Dufault Light Uniform
 
@@ -149,7 +157,7 @@ namespace Hazel {
 			s_SceneData->compositePass = RenderPass::Create(compositePassSpec);
 
 			s_SceneData->compositeShader = ShaderLibrary::Load("assets/Shaders/Composite.glsl");
-			
+
 		}
 
 	}
@@ -211,24 +219,29 @@ namespace Hazel {
 		//shader->SetMat4("u_Transform", transformComponent.transform);
 		//mesh->m_VertexArray->Bind();
 
+		for (Ref<SubMesh> subMesh : mesh->GetSubMeshes()) {
+			s_SceneData->drawList.push_back({ mesh, subMesh, s_SceneData->defaultPBRMaterial, transformComponent.transform });
+		}
 
-		s_SceneData->drawList.push_back({ mesh, s_SceneData->defaultPBRMaterial, transformComponent.transform });
 		//RenderCommand::DrawIndexed(mesh->m_VertexArray);
 	}
 
-	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material)
+	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, std::vector<Ref<Material>> materials, int entityHandle)
 	{
 
-		if (!material)
-		{
-			SubmitMesh(mesh, transformComponent, s_SceneData->defaultShader);
-			return;
+		for (Ref<SubMesh> subMesh : mesh->GetSubMeshes()) {
+			SubmitSubMesh(mesh, subMesh, transformComponent.transform, 
+				subMesh->materialIndex < materials.size() ? materials[subMesh->materialIndex] : s_SceneData->defaultWhiteMaterial
+				, entityHandle);
 		}
-
-		s_SceneData->drawList.push_back({mesh, material, transformComponent.transform});
 
 		s_SceneData->textureSlotIndex = 0;
 
+	}
+
+	void Renderer::SubmitSubMesh(const Ref<Mesh> mesh, const Ref<SubMesh> subMesh, const TransformComponent& transformComponent, Ref<Material> material, int entityHandle)
+	{
+		s_SceneData->drawList.push_back({ mesh, subMesh, material, transformComponent.transform, entityHandle });
 	}
 
 
@@ -236,15 +249,15 @@ namespace Hazel {
 	void Renderer::SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent)
 	{
 		LightUniformBuffer lightUniformBufferData;
-		lightUniformBufferData.position = { transformComponent.translate, 0.0f};
+		lightUniformBufferData.position = { transformComponent.translate, 0.0f };
 
 		glm::quat quaternion = glm::quat(transformComponent.rotation);
 		glm::mat3 rotationMatrix = glm::toMat3(quaternion);
 
 		lightUniformBufferData.direction = { glm::normalize(rotationMatrix * glm::vec3(0.0f, 0.0f, 1.0f)), 0.0f };
-		lightUniformBufferData.color = {lightComponent.color, 0.0f};
+		lightUniformBufferData.color = { lightComponent.color, 0.0f };
 
-		s_SceneData->lightUniformBuffer->SetData(&lightUniformBufferData, sizeof(LightUniformBuffer), 0); 
+		s_SceneData->lightUniformBuffer->SetData(&lightUniformBufferData, sizeof(LightUniformBuffer), 0);
 	}
 
 	void Renderer::SubmitSkybox(Ref<TextureCube> skyboxTextures)
@@ -261,19 +274,14 @@ namespace Hazel {
 		//s_SceneData->skyboxMayerial->SetData("u_Projection", s_SceneData->ProjectionMatrix);
 		//s_SceneData->skyboxMayerial->SetData();
 		skyboxTextures->Bind();
-		
+
 		RenderCommand::DrawIndexed(s_SceneData->skybox);
 	}
 
 	void Renderer::SubmitEnvironment(Ref<Environment> environment)
 	{
-		
-		s_SceneData->environment = environment;
-	}
 
-	uint32_t Renderer::GetNextEmptyTextureSlot()
-	{
-		return s_SceneData->textureSlotIndex++;
+		s_SceneData->environment = environment;
 	}
 
 	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
@@ -299,12 +307,12 @@ namespace Hazel {
 	void Renderer::GeometryPass()
 	{
 		Renderer::BeginRenderPass(s_SceneData->geometryPass, true);
-		
+
 		int textureValue = -1;
 		s_SceneData->geometryPass->GetSpecification().targetFrameBuffer->ClearAttachment(1, (void*)&textureValue);
-		
-		
-		if(s_SceneData->environment)
+
+
+		if (s_SceneData->environment)
 		{
 
 			RenderCommand::SetDepthMask(false);
@@ -317,8 +325,11 @@ namespace Hazel {
 
 			RenderCommand::DrawIndexed(s_SceneData->skybox);
 			RenderCommand::SetDepthMask(true);
+
 			//Draw mesh
+
 			for (auto& dc : s_SceneData->drawList) {
+
 				s_SceneData->textureSlotIndex = 0;
 
 				dc.material->GetShader()->Bind();
@@ -334,25 +345,65 @@ namespace Hazel {
 				s_SceneData->environment->GetEnvironmentMap()->Bind(s_SceneData->textureSlotIndex);
 				dc.material->GetShader()->SetInt("u_EnvRadiance", s_SceneData->textureSlotIndex++);
 
-				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
+				dc.material->GetShader()->SetInt("u_EntityID", dc.entityHandle);
 
-				RenderCommand::DrawIndexed(dc.mesh->m_VertexArray);
+				if (dc.subMesh->isRigged)
+				{
+					dc.material->GetShader()->SetInt("u_IsAnimation", true);
+					for (uint32_t i = 0; i < dc.mesh->GetBoneAmount(); i++) {
+						std::string BoneTransformUniformString = "u_BoneTransforms[" + std::to_string(i) + "]";
+						dc.material->GetShader()->SetMat4(BoneTransformUniformString, dc.mesh->GetBoneTransform(i));
+					}
+				}
+				else {
+					dc.material->GetShader()->SetInt("u_IsAnimation", false);
+				}
+
+
+				dc.material->Submit();
+				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
+				RenderCommand::DrawIndexed(dc.subMesh->vertexArray);
+
 
 			}
 		}
 		else {
 			for (auto& dc : s_SceneData->drawList) {
-				s_SceneData->textureSlotIndex = 0;
-				dc.material->GetShader()->Bind();
-				dc.material->Submit();
-				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
 
-				RenderCommand::DrawIndexed(dc.mesh->m_VertexArray);
+				std::vector<Ref<SubMesh>> subMeshes = dc.mesh->GetSubMeshes();
+				std::vector<Ref<Material>> materials = dc.mesh->GetMaterials();
+
+
+				for (auto subMesh : subMeshes) {
+					s_SceneData->textureSlotIndex = 0;
+
+					Ref<Material> material = materials[subMesh->materialIndex];
+
+					material->GetShader()->Bind();
+					material->Submit();
+					s_SceneData->textureSlotIndex += dc.material->GetSampleUniformAmount();
+					dc.material->GetShader()->SetInt("u_EntityID", dc.entityHandle);
+					if (dc.mesh->IsAnimated())
+					{
+						material->GetShader()->SetInt("u_IsAnimation", true);
+						for (uint32_t i = 0; i < dc.mesh->GetBoneAmount(); i++) {
+							std::string BoneTransformUniformString = "u_BoneTransforms[" + std::to_string(i) + "]";
+							material->GetShader()->SetMat4(BoneTransformUniformString, dc.mesh->GetBoneTransform(i));
+						}
+					}
+					else {
+						material->GetShader()->SetInt("u_IsAnimation", false);
+					}
+
+					material->Submit();
+					material->GetShader()->SetMat4("u_Transform", dc.transform);
+					RenderCommand::DrawIndexed(subMesh->vertexArray);
+				}
 			}
 		}
-
 		Renderer::EndRenderPass();
 	}
+
 
 	void Renderer::CompositePass()
 	{
@@ -404,5 +455,21 @@ namespace Hazel {
 	Ref<Material> Renderer::GetDefaultPhongMaterial()
 	{
 		return s_SceneData->defaultPhongMaterial;
+	}
+	Ref<Shader> Renderer::GetDefaultPBRShader()
+	{
+		return  s_SceneData->defaultShader;
+	}
+
+	uint8_t Renderer::AllocateSlot()
+	{
+		uint8_t slot = s_SceneData->textureSlotIndex;
+		s_SceneData->textureSlotIndex++;
+		return slot;
+	}
+
+	uint8_t Renderer::GetUsedTextureSlotAmount()
+	{
+		return s_SceneData->textureSlotIndex - 1;
 	}
 }

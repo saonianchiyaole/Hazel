@@ -42,7 +42,10 @@ namespace Hazel {
 			HZ_CORE_ASSERT(HasComponent<T>(), "Entity dose not have this component!");
 			return m_Scene->GetRegistry().remove<T>(m_EntityHandle);
 		}
-
+		
+		inline Scene* GetScene() {
+			return m_Scene;
+		}
 
 		inline uint64_t GetEntityID() {
 			return m_EntityID;
@@ -71,6 +74,8 @@ namespace Hazel {
 		entt::entity m_EntityHandle{ entt::null };
 		uint64_t m_EntityID;
 		Scene* m_Scene = nullptr;
+
+		std::vector<UUID> m_Children;
 
 		friend class Scene;
 	};

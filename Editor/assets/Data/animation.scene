@@ -1,0 +1,14 @@
+Scene: Untitled
+Environment:
+  IsHDR: true
+  Path: assets\environment\lilienstein_4k.hdr
+Entities:
+  - Entity: 16404562579847564737
+    TagComponent:
+      Tag: Empty
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\FBX\Alien.fbx

@@ -47,8 +47,8 @@ Lib["WinVersion"] = "Version.lib"
 Lib["BCrypt"] = "Bcrypt.lib"
 Lib["Ucrt"] = "libucrt.lib"
 Lib["VCruntime"] = "libvcruntime.lib"
-Lib["assimpd"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc143-mtd.lib"
-Lib["assimp"] = "%{SolutionDir}/vendor/assimp/lib/Release/assimp-vc143-mt.lib"
+Lib["assimpd"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc140-mtd.lib"
+Lib["assimp"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc140-mtd.lib"
 
 
 
@@ -261,6 +261,7 @@ project "Editor"
 			"%{IncludeDir.ImGuizmo}",
 			"%{IncludeDir.box2d}",
 			"%{IncludeDir.mono}",
+			"%{IncludeDir.assimp}",
 		}
 	
 	

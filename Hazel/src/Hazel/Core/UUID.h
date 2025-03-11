@@ -1,5 +1,6 @@
 #pragma once
 
+
 namespace Hazel {
 
 	class UUID {
@@ -14,6 +15,10 @@ namespace Hazel {
 
 		operator uint64_t() {
 			return m_UUID;
+		}
+
+		bool operator == (const UUID& other) {
+			return this->m_UUID == other.m_UUID;
 		}
 
 	private:

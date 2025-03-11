@@ -54,7 +54,13 @@ namespace Hazel {
 		void OnUpdateEditor(Timestep ts, const EditorCamera& camera);
 		void OnUpdateRuntime(Timestep ts);
 
+		void UpdataAnimation(Timestep ts);
 		
+		template<typename ...Component>
+		auto GetAllEntityWith(){
+			return m_Registry.view<Component...>();
+		}
+
 		Ref<Environment> GetEnvironment();
 		
 		

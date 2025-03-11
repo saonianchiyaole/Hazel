@@ -4,16 +4,21 @@
 #include "Hazel/Renderer/ShaderUniform.h"
 #include "Hazel/Renderer/Texture.h"
 #include "Hazel/Core/Buffer.h"
+#include "Hazel/Asset/Asset.h"
 
 namespace Hazel {
 
-	class Material {
+	class Material : public Asset{
 	public:
 		friend class MaterialSerializer;
 
 		Material() = default;
 		Material(Ref<Shader> shader);
 		~Material();
+
+		virtual AssetType GetAssetType() override {
+			return AssetType::Material;
+		}
 
 		template<typename T>
 		inline T* GetData(std::string name)
@@ -110,11 +115,10 @@ namespace Hazel {
 		void ReloadShader();
 
 		void SetShader(Ref<Shader> shader);
-		void SetName(std::string& name);
+		void SetName(const std::string& name);
 		void SetPath(const std::string& path);
 
 		void SetTexturesSlot();
-
 
 		static Ref<Material> Create(std::filesystem::path filepath);
 		static Ref<Material> Create();
@@ -137,6 +141,12 @@ namespace Hazel {
 		//std::unordered_map<std::string, void*> m_Data;
 
 		std::unordered_map<std::string, Buffer> m_Data;
+	};
+
+	class MaterialTable {
+	public:
+		
+	private:
 	};
 
 }

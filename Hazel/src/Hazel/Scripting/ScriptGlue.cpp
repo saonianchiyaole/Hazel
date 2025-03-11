@@ -18,7 +18,7 @@ namespace Hazel {
 
 
 #define HZ_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Hazel.InternalCalls::" #Name, Name) 
-	
+
 	static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
 
 	static void Test() {
@@ -59,11 +59,26 @@ namespace Hazel {
 	}
 
 	static void TransformComponent_SetTranslation(UUID entityID, glm::vec3* translate) {
-		
+
 		Scene* scene = ScriptEngine::GetSceneContext();
 		Entity entity = scene->GetEntityFormUUID(entityID);
 		entity.GetComponent<TransformComponent>().SetTranslate(*translate);
 
+	}
+
+	static void AnimationComponent_Play(UUID entityID, MonoString* animationName) {
+		Scene* scene = ScriptEngine::GetSceneContext();
+		Entity entity = scene->GetEntityFormUUID(entityID);
+		auto& animation = entity.GetComponent<AnimationComponent>().animation;
+		if (animation)
+			animation->Play();
+	}
+	static void AnimationComponent_Stop(UUID entityID) {
+		Scene* scene = ScriptEngine::GetSceneContext();
+		Entity entity = scene->GetEntityFormUUID(entityID);
+		auto& animation = entity.GetComponent<AnimationComponent>().animation;
+		if (animation)
+			animation->Stop();
 	}
 
 	static bool Input_IsKeyDown(KeyCode keycode) {
@@ -91,7 +106,7 @@ namespace Hazel {
 	}
 
 	template<typename ... Components>
-	static void RegisterComponent(ComponentGroup<Components...>){
+	static void RegisterComponent(ComponentGroup<Components...>) {
 		RegisterComponent<Components...>();
 	}
 
@@ -106,6 +121,8 @@ namespace Hazel {
 		HZ_ADD_INTERNAL_CALL(Entity_HasComponent);
 		HZ_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 
+		HZ_ADD_INTERNAL_CALL(AnimationComponent_Play);
+		HZ_ADD_INTERNAL_CALL(AnimationComponent_Stop);
 	}
 
 	void ScriptGlue::RegisterComponents()

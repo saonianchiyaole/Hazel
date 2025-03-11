@@ -9,7 +9,7 @@
 #include "Hazel/Renderer/Renderer2D.h"
 #include "Hazel/Scripting/ScriptEngine.h"
 #include "Hazel/Renderer/Environment.h"
-
+#include "Hazel/Animation/Animation.h"
 
 // Box2D
 #include "box2d/b2_world.h"
@@ -43,7 +43,9 @@ namespace Hazel {
 		Ref<Scene> dst;
 		dst.reset(new Scene);
 
+		dst->m_ViewPortSize = src->m_ViewPortSize;
 		dst->m_Skybox = src->m_Skybox;
+		dst->m_Environment = src->m_Environment;
 
 		const auto& srcRegistry = src->GetRegistry();
 		const auto& dstRegistry = dst->GetRegistry();
@@ -56,6 +58,7 @@ namespace Hazel {
 			s_CopyRegistry[uuid] = { entityID, dst->CreateEnttiyWithUUID(tag, uuid).GetHandle() };
 
 			CopyComponent<TransformComponent>(src, dst, uuid);
+			CopyComponent<RelationShipComponent>(src, dst, uuid);
 			CopyComponent<SpriteComponent>(src, dst, uuid);
 			CopyComponent<CircleRendererComponent>(src, dst, uuid);
 			CopyComponent<CameraComponent>(src, dst, uuid);
@@ -66,6 +69,7 @@ namespace Hazel {
 			CopyComponent<ScriptComponent>(src, dst, uuid);
 			CopyComponent<MeshComponent>(src, dst, uuid);
 			CopyComponent<MaterialComponent>(src, dst, uuid);
+			CopyComponent<AnimationComponent>(src, dst, uuid);
 		}
 
 		return dst;
@@ -97,6 +101,8 @@ namespace Hazel {
 		tag = name;
 		
 		entity.AddComponent<TransformComponent>();
+
+		entity.AddComponent<RelationShipComponent>();
 
 		m_UUIDToEntity[ID] = entity.GetHandle();
 
@@ -236,7 +242,8 @@ namespace Hazel {
 
 		Renderer2D::EndScene();*/
 
-
+		//UpdataAnimation
+		UpdataAnimation(ts);
 
 		//Light
 		auto LightGroup = m_Registry.view<TransformComponent, LightComponent>();
@@ -262,20 +269,18 @@ namespace Hazel {
 			Entity entity = { entityID, this };
 
 			auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
-			if (mesh.mesh && mesh.type != Invalid)
+			if (mesh.mesh && mesh.mesh->GetFlag())
 			{
 				Entity entity = { entityID, this };
 				if (!entity.HasComponent<MaterialComponent>())
 					Renderer::SubmitMesh(mesh.mesh, transform);
 				else {
-					Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().material);
+					Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().materials, (int)entityID);
 				}
 			}
 		}
 
 		Renderer::EndScene();
-
-
 
 	}
 
@@ -312,16 +317,16 @@ namespace Hazel {
 		}
 
 		Camera* mainCamera = nullptr;
-		glm::mat4 mainCameraTransform = glm::mat4(1.0f);
-		auto view = m_Registry.view<CameraComponent, TransformComponent>();
-		for (auto& entity : view) {
-			auto& [camera, transform] = view.get<CameraComponent, TransformComponent>(entity);
-
-			if (camera.primary == true) {
-				mainCamera = camera.camera.get();
-				mainCamera->SetTransform(transform.translate, transform.rotation);
+		
+		auto& cameraGroup = GetAllEntityWith<CameraComponent>();
+		for (auto entityHandle : cameraGroup) {
+			Entity entity{ entityHandle, this };
+			if (entity.GetComponent<CameraComponent>().primary == true) {
+				mainCamera = entity.GetComponent<CameraComponent>().camera.get();
+				auto& transformComponent = entity.GetComponent<TransformComponent>();
+				mainCamera->SetTransform(transformComponent.translate, transformComponent.rotation);
+				break;
 			}
-			break;
 		}
 
 		if (mainCamera != nullptr) {
@@ -339,10 +344,10 @@ namespace Hazel {
 				Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
 			}
 
-
-
 			Renderer2D::EndScene();
 
+			//UpdataAnimation
+			UpdataAnimation(ts);
 
 			//Light
 			auto LightGroup = m_Registry.view<TransformComponent, LightComponent>();
@@ -353,35 +358,45 @@ namespace Hazel {
 				// Material submit
 			}
 
-			//Skybox
+
 			Renderer::BeginScene(*mainCamera);
-			if (m_Skybox->IsLoaded())
-				Renderer::SubmitSkybox(m_Skybox);
-		 
-		
+
+			//Skybox
+			if (m_Environment && m_Environment->IsLoaded())
+				Renderer::SubmitEnvironment(m_Environment);
+
 			// 3D part
 			auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
-			
 
 			for (auto entityID : meshGroup) {
+
 
 				Entity entity = { entityID, this };
 
 				auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
-				if (mesh.mesh && mesh.type != Invalid)
+				if (mesh.mesh && mesh.mesh->GetFlag())
 				{
 					Entity entity = { entityID, this };
 					if (!entity.HasComponent<MaterialComponent>())
 						Renderer::SubmitMesh(mesh.mesh, transform);
 					else {
-						Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().material);
+						Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().materials, (int)entityID);
 					}
 				}
-
-
 			}
 
 			Renderer::EndScene();
+		}
+	}
+
+	void Scene::UpdataAnimation(Timestep ts)
+	{
+		auto& entities = GetAllEntityWith<AnimationComponent>();
+		for (auto entityHandle : entities) {
+			Entity entity{ entityHandle, this };
+			auto animationComponent = entity.GetComponent<AnimationComponent>();
+			if(animationComponent.isPlaying && animationComponent.animation)
+				animationComponent.animation->OnUpdate(ts);
 		}
 	}
 
@@ -485,13 +500,39 @@ namespace Hazel {
 
 	template<>
 	void Scene::OnAddComponent<MeshComponent>(Entity& entity, MeshComponent& meshComponent) {
+
+
 	}
 
 	template<>
-	void Scene::OnAddComponent<MaterialComponent>(Entity& entity, MaterialComponent& MaterialComponent) {
+	void Scene::OnAddComponent<MaterialComponent>(Entity& entity, MaterialComponent& materialComponent) {
+		if (entity.HasComponent<MeshComponent>() && entity.GetComponent<MeshComponent>().mesh) {
+			entity.GetComponent<MaterialComponent>().materials = entity.GetComponent<MeshComponent>().mesh->GetMaterials();
+		}
 	}
 
 	template<>
 	void Scene::OnAddComponent<LightComponent>(Entity& entity, LightComponent& lightComponent) {
 	}
+
+	template<>
+	void Scene::OnAddComponent<AnimationComponent>(Entity& entity, AnimationComponent& animationComponent) {
+		if (entity.HasComponent<MeshComponent>() && entity.GetComponent<MeshComponent>().mesh && entity.GetComponent<MeshComponent>().mesh->IsAnimated()) {
+			entity.GetComponent<AnimationComponent>().animation = Animation::Create(entity.GetComponent<MeshComponent>().mesh);
+		}
+		else {
+			entity.GetComponent<AnimationComponent>().animation = Animation::Create();
+		}
+	}
+
+	template<>
+	void Scene::OnAddComponent<RelationShipComponent>(Entity& entity, RelationShipComponent& relationShipComponent) {
+	}
+
+	template<>
+	void Scene::OnAddComponent<SubMeshComponent>(Entity& entity, SubMeshComponent& subMeshComponent) {
+		if (entity.HasComponent<MeshComponent>())
+			entity.RemoveComponent<MeshComponent>();
+	}
+
 }

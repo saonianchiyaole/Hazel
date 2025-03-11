@@ -179,6 +179,9 @@ namespace Hazel {
 
 			// Use the infoLog as you see fit.
 
+			HZ_CORE_ERROR("{0}", infoLog.data());
+			HZ_CORE_ERROR("Shader Link failure!");
+
 			// In this simple program, we'll just leave
 			return false;
 		}
@@ -199,7 +202,7 @@ namespace Hazel {
 
 		uint32_t textureSlot = 0;
 
-		std::unordered_set<std::string> removedList = { "u_Transform", "u_View", "u_Projection", "u_BRDFLUT" };
+		std::unordered_set<std::string> removedList = { "u_Transform", "u_View", "u_Projection", "u_BRDFLUT", "u_BoneTransforms", "u_IsAnimation", "u_EntityID"};
 
 		////Remove ShaderUniform Block 
 		GLint blockIndex = glGetUniformBlockIndex(m_RendererID, "LightUniform");
@@ -255,7 +258,7 @@ namespace Hazel {
 				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Mat4));
 				break;
 			case GL_INT: 
-				//m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Int));
+				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Int));
 				break;
 			case GL_BOOL:
 				m_Uniforms.push_back(MakeRef<OpenGLShaderUniform>(name, ShaderDataType::Bool));
@@ -279,7 +282,7 @@ namespace Hazel {
 
 
 		HZ_CORE_INFO("Load Shader {0} Succesfully", m_Path);
-		
+		m_Flag = Valid;
 		return true;
 	}
 

@@ -34,6 +34,7 @@ namespace Hazel {
 	OpenGLVertexArray::OpenGLVertexArray()
 	{
 		glCreateVertexArrays(1, &m_RendererID);
+		m_VertexAtrributeAmount = 0;
 	}
 
 	void OpenGLVertexArray::Bind() const
@@ -51,13 +52,8 @@ namespace Hazel {
 		glBindVertexArray(m_RendererID);
 		vertexBuffer->Bind();
 
-		uint32_t index = 0;
-
 		for (const auto& element : vertexBuffer->GetLayout()) {
-			glEnableVertexAttribArray(index);
-			
-			
-			
+			glEnableVertexAttribArray(m_VertexAtrributeAmount);
 			
 			switch (element.Type)
 			{
@@ -68,7 +64,7 @@ namespace Hazel {
 			case Hazel::ShaderDataType::Float2:		
 			case Hazel::ShaderDataType::Float3:		
 			case Hazel::ShaderDataType::Float4:		
-				glVertexAttribPointer(index,
+				glVertexAttribPointer(m_VertexAtrributeAmount,
 					element.GetComponentCount(),
 					ShaderDataTypeToOpenGLBaseType(element.Type),
 					element.Normalized ? GL_TRUE : GL_FALSE,
@@ -86,7 +82,7 @@ namespace Hazel {
 			case Hazel::ShaderDataType::Int4:		
 			case Hazel::ShaderDataType::Bool:		
 				glVertexAttribIPointer(
-					index,
+					m_VertexAtrributeAmount,
 					element.GetComponentCount(),
 					ShaderDataTypeToOpenGLBaseType(element.Type),
 					vertexBuffer->GetLayout().GetStride(),
@@ -95,7 +91,7 @@ namespace Hazel {
 				break;
 			}
 		
-			index++;
+			m_VertexAtrributeAmount++;
 		}
 
 		m_VertexBuffers.push_back(vertexBuffer);

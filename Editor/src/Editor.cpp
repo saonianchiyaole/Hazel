@@ -19,25 +19,14 @@ namespace Hazel {
 	Editor::Editor()
 	{
 		m_SceneState = SceneState::Edit;
-		m_SquareColor = glm::vec4(1.0f);
 		m_ViewportSize = { 1280.f, 720.f };
 	}
 
 	void Editor::OnAttach()
 	{
 
-		//m_CameraController = std::make_shared<Hazel::OrthographicCameraController>(m_Camera, 1280.f / 720.f);
-
-		m_Texture2 = Hazel::Texture2D::Create("assets/code.png");
-		m_Texture1 = Hazel::Texture2D::Create("assets/Checkboard.png");
-		m_Texture = Hazel::Texture2D::Create("assets/ChernoLogo.png");
 		m_PlayButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PlayButton.png");
 		m_PauseButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PauseButton.png");
-
-		m_FramebufferSpecification.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
-		m_FramebufferSpecification.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
-		m_FramebufferSpecification.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
-		m_Framebuffer = Hazel::Framebuffer::Create(m_FramebufferSpecification);
 
 		m_Framebuffer = Renderer::GetGeometryPassFramebuffer();
 
@@ -49,12 +38,6 @@ namespace Hazel {
 		m_ContentBrowserPanel = { "assets" };
 
 		m_EditorCamera = { 60.0f, 1280.f / 720.f, 0.001f, 1000.f };
-
-
-		//m_Mesh = Mesh("assets/m1911/m1911.fbx");
-		//ShaderLibrary::Load("assets/Shaders/Shader.glsl");
-		//m_MeshShader = ShaderLibrary::Get("Shader");
-
 
 
 		// Init here
@@ -96,26 +79,6 @@ namespace Hazel {
 			m_ActiveScene->OnUpdateRuntime(ts);
 			break;
 		}
-
-
-		//Get Pixel value
-		glm::vec2 mousePos = *(glm::vec2*)&ImGui::GetMousePos();
-		mousePos = mousePos - m_ViewportButtomLeftPos;
-		mousePos.y = -mousePos.y;
-		//mousePos -= ImGui::GetStyle().WindowBorderSize;
-		if (mousePos.x < 0 || mousePos.x > m_ViewportSize.x - 1
-			|| mousePos.y < 0 || mousePos.y > m_ViewportSize.y - 1) {
-			// Out of ViewPort
-			m_HoveredEntity = Entity{};
-		}
-		else {
-			//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
-			m_Framebuffer->Bind();
-			int pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
-			m_HoveredEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
-			m_Framebuffer->Unbind();
-		}
-
 
 		ColliderVisiable();
 	}
@@ -225,10 +188,6 @@ namespace Hazel {
 			ImGui::Text("%s : %.5f ms", result.name, result.time);
 		}
 
-		std::string hoveredEntityString = "None";
-		if (m_HoveredEntity.GetHandle() != entt::null)
-			hoveredEntityString = m_HoveredEntity.GetComponent<TagComponent>().tag;
-		ImGui::Text("Hoverd entity : %s", hoveredEntityString.c_str());
 		ImGui::Text("DrawCall : %d", rendererState->drawCall);
 		ImGui::Text("QuadAmount : %d", rendererState->quadAmount);
 		ImGui::Text("VertexAmount : %d", rendererState->vertexAmount);
@@ -328,14 +287,26 @@ namespace Hazel {
 	bool Editor::OnMoustLeftButtonClicked(Hazel::MouseButtonPressedEvent& event)
 	{
 		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(HZ_KEY_LEFT_ALT) && m_IsViewportHovered && (!ImGuizmo::IsOver() || !m_HierarchyPanel.GetSelectedEntity())) {
-			if (m_HoveredEntity.GetHandle() == entt::null) {
-
-				m_HierarchyPanel.SetSelectedEntity(entt::null);
+			
+			//Get Pixel value
+			glm::vec2 mousePos = *(glm::vec2*)&ImGui::GetMousePos();
+			mousePos = mousePos - m_ViewportButtomLeftPos;
+			mousePos.y = -mousePos.y;
+			//mousePos -= ImGui::GetStyle().WindowBorderSize;
+			if (mousePos.x < 0 || mousePos.x > m_ViewportSize.x - 1
+				|| mousePos.y < 0 || mousePos.y > m_ViewportSize.y - 1) {
+				// Out of ViewPort
+				m_SelectedEntity = Entity{};
 			}
 			else {
-				m_HierarchyPanel.SetSelectedEntity(m_HoveredEntity.GetHandle());
+				//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
+				m_Framebuffer->Bind();
+				int pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
+				m_SelectedEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
+				m_Framebuffer->Unbind();
 			}
-			return true;
+
+			m_HierarchyPanel.SetSelectedEntity(m_SelectedEntity);
 		}
 
 		/*auto [x, y] = Hazel::Input::GetMousePos();

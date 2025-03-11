@@ -7,7 +7,10 @@ layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec3 a_Tangent;		
 layout(location = 3) in vec3 a_Binormal;		
 layout(location = 4) in vec2 a_TexCoord;		
-layout(location = 5) in int a_EntityID;		
+layout(location = 5) in vec4 a_Color;
+
+layout(location = 6) in ivec4 a_BoneIndices;
+layout(location = 7) in vec4 a_BoneWeights;
 
 
 layout(std140, binding = 0) uniform CameraUniform
@@ -21,6 +24,11 @@ uniform mat4 u_View;
 uniform mat4 u_Projection;
 
 
+const int MAX_BONES = 100;
+uniform mat4 u_BoneTransforms[100];
+uniform bool u_IsAnimation;
+
+
 out VertexOutput{
 	vec3 WorldPosition;
     vec3 Normal;
@@ -28,24 +36,40 @@ out VertexOutput{
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
-	flat int EntityID;
+	vec4 Color;
 	flat vec3 cameraPosition;
 }vs_Output;
 
 
 
 void main()
-{		
-	vs_Output.WorldPosition = vec3(u_Transform * vec4(a_Position, 1.0f));
-	vs_Output.Normal = normalize(mat3(u_Transform) * a_Normal);
+{	
+	vec4 localPosition = vec4(a_Position, 1.0);
+	if(u_IsAnimation){
+		mat4 boneTransform = u_BoneTransforms[a_BoneIndices[0]] * a_BoneWeights[0];
+    	boneTransform += u_BoneTransforms[a_BoneIndices[1]] * a_BoneWeights[1];
+    	boneTransform += u_BoneTransforms[a_BoneIndices[2]] * a_BoneWeights[2];
+    	boneTransform += u_BoneTransforms[a_BoneIndices[3]] * a_BoneWeights[3];
+		localPosition =  boneTransform * localPosition;
+		
+		vs_Output.WorldPosition = vec3(u_Transform * boneTransform * vec4(a_Position, 1.0f));
+		vs_Output.Normal = normalize(mat3(u_Transform) * mat3(boneTransform) * a_Normal);
+		
+	}
+    else{
+		vs_Output.WorldPosition = vec3(u_Transform * vec4(a_Position, 1.0f));
+		vs_Output.Normal = normalize(mat3(u_Transform) * a_Normal);
+	}
+	
+	
 	vs_Output.TexCoord = vec2(a_TexCoord.x, a_TexCoord.y);
 	vs_Output.WorldNormals = mat3(u_Transform) * mat3(a_Tangent, a_Binormal, a_Normal);
-	vs_Output.WorldTransform = mat3(u_Transform);
+	vs_Output.WorldTransform = mat3(u_Transform) ;
 	vs_Output.Binormal = a_Binormal;
-	vs_Output.EntityID = a_EntityID;
 	vs_Output.cameraPosition = cameraPosition;
+	vs_Output.Color = a_Color;
 
-	gl_Position = u_ViewProjection * u_Transform *  vec4(a_Position, 1.0);
+	gl_Position = u_ViewProjection * u_Transform * localPosition;
 }
 
 
@@ -75,7 +99,8 @@ in VertexOutput{
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
-	flat int EntityID;
+	vec4 Color;
+	
 	flat vec3 cameraPosition;
 }vs_Input;
 
@@ -96,11 +121,11 @@ struct PBRParameters{
 
 PBRParameters m_PBRParams;
 
-uniform sampler2D u_AlbedoTex;
-uniform sampler2D u_NormalTex;
-uniform sampler2D u_RoughnessTex;
-uniform sampler2D u_MetalnessTex;
 
+//
+uniform int u_EntityID;
+
+//Environment
 uniform samplerCube u_EnvIrradiance;
 uniform sampler2D u_BRDFLUT;
 uniform samplerCube u_EnvRadiance;
@@ -114,6 +139,12 @@ uniform bool u_UseAlbedoTex;
 uniform bool u_UseNormalTex;
 uniform bool u_UseRoughnessTex;
 uniform bool u_UseMetalnessTex;
+
+uniform sampler2D u_AlbedoTex;
+uniform sampler2D u_NormalTex;
+uniform sampler2D u_RoughnessTex;
+uniform sampler2D u_MetalnessTex;
+
 
 //Geometry
 float GeometrySchlickGGX(float NdotV, float k){
@@ -215,6 +246,7 @@ void main()
 {
 	vec4 albedoAndTransparency = u_UseAlbedoTex == true ? texture(u_AlbedoTex, vs_Input.TexCoord) : u_Albedo;
 	float transparency = albedoAndTransparency.w;
+	albedoAndTransparency *= vs_Input.Color;
 
 	if(u_UseNormalTex == true){
 		m_PBRParams.normal = normalize(2.0 * texture(u_NormalTex, vs_Input.TexCoord).xyz - 1.0f);
@@ -238,5 +270,5 @@ void main()
 
 	color = lightContribution + IBLContribution;
 	
-	IDColor = vs_Input.EntityID;
+	IDColor = u_EntityID;
 }

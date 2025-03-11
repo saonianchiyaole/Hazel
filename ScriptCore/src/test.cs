@@ -9,13 +9,13 @@ namespace Hazel
     {
         public Vector2 Position;
         public int testValue;
-        public float speed = 19.0f;
+        public float speed = 2.0f;
 
 
         public void OnCreate()
         {
             Console.WriteLine("HelloWorld!");
-            speed = 19.0f;
+            speed = 2.0f;
             Position = new Vector2(0.5f, 0.5f);
             Hazel.InternalCalls.Test();
         }
@@ -40,6 +40,15 @@ namespace Hazel
             if (Input.IsKeyDown(KeyCode.D))
             {
                 velocity.x = 0.5f * speed;
+            }
+
+            if (Input.IsKeyDown(KeyCode.R))
+            {
+                GetComponent<AnimationComponent>().Play("");
+            }
+            if (Input.IsKeyDown(KeyCode.T))
+            {
+                GetComponent<AnimationComponent>().Stop();
             }
 
             if (velocity.x != 0.0f || velocity.y != 0.0f)

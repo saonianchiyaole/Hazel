@@ -26,4 +26,20 @@ namespace Hazel
             }
         }
     }
+
+    public class AnimationComponent : Component
+    {
+        public string currentAnimationName;
+
+        public void Play(string animationName)
+        {
+            InternalCalls.AnimationComponent_Play(Entity.ID, animationName);
+        }
+        
+        public void Stop()
+        {
+            InternalCalls.AnimationComponent_Stop(Entity.ID);
+        }
+        
+    }
 }

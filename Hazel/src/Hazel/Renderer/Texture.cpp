@@ -173,8 +173,8 @@ namespace Hazel {
 		}
 
 		Ref<Texture2D> texture = Texture2D::Create(path);
-
-		Add(texture);
+		if(texture)
+			Add(texture);
 		return texture;
 	}
 

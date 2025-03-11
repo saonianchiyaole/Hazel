@@ -1,14 +1,17 @@
 #include "hzpch.h"
 
 #include "Hazel/Renderer/Mesh.h"
+#include "Hazel/Renderer/Material.h"
+#include "Hazel/Renderer/Renderer.h"
 
+#include "Hazel/Asset/AssetManager.h"
 
-#include "assimp/scene.h"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "assimp/Importer.hpp"
 #include "assimp/DefaultLogger.hpp"
 #include "assimp/LogStream.hpp"
+
 
 namespace Hazel {
 
@@ -51,7 +54,8 @@ namespace Hazel {
 		aiProcess_GenNormals |              // Make sure we have legit normals
 		aiProcess_GenUVCoords |             // Convert UVs if required 
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
-		aiProcess_ValidateDataStructure;    // Validation
+		aiProcess_ValidateDataStructure |	// Validation
+		aiProcess_LimitBoneWeights; 		// If more than N (=4) bone weights, discard least influencing bones and renormalise sum to 1
 
 	struct LogStream : public Assimp::LogStream
 	{
@@ -71,10 +75,8 @@ namespace Hazel {
 	};
 
 
-	
-
-	Mesh::Mesh(std::string path, entt::entity entityID)
-		:m_FilePath(path)
+	Mesh::Mesh(const std::string& path, entt::entity entityID)
+		:m_FilePath(path), m_BoneCount(0)
 	{
 
 		HZ_CORE_INFO("Open Scene filePath {0}", path);
@@ -83,12 +85,19 @@ namespace Hazel {
 			return;
 		}
 
-		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path, s_MeshImportFlags);
+		m_Importer = MakeScope<Assimp::Importer>();
+		m_Importer->SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+		//m_Importer->SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 0.01f);
+		const aiScene* scene = m_Importer->ReadFile(path, s_MeshImportFlags);
 		if (!scene || !scene->HasMeshes())
 			HZ_CORE_ERROR("Failed to load mesh fild: {0}", path);
 
 		m_Scene = scene;
+
+		m_IsAnimated = scene->mAnimations != nullptr;
+		m_InverseTransform = glm::inverse(Utils::Mat4FromAssimpMat4(scene->mRootNode->mTransformation));
+
+
 
 
 
@@ -99,21 +108,21 @@ namespace Hazel {
 		for (size_t m = 0; m < scene->mNumMeshes; m++) {
 			aiMesh* mesh = scene->mMeshes[m];
 
-			SubMesh& subMesh = m_SubMeshes.emplace_back();
-			subMesh.baseVertex = vertexCount;
-			subMesh.baseIndex = indexCount;
-			subMesh.materialIndex = mesh->mMaterialIndex;
-			subMesh.indexCount = mesh->mNumFaces * 3;
-			subMesh.meshName = mesh->mName.C_Str();
+			Ref<SubMesh> subMesh = m_SubMeshes.emplace_back(MakeRef<SubMesh>());
+			subMesh->baseVertex = vertexCount;
+			subMesh->baseIndex = indexCount;
+			subMesh->materialIndex = mesh->mMaterialIndex;
+			subMesh->indexCount = mesh->mNumFaces * 3;
+			subMesh->meshName = mesh->mName.C_Str();
 
 			vertexCount += mesh->mNumVertices;
-			indexCount += subMesh.indexCount;
-
+			indexCount += subMesh->indexCount;
 			//vertices
 			for (size_t i = 0; i < mesh->mNumVertices; i++) {
 				Vertex vertex;
 				vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
 				vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
 
 				if (mesh->HasTangentsAndBitangents()) {
 					vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
@@ -123,7 +132,10 @@ namespace Hazel {
 					vertex.texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
 				}
 
-				vertex.entityID = (int)entityID;
+				for (unsigned int channel = 0; channel < AI_MAX_NUMBER_OF_COLOR_SETS; channel++) {
+					if (!mesh->mColors[channel]) continue;  // pass the invalid channel
+					vertex.color = { mesh->mColors[channel][i].r, mesh->mColors[channel][i].g, mesh->mColors[channel][i].b, mesh->mColors[channel][i].a };
+				}
 
 				m_Vertices.push_back(vertex);
 			}
@@ -134,35 +146,56 @@ namespace Hazel {
 				m_Faces.push_back(face);
 
 			}
+
+
 		}
-		TraverseNodes(scene->mRootNode);
+		// Bones
+		if (m_IsAnimated)
+		{
+			ExtractBones();
+		}
 
-
+		//Initialize all Submeshes
+		TraverseNodes(scene->mRootNode); 
 		//Materials
 		if (scene->HasMaterials()) {
 
+			m_Materials.reserve(scene->mNumMaterials);
 
 			//m_Textures.resize(scene->mNumMaterials);
 			for (size_t i = 0; i < scene->mNumMaterials; i++) {
 
-				auto aiMaterial = scene->mMaterials[i];
-				auto aiMaterialName = aiMaterial->GetName();
 
+				Ref<Material> material = AssetManager::Create<Material>(Renderer::GetDefaultPBRShader());
+			
+
+				auto aiMaterial = scene->mMaterials[i];
+				aiString aiMaterialName;
+				
+				aiMaterial->Get(AI_MATKEY_NAME, aiMaterialName);
+				material->SetName(aiMaterialName.C_Str());
 				//auto mi = MakeRef<MaterialInstance>(m_BaseMaterial);
 
-				HZ_CORE_INFO("  Mesh : {0} (Index = {1})", aiMaterialName.data, i);
+				//HZ_CORE_INFO("Mesh : {0} (Index = {1})", aiMaterialName.data, i);
 				aiString aiTexPath;
 				uint32_t textureCount = aiMaterial->GetTextureCount(aiTextureType_DIFFUSE);
-				HZ_CORE_INFO("    TextureCount = {0}", textureCount);
+				HZ_CORE_INFO("TextureCount = {0}", textureCount);
 
-				aiColor3D aiColor;
+				aiColor4D aiColor;
 				aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
+
+				material->SetData("u_Albedo", aiColor);
 
 				float shiniess, metalness;
 				aiMaterial->Get(AI_MATKEY_SHININESS, shiniess);
 				aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metalness);
 
+				material->SetData("u_Metalness", 0.0);
+
 				float roughness = 1.0f - glm::sqrt(shiniess / 100.f);
+				
+				material->SetData("u_Roughness", roughness);
+
 				bool hasAlbedoMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS;
 				if (hasAlbedoMap) {
 					std::filesystem::path modelpath = path;
@@ -175,10 +208,12 @@ namespace Hazel {
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Albedo);
 					}
+					material->SetData("u_AlbedoTex", texture);
+					material->SetData("u_UseAlbedoTex", true);
 				}
 				else {
 					// set material color to aiColor 
-					
+					material->SetData("u_UseAlbedoTex", false);
 				}
 
 				//NormalMaps
@@ -192,9 +227,12 @@ namespace Hazel {
 					if (texture->IsLoaded()) {
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Normal);
+
+						material->SetData("u_NormalTex", texture);
+						material->SetData("u_UseNormalTex", true);
 					}
 					else {
-
+						material->SetData("u_UseNormalTex", false);
 					}
 				}
 				else {
@@ -215,9 +253,13 @@ namespace Hazel {
 					{
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Roughness);
+
+						material->SetData("u_Roughness", texture);
+						material->SetData("u_UseRoughness", true);
 					}
 					else
 					{
+						material->SetData("u_UseRoughness", false);
 						HZ_CORE_ERROR("    Could not load texture: {0}", texturePath);
 					}
 				}
@@ -225,35 +267,42 @@ namespace Hazel {
 				{
 				}
 				// TODO:Metalness map
+				/*if (aiMaterial->GetTexture(aiTextureType_SPECULAR, 0, &aiTexPath) == AI_SUCCESS)
+				{
+					std::filesystem::path modelpath = path;
+					auto parentPath = modelpath.parent_path();
+					parentPath /= std::string(aiTexPath.data);
+					std::string texturePath = parentPath.string();
+					HZ_CORE_INFO("Mesh : Roughness map path = {0}", texturePath);
+					auto texture = TextureLibrary::Load(texturePath);
+					if (texture->IsLoaded())
+					{
+						m_Textures.push_back(texture);
+						texture->SetType(TextureType::Roughness);
 
-
-
-
-				// VertexArray
-				m_VertexArray = VertexArray::Create();
-
-				Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(m_Vertices.data(), m_Vertices.size() * sizeof(Vertex));
-				vertexBuffer->SetLayout(std::vector<BufferElement>{
-					BufferElement{ ShaderDataType::Float3, "a_Position" },
-						BufferElement{ ShaderDataType::Float3, "a_Normal" },
-						BufferElement{ ShaderDataType::Float3, "a_Tangent" },
-						BufferElement{ ShaderDataType::Float3, "a_Binormal" },
-						BufferElement{ ShaderDataType::Float2, "a_TexCoord" },
-						BufferElement{ ShaderDataType::Int, "a_EntityID" }
+						material->SetData("u_Roughness", texture);
+						material->SetData("u_UseRoughness", true);
+					}
+					else
+					{
+						material->SetData("u_UseRoughness", false);
+						HZ_CORE_ERROR("    Could not load texture: {0}", texturePath);
+					}
 				}
-				);
-				m_VertexArray->AddVertexBuffer(vertexBuffer);
+				else
+				{
+				}*/
 
-				Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(m_Faces.data(), m_Faces.size() * 3);
-				m_VertexArray->SetIndexBuffer(indexBuffer);
+				m_Materials.push_back(material);
 			}
 
 		}
 
-
-		m_Type = scene->mAnimations == nullptr ? MeshType::Static : MeshType::Animated;
+		
+		m_Flag = AssetFlag::Valid;
 
 	}
+
 
 	Ref<Texture2D> Mesh::GetTexture(TextureType type)
 	{
@@ -277,19 +326,175 @@ namespace Hazel {
 		glm::mat4 transform = parentTransform * Utils::Mat4FromAssimpMat4(node->mTransformation);
 
 		for (size_t i = 0; i < node->mNumMeshes; i++) {
-			uint32_t mesh = node->mMeshes[i];
-			auto& subMesh = m_SubMeshes[mesh];
-			subMesh.nodeName = node->mName.C_Str();
-			subMesh.transform = transform;
+			uint32_t meshIndex = node->mMeshes[i];
+			aiMesh* mesh = m_Scene->mMeshes[meshIndex];
+			auto& subMesh = m_SubMeshes[meshIndex];
+			subMesh->nodeName = node->mName.C_Str();
+			subMesh->transform = transform;
+
+			for (size_t i = 0; i < mesh->mNumVertices; i++) {
+				Vertex vertex;
+				vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+				vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+
+
+				if (mesh->HasTangentsAndBitangents()) {
+					vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+					vertex.binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+				}
+				if (mesh->HasTextureCoords(0)) {
+					vertex.texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+				}
+	
+				subMesh->vertices.push_back(vertex);
+
+				for (unsigned int channel = 0; channel < AI_MAX_NUMBER_OF_COLOR_SETS; channel++) {
+					if (!mesh->mColors[channel]) continue;  // pass the invalid channel
+					vertex.color = { mesh->mColors[channel][i].r, mesh->mColors[channel][i].g, mesh->mColors[channel][i].b, mesh->mColors[channel][i].a };
+				}
+			}
+
+			//Indices
+			for (size_t i = 0; i < mesh->mNumFaces; i++) {
+				Face face = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
+				subMesh->faces.push_back(face);
+
+			}
+
+			subMesh->boneInfluences.resize(subMesh->vertices.size());
+			int boneIndex = -1;
+
+			if(mesh->mNumBones > 0)
+				subMesh->isRigged = true;
+			for (size_t i = 0; i < mesh->mNumBones; i++) {
+
+				aiBone* bone = mesh->mBones[i];
+				
+				std::string boneName = mesh->mBones[i]->mName.C_Str();
+
+				bool allNoneWeight = true;
+				for (size_t j = 0; j < bone->mNumWeights; j++) {
+					if (bone->mWeights[j].mWeight > 0.0f) {
+						allNoneWeight = false;
+					}
+				}
+				if (allNoneWeight)
+					continue;
+
+				if (m_BoneNameToIndex.find(boneName) == m_BoneNameToIndex.end())
+				{
+					// Allocate an index for a new bone
+					boneIndex = m_BoneCount;
+					m_BoneCount++;
+					BoneInfo bi;
+					m_BoneInfo.push_back(bi);
+					m_BoneInfo[boneIndex].boneOffset = Utils::Mat4FromAssimpMat4(bone->mOffsetMatrix);
+					m_BoneInfo[boneIndex].id = boneIndex;
+
+					m_BoneNameToIndex[boneName] = boneIndex;
+				}
+				else
+				{
+					boneIndex = m_BoneNameToIndex[boneName];
+				}
+
+				for (size_t j = 0; j < bone->mNumWeights; j++)
+				{
+					int vertexID = bone->mWeights[j].mVertexId;
+					float weight = bone->mWeights[j].mWeight;
+					subMesh->boneInfluences[vertexID].AddBoneData(boneIndex, weight);
+				}
+			}
+
+
+			// VertexArray
+			subMesh->vertexArray = VertexArray::Create();
+
+			Ref<VertexBuffer> vertexBuffer = VertexBuffer::Create(subMesh->vertices.data(), subMesh->vertices.size() * sizeof(Vertex));
+			vertexBuffer->SetLayout(std::vector<BufferElement>{
+				BufferElement{ ShaderDataType::Float3, "a_Position" },
+					BufferElement{ ShaderDataType::Float3, "a_Normal" },
+					BufferElement{ ShaderDataType::Float3, "a_Tangent" },
+					BufferElement{ ShaderDataType::Float3, "a_Binormal" },
+					BufferElement{ ShaderDataType::Float2, "a_TexCoord" },
+					BufferElement{ ShaderDataType::Float4, "a_Color" }
+			}
+			);
+			subMesh->vertexArray->AddVertexBuffer(vertexBuffer);
+
+
+			if (m_IsAnimated) {
+				Ref<VertexBuffer> boneVertexBuffer = VertexBuffer::Create(subMesh->boneInfluences.data(), subMesh->boneInfluences.size() * sizeof(BoneInfluence));
+				boneVertexBuffer->SetLayout(std::vector<BufferElement>{
+					BufferElement{ ShaderDataType::Int4, "a_BoneIndices" },
+						BufferElement{ ShaderDataType::Float4, "a_BoneWeights" },
+				}
+				);
+				subMesh->vertexArray->AddVertexBuffer(boneVertexBuffer);
+			}
+
+			Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(subMesh->faces.data(), subMesh->faces.size() * 3);
+			subMesh->vertexArray->SetIndexBuffer(indexBuffer);
+
 		}
 
 		for (uint32_t i = 0; i < node->mNumChildren; i++)
 			TraverseNodes(node->mChildren[i], transform, level + 1);
 	}
 
-	void Mesh::Submit()
+	void Mesh::ExtractBones()
 	{
-		this->m_VertexArray->Bind();
+
+		m_BoneInfluences.resize(m_Vertices.size());
+		int boneIndex = -1;
+		for (size_t m = 0; m < m_Scene->mNumMeshes; m++)
+		{
+			aiMesh* mesh = m_Scene->mMeshes[m];
+
+			for (size_t i = 0; i < mesh->mNumBones; i++) {
+
+				aiBone* bone = mesh->mBones[i];
+				Ref<SubMesh> submesh = m_SubMeshes[m];
+
+				std::string boneName = mesh->mBones[i]->mName.C_Str();
+
+				bool allNoneWeight = true;
+				for (size_t j = 0; j < bone->mNumWeights; j++) {
+					if (bone->mWeights[j].mWeight > 0.0f) {
+						allNoneWeight = false;
+					}
+				}
+				if (allNoneWeight)
+					continue;
+
+				if (m_BoneNameToIndex.find(boneName) == m_BoneNameToIndex.end())
+				{
+					// Allocate an index for a new bone
+					boneIndex = m_BoneCount;
+					m_BoneCount++;
+					BoneInfo bi;
+					m_BoneInfo.push_back(bi);
+					m_BoneInfo[boneIndex].boneOffset = Utils::Mat4FromAssimpMat4(bone->mOffsetMatrix);
+
+
+					bi.id = boneIndex;
+					m_BoneNameToIndex[boneName] = boneIndex;
+				}
+				else
+				{
+					boneIndex = m_BoneNameToIndex[boneName];
+				}
+
+				for (size_t j = 0; j < bone->mNumWeights; j++)
+				{
+					int VertexID = submesh->baseVertex + bone->mWeights[j].mVertexId;
+					float Weight = bone->mWeights[j].mWeight;
+					m_BoneInfluences[VertexID].AddBoneData(boneIndex, Weight);
+				}
+			}
+		}
+
+		m_BoneTransforms.resize(m_BoneCount, glm::mat4(1.0f));
 	}
 
 }

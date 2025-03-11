@@ -35,16 +35,7 @@ namespace Hazel {
 		void SceneSetting();
 
 	private:
-		Hazel::Ref<Hazel::OrthographicCameraController> m_CameraController;
-		Hazel::Ref<Hazel::Shader> m_Shader;
-		Hazel::Ref<Hazel::VertexArray> m_VertexArray;
-		glm::vec4 m_SquareColor;
 		std::vector<Hazel::ProfileResult> m_ProfileResults;
-
-
-		Hazel::Ref<Hazel::Texture2D> m_Texture;
-		Hazel::Ref<Hazel::Texture2D> m_Texture1;
-		Hazel::Ref<Hazel::Texture2D> m_Texture2;
 
 		std::vector<Ref<Texture2D>> m_SkyboxTextures;
 		Ref<TextureCube> m_SkyboxTextureCube;
@@ -73,17 +64,13 @@ namespace Hazel {
 
 		glm::vec2 m_ViewportSize;
 		glm::vec2 m_ViewportButtomLeftPos;
-		Entity m_HoveredEntity;
+		Entity m_SelectedEntity;
 		std::string m_HoveredEntityString;
 
 		float frameStartTime;
 
 		Ref<Texture2D> m_PlayButtonTexture;
 		Ref<Texture2D> m_PauseButtonTexture;
-
-		Mesh m_Mesh;
-		Ref<Shader> m_MeshShader;
-
 
 		ImGuizmo::OPERATION m_ImGuizmoMode = ImGuizmo::OPERATION::TRANSLATE;
 	};

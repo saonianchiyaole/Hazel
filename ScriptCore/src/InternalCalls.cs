@@ -26,6 +26,8 @@ namespace Hazel
         internal extern static bool Input_IsKeyDown(KeyCode keycode);
 
 
+
+
         #region Entity
         [MethodImplAttribute(MethodImplOptions.InternalCall)] 
         internal extern static bool Entity_HasComponent(ulong id, Type componentType);
@@ -35,6 +37,17 @@ namespace Hazel
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static object GetScriptInstance(ulong id);
+        #endregion
+
+
+        #region Animation
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimationComponent_Play(ulong id, string animationName);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void AnimationComponent_Stop(ulong id);
+
         #endregion
     }
 }

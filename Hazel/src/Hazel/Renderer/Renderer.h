@@ -30,8 +30,10 @@ namespace Hazel {
 
 	struct DrawCommand {
 		Ref<Mesh> mesh;
+		Ref<SubMesh> subMesh;
 		Ref<Material> material;
 		glm::mat4 transform;
+		int entityHandle;
 	};
 
 	// this should be Scene Renderer
@@ -48,14 +50,13 @@ namespace Hazel {
 		static void Init();
 
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent = TransformComponent(), Ref<Shader> shader = s_SceneData->defaultShader, UUID entityID = -1);
-		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Material> material);
+		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, std::vector<Ref<Material>> materials, int EntityHandle);
+		static void SubmitSubMesh(const Ref<Mesh> mesh, const Ref<SubMesh> subMesh, const TransformComponent& transformComponent, Ref<Material> material, int EntityHandle);
+
 
 		static void SubmitLight(const LightComponent& lightComponent, const TransformComponent& transformComponent);
 		static void SubmitSkybox(Ref<TextureCube> skyboxTextures);
 		static void SubmitEnvironment(Ref<Environment> environment);
-		
-
-		static uint32_t GetNextEmptyTextureSlot();
 
 		static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = false);
 		static void EndRenderPass();
@@ -71,10 +72,15 @@ namespace Hazel {
 		static Ref<Framebuffer> GetGeometryPassFramebuffer();
 		static Ref<Framebuffer> GetCompositePassFramebuffer();
 
+		//Get/Set Data & Resources
 		static void SetViewportSize(uint32_t width, uint32_t height);
 		static void OnWindowResize(uint32_t width, uint32_t height);
 		static Ref<Material> GetDefaultPBRMaterial();
 		static Ref<Material> GetDefaultPhongMaterial();
+		static Ref<Shader> GetDefaultPBRShader();
+
+		static uint8_t AllocateSlot();
+		static uint8_t GetUsedTextureSlotAmount();
 	private:
 		
 		struct SceneData {
@@ -85,10 +91,15 @@ namespace Hazel {
 			Ref<Shader> defaultShader;
 			Ref<Shader> skyboxShader;
 			Ref<Shader> compositeShader;
+			Ref<Shader> animationShader;
+			Ref<Shader> defaultWhiteShader;
+
 
 			Ref<Material> defaultPBRMaterial;
 			Ref<Material> defaultPhongMaterial;
+			Ref<Material> defaultAnimaitionMaterial;
 			Ref<Material> skyboxMaterial;
+			Ref<Material> defaultWhiteMaterial;
 
 			Ref<Camera> primaryCamera;
 

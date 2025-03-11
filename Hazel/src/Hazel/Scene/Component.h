@@ -10,7 +10,7 @@
 #include "Hazel/Renderer/Mesh.h"
 #include "Hazel/Renderer/Light.h"
 #include "Hazel/Renderer/Material.h"
-
+#include "Hazel/Animation/Animation.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtc/matrix_transform.hpp"
@@ -21,12 +21,18 @@ namespace Hazel {
 
 	struct IDComponent {
 		UUID ID;
-		IDComponent() {
-		}
+		IDComponent() = default;
 		IDComponent(uint64_t IDVal) : ID(IDVal) {}
 		IDComponent(const IDComponent& other) = default;
 	};
 
+	struct RelationShipComponent {
+		UUID parentID = 0;
+		std::vector<UUID> childrenID;
+		RelationShipComponent() = default;
+		RelationShipComponent(const RelationShipComponent& other) = default;
+		
+	};
 
 	struct TagComponent {
 		std::string tag;
@@ -176,6 +182,7 @@ namespace Hazel {
 		CircleCollider2DComponent(const CircleCollider2DComponent& other) = default;
 	};
 
+
 	struct ScriptComponent {
 		std::string scriptFilePath;
 		std::string className;
@@ -185,25 +192,28 @@ namespace Hazel {
 	};
 
 	struct MeshComponent {
-		Ref<Mesh> mesh;
-		MeshType type = Invalid;
+		Ref<Mesh> mesh = nullptr;
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent& other) = default;
 
 		void SetMesh(Ref<Mesh> mesh) {
 			this->mesh = mesh;
-			type = mesh->GetMeshType();
+
 		}
+
 	};
 
+	struct SubMeshComponent {
+		Ref<SubMesh> subMesh = nullptr;
+		SubMeshComponent() = default;
+		SubMeshComponent(const SubMeshComponent& other) = default;
+	};
 
 	struct MaterialComponent {
-		Ref<Material> material;
-		std::string path;
+		std::vector<Ref<Material>> materials;
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent& other) = default;
-		MaterialComponent(Ref<Material> materialVal) : material(materialVal){}
-
+		MaterialComponent(std::vector<Ref<Material>> materialVal) : materials(materialVal) {}
 	};
 
 	struct LightComponent {
@@ -214,13 +224,26 @@ namespace Hazel {
 		LightComponent(const LightComponent& other) = default;
 	};
 
+	struct AnimationComponent {
+
+		Ref<Animation> animation = nullptr;
+		bool isPlaying = false;
+		AnimationComponent() = default;
+		AnimationComponent(const AnimationComponent& other) = default;
+	};
+
+
+
 	template<typename ... Components>
 	struct ComponentGroup {
 
 	};
 
-	using AllComponents = ComponentGroup<TransformComponent, IDComponent, TagComponent, SpriteComponent,
+
+
+	using AllComponents = ComponentGroup<RelationShipComponent, TransformComponent, IDComponent, TagComponent, SpriteComponent,
 		CircleRendererComponent, CameraComponent, NativeScriptComponent, Rigidbody2DComponent,
-		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent, MaterialComponent>;
+		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent, MaterialComponent,
+		AnimationComponent, SubMeshComponent>;
 
 }

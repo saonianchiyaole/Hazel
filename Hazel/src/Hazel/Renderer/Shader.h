@@ -7,6 +7,7 @@
 
 #include "Hazel/Renderer/ShaderUniform.h"
 #include "Hazel/Core/Buffer.h"
+#include "Hazel/Asset/Asset.h"
 
 namespace Hazel {
 
@@ -23,7 +24,7 @@ namespace Hazel {
 
 	class Material;
 
-	class Shader {
+	class Shader : public Asset{
 
 	friend class Material;
 
@@ -50,7 +51,9 @@ namespace Hazel {
 
 		virtual const GLint GetRendererID() = 0;
 
-
+		AssetType GetAssetType() {
+			return AssetType::Shader;
+		}
 
 		virtual void Submit(std::unordered_map<std::string, Buffer>& data) = 0;
 		std::vector<Ref<ShaderUniform>> GetUniforms();

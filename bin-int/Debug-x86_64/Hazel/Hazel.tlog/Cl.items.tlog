@@ -1,5 +1,12 @@
 G:\Project\visualStudio\Hazel\vendor\ImGuizmo\ImGuizmo.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuizmo.obj
 G:\Project\visualStudio\Hazel\vendor\stb_image\stb_image.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\stb_image.obj
+G:\Project\visualStudio\Hazel\vendor\stb_image\stb_image_write.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\stb_image_write.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Animation\Animation.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Animation.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Animation\Animator.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Animator.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Animation\Skeleton.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Skeleton.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Asset\Asset.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Asset.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Asset\AssetManager.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\AssetManager.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Asset\AssimpImporter.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\AssimpImporter.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Application.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Application.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Layer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Layer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\LayerStack.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\LayerStack.obj
@@ -25,11 +32,11 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\OrthographicCameraControl
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\ParticleSystem.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ParticleSystem.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\PerspectiveCamera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\PerspectiveCamera.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RenderCommand.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RenderCommand.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RenderPass.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RenderPass.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer2D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer2D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Renderer3D.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Renderer3D.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RendererAPI.obj
-G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\RenderPass.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\RenderPass.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Shader.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Shader.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\ShaderUniform.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ShaderUniform.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Texture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Texture.obj

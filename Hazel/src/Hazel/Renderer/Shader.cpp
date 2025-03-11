@@ -93,11 +93,6 @@ namespace Hazel {
 	void ShaderLibrary::Add(const Ref<Shader> shader)
 	{
 		auto& name = shader->GetName();
-		if(Exists(name))
-		{
-			HZ_CORE_INFO("This Shader already exist{}", name);
-			return;
-		}
 		m_Shaders[name] = shader;
 	}
 
@@ -117,6 +112,7 @@ namespace Hazel {
 		std::string name = Utils::GetShaderName(path);
 		if (Exists(name))
 			return m_Shaders[name];
+		
 		auto shader = Shader::Create(path);
 		Add(shader);
 		return shader;

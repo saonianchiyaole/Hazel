@@ -20,6 +20,7 @@ namespace Hazel {
 		virtual void Begin() override;
 		virtual void End() override;
 
+		void SetDarkTheme();
 	private:
 		float m_Time = 0.0f;
 	};

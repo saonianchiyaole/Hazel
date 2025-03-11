@@ -43,7 +43,7 @@ namespace Hazel {
 	}
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
-		ImGui::Begin("Hierarchy Panel");
+		ImGui::Begin("Hierarchy");
 
 		auto view = m_Context->GetRegistry().view<TagComponent>();
 
@@ -82,7 +82,7 @@ namespace Hazel {
 		ImGui::End();
 
 
-		ImGui::Begin("Properties");
+		ImGui::Begin("Inspector");
 
 
 		if (m_SelectedEntity)
@@ -145,7 +145,10 @@ namespace Hazel {
 					m_SelectedEntity.AddComponent<LightComponent>();
 					ImGui::CloseCurrentPopup();
 				}
-
+				if (ImGui::MenuItem("Animation")) {
+					m_SelectedEntity.AddComponent<AnimationComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 
 				ImGui::EndPopup();
 			}
@@ -228,12 +231,18 @@ namespace Hazel {
 		}
 	}
 
+
+
+
+
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
 	{
 
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 
 		if (entity.HasComponent<TagComponent>()) {
+			
+			
 			if (ImGui::TreeNodeEx((void*)typeid(TagComponent).hash_code(), treeNodeFlags, "Tag")) {
 				auto& tag = entity.GetComponent<TagComponent>().tag;
 
@@ -255,7 +264,7 @@ namespace Hazel {
 			ImGui::PopStyleVar(
 			);
 
-			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform")) {
+			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), treeNodeFlags, "Transform")) {
 
 				ImGui::TreePop();
 				if (ImGui::DragFloat3("Position", glm::value_ptr(transform.translate), 0.1f)) {
@@ -490,165 +499,174 @@ namespace Hazel {
 			}
 		);
 
+		
+		
 		DrawComponent<MaterialComponent>(entity, "Material", [&](auto& component)
 			{
 
 				
 
-				if (ImGui::BeginPopup("ComponentSettings"))
+				/*if (ImGui::BeginPopup("ComponentSettings"))
 				{
 					if (ImGui::MenuItem("Save as..")) {
 						std::string filePath = FileDialogs::SaveFile("Hazel Material (*.material)\0*.material\0");
 						if (!filePath.empty())
 						{
-							Utils::MaterialSerializer materialSerializer(component.material);
+							Utils::MaterialSerializer materialSerializer(component.materials);
 							materialSerializer.Serialize(filePath);
 						}
 					}
 
 					ImGui::EndPopup();
-				}
+				}*/
 
 
 
-				char buffer[255];
-				strcpy_s(buffer, sizeof(buffer), component.path.c_str());
-
-				ImGui::BeginDisabled();
-				ImGui::InputText("Material##Material", buffer, sizeof(buffer));
-				ImGui::EndDisabled();
-
-				ImGui::SameLine();
-				if (ImGui::Button("Select##MaterialSelect")) {
-					std::string path = FileDialogs::OpenFile("Hazel material (*.material)\0*.material\0");
-					if (!path.empty()) {
-						component.path = path;
-						if (!component.material)
-							component.material = MakeRef<Material>();
-						Utils::MaterialSerializer materialSerializer(component.material);
-						materialSerializer.Deserialize(path);
-					}
-				}
-
-				if (component.material)
-					strcpy_s(buffer, sizeof(buffer), component.material->GetShader()->GetName().c_str());
-				else
-					strcpy_s(buffer, sizeof(buffer), "");
-				ImGui::BeginDisabled();
-				ImGui::InputText("Shader##Shader", buffer, sizeof(buffer));
-				ImGui::EndDisabled();
-
-				ImGui::SameLine();
-				if (ImGui::Button("Select##ShaderSelect")) {
-					std::string path = FileDialogs::OpenFile("Hazel shader (*.glsl)\0*.glsl\0");
-					if (!path.empty()) {
-						auto newShader = ShaderLibrary::Load(path);
-						if(!component.material)
-							component.material = MakeRef<Material>();
-						component.material->SetShader(newShader);
-					}
-				}
-
-
-				if (!component.material)
-					return;
-
-				// Draw Uniform 
-				Ref<Shader> shader = component.material->GetShader();
-				Ref<Material> material = component.material;
-				
-				for (const auto& uniform : shader->GetUniforms()) {
-
-
-					std::string uniformName = uniform->GetName();
-
-					switch (uniform->GetType())
-					{
-					case Hazel::ShaderDataType::None:
-						break;
-					case Hazel::ShaderDataType::Float:
-					{
-						ImGui::DragFloat(uniformName.c_str(), material->GetData<float>(uniformName), 0.01);
-					}
-					break;
-					case Hazel::ShaderDataType::Float2:
-					case Hazel::ShaderDataType::Vec2:
-						ImGui::DragFloat2(uniformName.c_str(), glm::value_ptr(*material->GetData<glm::vec2>(uniformName)), 0.01);
-						break;
-					case Hazel::ShaderDataType::Float3:
-					case Hazel::ShaderDataType::Vec3:
-						ImGui::DragFloat3(uniformName.c_str(), glm::value_ptr(*material->GetData<glm::vec3>(uniformName)), 0.001);
-						break;
-					case Hazel::ShaderDataType::Float4:
-					case Hazel::ShaderDataType::Vec4:
-
-					{
-						glm::vec4* value = material->GetData<glm::vec4>(uniformName);
-						ImGui::DragFloat4(uniformName.c_str(), glm::value_ptr(*value), 0.001);
+				for (Ref<Material> material : component.materials) {
 					
-					
-					}
-						break;
-					case Hazel::ShaderDataType::Mat3:
-					case Hazel::ShaderDataType::Mat4:
-						break;
-					case Hazel::ShaderDataType::Int:
-						ImGui::DragInt(uniformName.c_str(), material->GetData<int>(uniformName), 0.001);
-						break;
-					case Hazel::ShaderDataType::Int2:
-						ImGui::DragInt2(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
-						break;
-					case Hazel::ShaderDataType::Int3:
-						ImGui::DragInt3(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
-						break;
-					case Hazel::ShaderDataType::Int4:
-						ImGui::DragInt4(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
-						break;
-					case Hazel::ShaderDataType::Bool:
-						ImGui::Checkbox(uniformName.c_str(), material->GetData<bool>(uniformName));
-						break;
-					case Hazel::ShaderDataType::Sampler2D:
-					{
+					bool open = ImGui::TreeNodeEx((void*)material.get(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding, material->GetName().c_str());
 
-						auto texture = material->GetData<Texture2D>(uniformName);
-						std::string imageButtonName = "imageButton##" + uniformName;
-						if (texture && texture->IsLoaded()) {
-							if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
-								std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg;*.tga)\0*.png;*.jpg;*.tga\0");
-								TextureLibrary::Load(path);
-								material->SetData(uniformName, TextureLibrary::Get(path));
-							}
-						}
-						else if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
-							std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg;*.tga)\0*.png;*.jpg;*.tga\0");
-							TextureLibrary::Load(path);
-							material->SetData(uniformName, TextureLibrary::Get(path));
-						}
-
-						if (ImGui::BeginDragDropTarget()) {
-
-							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-								const wchar_t* rawPath = (const wchar_t*)payload->Data;
-								std::filesystem::path path(rawPath);
-								TextureLibrary::Load(path.string());
-								material->SetData(uniformName, TextureLibrary::Get(path.string()));
-							}
-
-							ImGui::EndDragDropTarget();
-						}
+					if (open) {
+						char buffer[255];
+						strcpy_s(buffer, sizeof(buffer), material->GetName().c_str());
+						
+						//Material Info
+						ImGui::BeginDisabled();
+						ImGui::InputText("Material##Material", buffer, sizeof(buffer));
+						ImGui::EndDisabled();
 
 						ImGui::SameLine();
-						ImGui::Text(uniformName.c_str());
+						if (ImGui::Button("Select##MaterialSelect")) {
+							std::string path = FileDialogs::OpenFile("Hazel material (*.material)\0*.material\0");
+							if (!path.empty()) {
+								if (!material)
+									material = MakeRef<Material>();
+								Utils::MaterialSerializer materialSerializer(material);
+								materialSerializer.Deserialize(path);
+							}
+						}
+
+						//Shader Info
+						if (material->GetFlag())
+							strcpy_s(buffer, sizeof(buffer), material->GetShader()->GetName().c_str());
+						else
+							strcpy_s(buffer, sizeof(buffer), "");
+
+						ImGui::BeginDisabled();
+						ImGui::InputText("Shader##Shader", buffer, sizeof(buffer));
+						ImGui::EndDisabled();
+
+						ImGui::SameLine();
+						if (ImGui::Button("Select##ShaderSelect")) {
+							std::string path = FileDialogs::OpenFile("Hazel shader (*.glsl)\0*.glsl\0");
+							if (!path.empty()) {
+								auto newShader = ShaderLibrary::Load(path);
+								material->SetShader(newShader);
+							}
+						}
+
+						
+						if (!material->GetFlag())
+							continue;
+						// Draw Uniform 
+						Ref<Shader> shader = material->GetShader();
+
+						for (const auto& uniform : shader->GetUniforms()) {
+
+							std::string uniformName = uniform->GetName();
+
+							switch (uniform->GetType())
+							{
+							case Hazel::ShaderDataType::None:
+								break;
+							case Hazel::ShaderDataType::Float:
+							{
+								ImGui::DragFloat(uniformName.c_str(), material->GetData<float>(uniformName), 0.01);
+							}
+							break;
+							case Hazel::ShaderDataType::Float2:
+							case Hazel::ShaderDataType::Vec2:
+								ImGui::DragFloat2(uniformName.c_str(), glm::value_ptr(*material->GetData<glm::vec2>(uniformName)), 0.01);
+								break;
+							case Hazel::ShaderDataType::Float3:
+							case Hazel::ShaderDataType::Vec3:
+								ImGui::DragFloat3(uniformName.c_str(), glm::value_ptr(*material->GetData<glm::vec3>(uniformName)), 0.001);
+								break;
+							case Hazel::ShaderDataType::Float4:
+							case Hazel::ShaderDataType::Vec4:
+
+							{
+								glm::vec4* value = material->GetData<glm::vec4>(uniformName);
+								ImGui::DragFloat4(uniformName.c_str(), glm::value_ptr(*value), 0.001);
 
 
+							}
+							break;
+							case Hazel::ShaderDataType::Mat3:
+							case Hazel::ShaderDataType::Mat4:
+								break;
+							case Hazel::ShaderDataType::Int:
+								ImGui::DragInt(uniformName.c_str(), material->GetData<int>(uniformName), 0.001);
+								break;
+							case Hazel::ShaderDataType::Int2:
+								ImGui::DragInt2(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
+								break;
+							case Hazel::ShaderDataType::Int3:
+								ImGui::DragInt3(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
+								break;
+							case Hazel::ShaderDataType::Int4:
+								ImGui::DragInt4(uniformName.c_str(), static_cast<int*>(material->GetData<int>(uniformName)), 0.001);
+								break;
+							case Hazel::ShaderDataType::Bool:
+								ImGui::Checkbox(uniformName.c_str(), material->GetData<bool>(uniformName));
+								break;
+							case Hazel::ShaderDataType::Sampler2D:
+							{
+
+								auto texture = material->GetData<Texture2D>(uniformName);
+								std::string imageButtonName = "imageButton##" + uniformName;
+								if (texture && texture->IsLoaded()) {
+									if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
+										std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg;*.tga)\0*.png;*.jpg;*.tga\0");
+										TextureLibrary::Load(path);
+										material->SetData(uniformName, TextureLibrary::Get(path));
+									}
+								}
+								else if (ImGui::ImageButton(imageButtonName.c_str(), (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 })) {
+									std::string path = FileDialogs::OpenFile("Hazel Texture (*.png;*.jpg;*.tga)\0*.png;*.jpg;*.tga\0");
+									TextureLibrary::Load(path);
+									material->SetData(uniformName, TextureLibrary::Get(path));
+								}
+
+								if (ImGui::BeginDragDropTarget()) {
+
+									if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
+										const wchar_t* rawPath = (const wchar_t*)payload->Data;
+										std::filesystem::path path(rawPath);
+										TextureLibrary::Load(path.string());
+										material->SetData(uniformName, TextureLibrary::Get(path.string()));
+									}
+
+									ImGui::EndDragDropTarget();
+								}
+
+								ImGui::SameLine();
+								ImGui::Text(uniformName.c_str());
+
+							}
+							default:
+								break;
+							}
+
+
+
+						}
+
+						ImGui::TreePop();
 					}
-					default:
-						break;
-					}
-
-
-
+				
 				}
+				
 
 			});
 
@@ -715,6 +733,32 @@ namespace Hazel {
 			}
 		);
 
+		DrawComponent<AnimationComponent>(entity, "Animation", [&](auto& component)
+			{
+				Ref<Animation> animation = component.animation;
+				if (animation) {
+					std::string currentAnimationName = animation->GetCurrentAnimation().first;
+					if (ImGui::BeginCombo("Current Animation", currentAnimationName.c_str())) {
+						for (auto& it : animation->GetAnimations()){
+							bool isSelected = currentAnimationName == it.first;
+							if (ImGui::Selectable(it.first.c_str(), isSelected))
+							{
+								animation->Play(it.first);
+							}
+
+							if (isSelected)
+								ImGui::SetItemDefaultFocus();
+						}
+
+						ImGui::EndCombo();
+					}
+				}
+
+				bool& isPlaying = component.isPlaying;
+				ImGui::Checkbox("Play", &isPlaying);
+				
+			}
+		);
 	}
 	Entity SceneHierarchyPanel::GenerateSphere()
 	{
@@ -723,7 +767,7 @@ namespace Hazel {
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Sphere1m.fbx", sphere.GetHandle()));
 		
 		auto& materialComponent = sphere.AddComponent<MaterialComponent>();
-		materialComponent.material = Material::Create("assets/Material/Phong.material");
+		materialComponent.materials.push_back(Material::Create("assets/Material/Phong.material"));
 		
 		return sphere;
 	}
@@ -735,7 +779,7 @@ namespace Hazel {
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Cube.fbx", sphere.GetHandle()));
 
 		auto& materialComponent = sphere.AddComponent<MaterialComponent>();
-		materialComponent.material = Material::Create("assets/Material/Phong.material");
+		materialComponent.materials.push_back(Material::Create("assets/Material/Phong.material"));
 
 		return sphere;
 	}
@@ -746,7 +790,7 @@ namespace Hazel {
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Cube.fbx", plane.GetHandle()));
 
 		auto& materialComponent = plane.AddComponent<MaterialComponent>();
-		materialComponent.material = Material::Create("assets/Material/Phong.material");
+		materialComponent.materials.push_back(Material::Create("assets/Material/Phong.material"));
 
 		auto& transformComponent = plane.GetComponent<TransformComponent>();
 		transformComponent.SetScale({5.0f, 0.2f, 5.0f});

@@ -7,7 +7,7 @@
 
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
-
+#include "Hazel/Renderer/Renderer.h"
 
 namespace Hazel {
 
@@ -120,11 +120,12 @@ namespace Hazel {
 		case GL_SAMPLER_2D: {
 			if (!data)
 				break;
-			
 			OpenGLTexture2D* texture = static_cast<OpenGLTexture2D*>(data);
-			glUniform1i(location, texture->GetSlot());
-			if(texture->IsLoaded())
-				texture->Bind(texture->GetSlot());
+			if (!texture->IsLoaded())
+				break;
+			uint8_t slot = texture->GetSlot();
+			glUniform1i(location, slot);
+			texture->Bind(slot);
 			break;
 		}
 		case GL_SAMPLER_CUBE: {

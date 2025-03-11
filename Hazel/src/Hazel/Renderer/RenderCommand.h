@@ -24,6 +24,9 @@ namespace Hazel {
 		inline static void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count) {
 			s_RendererAPI->DrawIndexed(vertexArray, count);
 		}
+		static void DrawElementsBaseVertex(uint32_t indexCount, uint32_t baseIndex, uint32_t baseVertex) {
+			s_RendererAPI->DrawElementsBaseVertex(indexCount, baseIndex, baseVertex);
+		}
 
 		static void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) {
 			s_RendererAPI->DrawLines(vertexArray, vertexCount);
@@ -39,7 +42,6 @@ namespace Hazel {
 		}
 		static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); }
 		static void Clear() { s_RendererAPI->Clear(); }
-
 
 	private:
 		static RendererAPI* s_RendererAPI;

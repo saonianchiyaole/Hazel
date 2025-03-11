@@ -93,6 +93,8 @@ namespace Hazel {
 			}
 
 			shader->AddAssocitaedMaterial(this);
+
+			m_Flag = shader->GetFlag();
 		}
 	}
 
@@ -106,7 +108,7 @@ namespace Hazel {
 		return m_Name;
 	}
 
-	void Material::SetName(std::string& name)
+	void Material::SetName(const std::string& name)
 	{
 		m_Name = name;
 	}
