@@ -69,16 +69,34 @@ namespace Hazel {
 	static void AnimationComponent_Play(UUID entityID, MonoString* animationName) {
 		Scene* scene = ScriptEngine::GetSceneContext();
 		Entity entity = scene->GetEntityFormUUID(entityID);
+		entity.GetComponent<AnimationComponent>().isPlaying = true;
 		auto& animation = entity.GetComponent<AnimationComponent>().animation;
-		if (animation)
-			animation->Play();
+		if (animation){
+			char* nameCStr = mono_string_to_utf8(animationName);
+			animation->Play(nameCStr);
+		}
 	}
 	static void AnimationComponent_Stop(UUID entityID) {
 		Scene* scene = ScriptEngine::GetSceneContext();
 		Entity entity = scene->GetEntityFormUUID(entityID);
-		auto& animation = entity.GetComponent<AnimationComponent>().animation;
-		if (animation)
-			animation->Stop();
+		entity.GetComponent<AnimationComponent>().isPlaying = false;
+		if (entity.GetComponent<AnimationComponent>().animation) {
+			entity.GetComponent<AnimationComponent>().animation->Stop();
+		}
+	}
+
+	static void TransformComponent_GetRotation(UUID entityID, glm::vec3* rotation) {
+		Scene* scene = ScriptEngine::GetSceneContext();
+		Entity entity = scene->GetEntityFormUUID(entityID);
+		*rotation = entity.GetComponent<TransformComponent>().rotation;
+	}
+
+	static void TransformComponent_SetRotation(UUID entityID, glm::vec3* rotation) {
+
+		Scene* scene = ScriptEngine::GetSceneContext();
+		Entity entity = scene->GetEntityFormUUID(entityID);
+		entity.GetComponent<TransformComponent>().SetTranslate(*rotation);
+
 	}
 
 	static bool Input_IsKeyDown(KeyCode keycode) {
@@ -116,6 +134,8 @@ namespace Hazel {
 		HZ_ADD_INTERNAL_CALL(Test);
 		HZ_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);
 		HZ_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
+		HZ_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
+		HZ_ADD_INTERNAL_CALL(TransformComponent_GetRotation);
 		HZ_ADD_INTERNAL_CALL(Input_IsKeyDown);
 
 		HZ_ADD_INTERNAL_CALL(Entity_HasComponent);

@@ -167,7 +167,8 @@ namespace Hazel {
 
 
 				Ref<Material> material = AssetManager::Create<Material>(Renderer::GetDefaultPBRShader());
-			
+				
+				material->m_IsFromMesh = true;
 
 				auto aiMaterial = scene->mMaterials[i];
 				aiString aiMaterialName;

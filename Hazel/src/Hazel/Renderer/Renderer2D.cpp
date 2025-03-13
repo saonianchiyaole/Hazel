@@ -7,6 +7,8 @@
 #include "Hazel/Renderer/RenderCommand.h"
 
 #include "Hazel/Renderer/Texture.h"
+#include "Hazel/Renderer/Renderer.h"
+#include "Hazel/Renderer/Framebuffer.h"
 
 namespace Hazel {
 
@@ -244,6 +246,7 @@ namespace Hazel {
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
 	{
 		//Initialize variable
+		Renderer::GetCompositePassFramebuffer()->Bind();
 
 		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
 		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
@@ -257,6 +260,8 @@ namespace Hazel {
 	}
 	void Renderer2D::BeginScene(const EditorCamera& camera)
 	{
+		Renderer::GetCompositePassFramebuffer()->Bind();
+
 		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
 		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
 		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
@@ -269,6 +274,8 @@ namespace Hazel {
 
 	void Renderer2D::BeginScene(const Camera& camera)
 	{
+		Renderer::GetCompositePassFramebuffer()->Bind();
+
 		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
 		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
 		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
@@ -293,6 +300,8 @@ namespace Hazel {
 		m_Data->lineVertexBuffePtr = m_Data->lineVertexBuffeBase;
 
 		m_Data->textureSlotIndex = 1;
+
+		Renderer::GetCompositePassFramebuffer()->Unbind();
 	}
 
 	void Renderer2D::Flush()

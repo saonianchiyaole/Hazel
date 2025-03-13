@@ -24,15 +24,20 @@ namespace Hazel {
 		bool OnWindowResized(Hazel::WindowResizeEvent& event);
 		bool OnKeyPressed(KeyPressedEvent& e);
 
+
+
+
 		void OpenScene(std::filesystem::path filepath);
 		
 		void ProcessFile(std::filesystem::path filepath);
 
-		//
+		//Function
 		void UI_ToolBar();
 		void ColliderVisiable();
 		void DrawGuizmo();
 		void SceneSetting();
+		void DuplicateEntity();
+
 
 	private:
 		std::vector<Hazel::ProfileResult> m_ProfileResults;

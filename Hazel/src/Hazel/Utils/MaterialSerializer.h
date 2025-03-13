@@ -16,7 +16,8 @@ namespace Hazel {
 		public:
 			MaterialSerializer() = default;
 			MaterialSerializer(Ref<Material> material) : m_Material(material) {
-
+				if (material->IsFormMesh() == true)
+					m_Material = nullptr;
 			}
 
 			bool Serialize(const std::string& filepath);

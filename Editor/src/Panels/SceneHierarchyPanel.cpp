@@ -41,6 +41,29 @@ namespace Hazel {
 	{
 		m_SelectedEntity = Entity{ entity, m_Context.get() };
 	}
+
+	template<typename ...Component>
+	static void DrawAddComponentMenu(Entity entity) {
+		([&]()
+			{
+				std::string menuItemName = typeid(Component).name();
+				int stratPos = menuItemName.find("::") + 2;
+				int subStrRange = menuItemName.find("Component") - (menuItemName.find("::") + 2);
+
+				menuItemName = menuItemName.substr(stratPos, subStrRange);
+				//menuItemName = menuItemName.substr(0, menuItemName.find("Component"));
+				if (!entity.HasComponent<Component>() && ImGui::MenuItem(menuItemName.c_str())) {
+					entity.AddComponent<Component>();
+					ImGui::CloseCurrentPopup();
+				}
+			}(), ...);
+	}
+
+	template<typename ...Components>
+	static void DrawAddComponentMenu(Entity entity, ComponentGroup<Components...>) {
+		DrawAddComponentMenu<Components...>(entity);
+	}
+
 	void SceneHierarchyPanel::OnImGuiRender()
 	{
 		ImGui::Begin("Hierarchy");
@@ -92,63 +115,8 @@ namespace Hazel {
 			if (ImGui::Button("Add Component"))
 				ImGui::OpenPopup("AddComponent");
 			if (ImGui::BeginPopup("AddComponent")) {
-				if (ImGui::MenuItem("Transform")) {
-					m_SelectedEntity.AddComponent<TransformComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-				if (ImGui::MenuItem("Camera")) {
-					m_SelectedEntity.AddComponent<CameraComponent>();
-					ImGui::CloseCurrentPopup();
-				}
 
-				if (ImGui::MenuItem("Sprite Renderer")) {
-					m_SelectedEntity.AddComponent<SpriteComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Circle Renderer")) {
-					m_SelectedEntity.AddComponent<CircleRendererComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Mesh")) {
-					m_SelectedEntity.AddComponent<MeshComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Material")) {
-					m_SelectedEntity.AddComponent<MaterialComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Rigidbody 2D")) {
-					m_SelectedEntity.AddComponent<Rigidbody2DComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Box Collider 2D")) {
-					m_SelectedEntity.AddComponent<BoxCollider2DComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Circle Collider 2D")) {
-					m_SelectedEntity.AddComponent<CircleCollider2DComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Script")) {
-					m_SelectedEntity.AddComponent<ScriptComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				if (ImGui::MenuItem("Light")) {
-					m_SelectedEntity.AddComponent<LightComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-				if (ImGui::MenuItem("Animation")) {
-					m_SelectedEntity.AddComponent<AnimationComponent>();
-					ImGui::CloseCurrentPopup();
-				}
+				DrawAddComponentMenu<>(m_SelectedEntity, AddComponentMenu{});
 
 				ImGui::EndPopup();
 			}
@@ -157,6 +125,9 @@ namespace Hazel {
 		ImGui::End();
 
 	}
+
+
+
 	void SceneHierarchyPanel::DrawEntityNode(Entity& entity) {
 
 		auto& tag = entity.GetComponent<TagComponent>();
@@ -241,8 +212,8 @@ namespace Hazel {
 		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 
 		if (entity.HasComponent<TagComponent>()) {
-			
-			
+
+
 			if (ImGui::TreeNodeEx((void*)typeid(TagComponent).hash_code(), treeNodeFlags, "Tag")) {
 				auto& tag = entity.GetComponent<TagComponent>().tag;
 
@@ -258,7 +229,7 @@ namespace Hazel {
 
 		if (entity.HasComponent<TransformComponent>()) {
 			auto& transform = entity.GetComponent<TransformComponent>();
-			
+
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 			ImGui::Separator();
 			ImGui::PopStyleVar(
@@ -301,15 +272,14 @@ namespace Hazel {
 
 		}
 
-		if (entity.HasComponent<CameraComponent>()) {
-			auto& cameraComponent = entity.GetComponent<CameraComponent>();
+		DrawComponent<CameraComponent>(entity, "Sprite", [&](auto& component)
+			{
 
-			if (ImGui::TreeNodeEx((void*)typeid(CameraComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Camera")) {
 
 				const char* projectionTypeString[] = { "Perspective", "Orthographic" };
-				const char* currentProjectionTypeString = projectionTypeString[(int)cameraComponent.camera->GetProjectionType()];
+				const char* currentProjectionTypeString = projectionTypeString[(int)component.camera->GetProjectionType()];
 
-				if (ImGui::Checkbox("Primary", &cameraComponent.primary)) {
+				if (ImGui::Checkbox("Primary", &component.primary)) {
 
 
 
@@ -323,7 +293,7 @@ namespace Hazel {
 						if (ImGui::Selectable(projectionTypeString[i], isSelected))
 						{
 							currentProjectionTypeString = projectionTypeString[i];
-							cameraComponent.camera->SetProjectionType((Camera::ProjectionType)i);
+							component.camera->SetProjectionType((Camera::ProjectionType)i);
 						}
 
 						if (isSelected)
@@ -333,66 +303,54 @@ namespace Hazel {
 					ImGui::EndCombo();
 				}
 
-				if (cameraComponent.camera->GetProjectionType() == Camera::ProjectionType::Perspective) {
-					float fovy = cameraComponent.camera->GetFovy();
+				if (component.camera->GetProjectionType() == Camera::ProjectionType::Perspective) {
+					float fovy = component.camera->GetFovy();
 					if (ImGui::DragFloat("Fovy", &fovy)) {
-						cameraComponent.camera->SetFovy(fovy);
+						component.camera->SetFovy(fovy);
 					}
 				}
-				else if (cameraComponent.camera->GetProjectionType() == Camera::ProjectionType::Orthographic) {
-					float zoomLevel = cameraComponent.camera->GetZoomLevel();
+				else if (component.camera->GetProjectionType() == Camera::ProjectionType::Orthographic) {
+					float zoomLevel = component.camera->GetZoomLevel();
 					if (ImGui::DragFloat("ZoomLevel", &zoomLevel)) {
-						cameraComponent.camera->SetZoomLevel(zoomLevel);
+						component.camera->SetZoomLevel(zoomLevel);
 					}
 				}
-				float nearClip = cameraComponent.camera->GetNearClip();
+				float nearClip = component.camera->GetNearClip();
 				if (ImGui::DragFloat("NearClip", &nearClip)) {
-					cameraComponent.camera->SetNearClip(nearClip);
+					component.camera->SetNearClip(nearClip);
 				}
-				float farClip = cameraComponent.camera->GetFarClip();
+				float farClip = component.camera->GetFarClip();
 				if (ImGui::DragFloat("FarClip", &farClip)) {
-					cameraComponent.camera->SetFarClip(farClip);
+					component.camera->SetFarClip(farClip);
 				}
 
 
-				ImGui::TreePop();
-			}
+			});
 
-		}
-
-		if (entity.HasComponent<SpriteComponent>()) {
-			auto& sprite = entity.GetComponent<SpriteComponent>();
-
-			if (ImGui::TreeNodeEx((void*)typeid(SpriteComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Sprite Renderer")) {
-
-				ImGui::ColorEdit4("Color", glm::value_ptr(sprite.color));
+		DrawComponent<SpriteComponent>(entity, "Sprite", [&](auto& component)
+			{
+				ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
 
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-				if (sprite.texture == nullptr) {
+				if (component.texture == nullptr) {
 					ImGui::ImageButton("##texture", (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 });
 				}
 				else {
-					ImGui::ImageButton("##texture", (ImTextureID)sprite.texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 });
+					ImGui::ImageButton("##texture", (ImTextureID)component.texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 });
 				}
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
 						const wchar_t* path = (const wchar_t*)payload->Data;
-						sprite.texture = Texture2D::Create(path);
+						component.texture = Texture2D::Create(path);
 					}
 
 					ImGui::EndDragDropTarget();
 				}
 
 				ImGui::PopStyleColor();
-
-
-				ImGui::TreePop();
-
-			}
-
-		}
+			});
 
 
 		DrawComponent<ScriptComponent>(entity, "Script", [&](auto& component)
@@ -435,14 +393,38 @@ namespace Hazel {
 						}
 						break;
 						case ScriptFieldType::Bool:
-							//ImGui::Checkbox(field.second.name, );
+						{
+							bool data = instance->GetFieldValue<bool>(field.first);
+							if (ImGui::Checkbox(field.second.name.c_str(), &data)) {
+								instance->SetFieldVaule(field.first, data);
+							}
+						}
 							break;
 						case ScriptFieldType::Char:
 							//ImGui::InputText(field.second.name, )
 							break;
 						case ScriptFieldType::Short:
+						{
+							int data = instance->GetFieldValue<short>(field.first);
+							constexpr int max = 32767;
+							constexpr int min = -32768;
+							if (ImGui::DragInt(field.second.name.c_str(), &data, 1.0f, min, max)) {
+								instance->SetFieldVaule(field.first, data);
+							}
+							break;
+						}
+
 						case ScriptFieldType::Int:
+						{
+							int data = instance->GetFieldValue<int>(field.first);
+							if (ImGui::DragInt(field.second.name.c_str(), &data)) {
+								instance->SetFieldVaule(field.first, data);
+							}
+							break;
+						}
+
 						case ScriptFieldType::Long:
+							break;
 						case ScriptFieldType::Byte:
 						case ScriptFieldType::UShort:
 							break;
@@ -499,37 +481,37 @@ namespace Hazel {
 			}
 		);
 
-		
-		
+
+
 		DrawComponent<MaterialComponent>(entity, "Material", [&](auto& component)
 			{
 
-				
 
-				/*if (ImGui::BeginPopup("ComponentSettings"))
+
+				if (ImGui::BeginPopup("ComponentSettings"))
 				{
 					if (ImGui::MenuItem("Save as..")) {
 						std::string filePath = FileDialogs::SaveFile("Hazel Material (*.material)\0*.material\0");
-						if (!filePath.empty())
+						if (!filePath.empty() || component.materials.size() == 1)
 						{
-							Utils::MaterialSerializer materialSerializer(component.materials);
+							Utils::MaterialSerializer materialSerializer(component.materials[0]);
 							materialSerializer.Serialize(filePath);
 						}
 					}
 
 					ImGui::EndPopup();
-				}*/
+				}
 
 
 
 				for (Ref<Material> material : component.materials) {
-					
+
 					bool open = ImGui::TreeNodeEx((void*)material.get(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding, material->GetName().c_str());
 
 					if (open) {
 						char buffer[255];
 						strcpy_s(buffer, sizeof(buffer), material->GetName().c_str());
-						
+
 						//Material Info
 						ImGui::BeginDisabled();
 						ImGui::InputText("Material##Material", buffer, sizeof(buffer));
@@ -565,9 +547,11 @@ namespace Hazel {
 							}
 						}
 
-						
-						if (!material->GetFlag())
+
+						if (!material->GetFlag()) {
+							ImGui::TreePop();
 							continue;
+						}
 						// Draw Uniform 
 						Ref<Shader> shader = material->GetShader();
 
@@ -664,9 +648,9 @@ namespace Hazel {
 
 						ImGui::TreePop();
 					}
-				
+
 				}
-				
+
 
 			});
 
@@ -739,7 +723,7 @@ namespace Hazel {
 				if (animation) {
 					std::string currentAnimationName = animation->GetCurrentAnimation().first;
 					if (ImGui::BeginCombo("Current Animation", currentAnimationName.c_str())) {
-						for (auto& it : animation->GetAnimations()){
+						for (auto& it : animation->GetAnimations()) {
 							bool isSelected = currentAnimationName == it.first;
 							if (ImGui::Selectable(it.first.c_str(), isSelected))
 							{
@@ -756,7 +740,7 @@ namespace Hazel {
 
 				bool& isPlaying = component.isPlaying;
 				ImGui::Checkbox("Play", &isPlaying);
-				
+
 			}
 		);
 	}
@@ -765,10 +749,10 @@ namespace Hazel {
 		Entity sphere = m_Context->CreateEntity("Sphere");
 		auto& meshComponent = sphere.AddComponent<MeshComponent>();
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Sphere1m.fbx", sphere.GetHandle()));
-		
+
 		auto& materialComponent = sphere.AddComponent<MaterialComponent>();
-		materialComponent.materials.push_back(Material::Create("assets/Material/Phong.material"));
-		
+		materialComponent.materials = { Material::Create("assets/Material/Phong.material") };
+
 		return sphere;
 	}
 
@@ -779,7 +763,7 @@ namespace Hazel {
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Cube.fbx", sphere.GetHandle()));
 
 		auto& materialComponent = sphere.AddComponent<MaterialComponent>();
-		materialComponent.materials.push_back(Material::Create("assets/Material/Phong.material"));
+		materialComponent.materials = { Material::Create("assets/Material/Phong.material") };
 
 		return sphere;
 	}
@@ -790,10 +774,10 @@ namespace Hazel {
 		meshComponent.SetMesh(MakeRef<Mesh>("assets\\Model\\Cube.fbx", plane.GetHandle()));
 
 		auto& materialComponent = plane.AddComponent<MaterialComponent>();
-		materialComponent.materials.push_back(Material::Create("assets/Material/Phong.material"));
+		materialComponent.materials = { Material::Create("assets/Material/Phong.material") };
 
 		auto& transformComponent = plane.GetComponent<TransformComponent>();
-		transformComponent.SetScale({5.0f, 0.2f, 5.0f});
+		transformComponent.SetScale({ 5.0f, 0.2f, 5.0f });
 
 		return plane;
 	}

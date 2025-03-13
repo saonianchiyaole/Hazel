@@ -61,7 +61,6 @@ void main()
 	vs_Output.WorldNormals = mat3(u_Transform) * mat3(a_Tangent, a_Binormal, a_Normal);
 	vs_Output.WorldTransform = mat3(u_Transform) ;
 	vs_Output.Binormal = a_Binormal;
-	vs_Output.EntityID = -1;
 	vs_Output.cameraPosition = cameraPosition;
 
 	gl_Position = u_ViewProjection * u_Transform * localPosition;

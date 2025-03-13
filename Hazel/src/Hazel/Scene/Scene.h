@@ -30,12 +30,21 @@ namespace Hazel {
 		template<class Component>
 		static void CopyComponent(Ref<Scene> src, Ref<Scene> dst, UUID uuid);
 
+		//copy entity in the same scene
+		template<class Component>
+		void CopyComponent(Entity src, Entity dst) {
+			if (src.HasComponent<Component>()) {
+				m_Registry.emplace_or_replace<Component>(dst.GetHandle(), src.GetComponent<Component>());
+			}
+		}
+
 		Entity CreateEntity(const std::string& name);
 		Entity CreateEnttiyWithUUID(const std::string& name,const uint64_t ID);
 		Entity GetEntityFormUUID(UUID uuid);
 		
 		Entity FindEntityByName(std::string name);
 
+		Entity DulpicateEntity(Entity entity);
 
 		void DestroyEntity(Entity entity);
 

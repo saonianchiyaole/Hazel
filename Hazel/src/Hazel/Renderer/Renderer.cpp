@@ -87,6 +87,15 @@ namespace Hazel {
 		ShaderLibrary::Load("assets/Shaders/simple.glsl");
 		s_SceneData->defaultWhiteShader = ShaderLibrary::Get("simple");
 
+
+		// default texture
+		{
+			uint32_t blackTextureData = 0;
+			s_SceneData->blackQuadTexture = Texture2D::Create(1, 1);
+			s_SceneData->blackQuadTexture->SetData(&blackTextureData, sizeof(uint32_t));
+
+		}
+
 		//ShaderLibrary::Load("assets/Shaders/Animation.glsl");
 		//s_SceneData->animationShader = ShaderLibrary::Get("Animation");
 
@@ -111,6 +120,7 @@ namespace Hazel {
 			s_SceneData->skyboxMaterial->SetShader(s_SceneData->skyboxShader);
 
 		}
+
 		//Set Dufault Light Uniform
 
 
@@ -150,7 +160,7 @@ namespace Hazel {
 			FramebufferSpecification compositeFramebufferSpec;
 			compositeFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
 			compositeFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
-			compositeFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8 };
+			compositeFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER};
 			Ref<Framebuffer> compositeTargetFramebuffer = Framebuffer::Create(compositeFramebufferSpec);
 			RenderPassSpec compositePassSpec;
 			compositePassSpec.targetFrameBuffer = compositeTargetFramebuffer;
@@ -213,14 +223,14 @@ namespace Hazel {
 
 
 
-	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, Ref<Shader> shader, UUID entityID)
+	void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, int EntityHandle)
 	{
 		//shader->Bind();
 		//shader->SetMat4("u_Transform", transformComponent.transform);
 		//mesh->m_VertexArray->Bind();
 
 		for (Ref<SubMesh> subMesh : mesh->GetSubMeshes()) {
-			s_SceneData->drawList.push_back({ mesh, subMesh, s_SceneData->defaultPBRMaterial, transformComponent.transform });
+			s_SceneData->drawList.push_back({ mesh, subMesh, s_SceneData->defaultPBRMaterial, transformComponent.transform, EntityHandle});
 		}
 
 		//RenderCommand::DrawIndexed(mesh->m_VertexArray);
@@ -347,6 +357,7 @@ namespace Hazel {
 
 				dc.material->GetShader()->SetInt("u_EntityID", dc.entityHandle);
 
+
 				if (dc.subMesh->isRigged)
 				{
 					dc.material->GetShader()->SetInt("u_IsAnimation", true);
@@ -360,7 +371,6 @@ namespace Hazel {
 				}
 
 
-				dc.material->Submit();
 				dc.material->GetShader()->SetMat4("u_Transform", dc.transform);
 				RenderCommand::DrawIndexed(dc.subMesh->vertexArray);
 
@@ -395,7 +405,6 @@ namespace Hazel {
 						material->GetShader()->SetInt("u_IsAnimation", false);
 					}
 
-					material->Submit();
 					material->GetShader()->SetMat4("u_Transform", dc.transform);
 					RenderCommand::DrawIndexed(subMesh->vertexArray);
 				}
@@ -408,6 +417,9 @@ namespace Hazel {
 	void Renderer::CompositePass()
 	{
 		Renderer::BeginRenderPass(s_SceneData->compositePass);
+
+		int textureValue = -1;
+		s_SceneData->compositePass->GetSpecification().targetFrameBuffer->ClearAttachment(1, (void*)&textureValue);
 
 		s_SceneData->geometryPass->GetSpecification().targetFrameBuffer->BindTexture(0);
 		s_SceneData->compositeShader->Bind();
@@ -459,6 +471,11 @@ namespace Hazel {
 	Ref<Shader> Renderer::GetDefaultPBRShader()
 	{
 		return  s_SceneData->defaultShader;
+	}
+
+	Ref<Texture2D> Renderer::GetDefaultBlackQuadTexture()
+	{
+		return s_SceneData->blackQuadTexture;
 	}
 
 	uint8_t Renderer::AllocateSlot()

@@ -1,14 +1,35 @@
 Scene: Untitled
 Environment:
   IsHDR: true
-  Path: assets\environment\lilienstein_4k.hdr
+  Path: assets\environment\venice_dawn_1_4k.hdr
 Entities:
+  - Entity: 8639927869006871635
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translate: [0, 1.643, 4.7]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      ProjectionType: 0
+      Primary: true
+      Fovy: 45
+      ZoomLevel: 1
+      AspectRatio: 1.4564885
+      NearClip: 0.001
+      FarClip: 10000
   - Entity: 16404562579847564737
     TagComponent:
-      Tag: Empty
+      Tag: Alien
     TransformComponent:
       Translate: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Rotation: [-3.1415925, -0.13391705, -3.1415925]
+      Scale: [0.9999988, 1, 0.9999988]
+    ScriptComponent:
+      ClassName: Hazel.Player
     MeshComponent:
       FilePath: G:\Project\visualStudio\Hazel\Editor\assets\FBX\Alien.fbx
+    AnimationComponent:
+      {}
+    ScriptComponent:
+      ClassName: Hazel.Player

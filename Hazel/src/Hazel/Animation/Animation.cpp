@@ -55,15 +55,16 @@ namespace Hazel {
 
 	void Animation::Play(std::string animationName)
 	{
-		if (m_AnimationNameToIndex.find(animationName) != m_AnimationNameToIndex.end()) {
+		if (m_AnimationNameToIndex.find(animationName) == m_AnimationNameToIndex.end()) {
 			// error
 		}
-		if (m_AnimationNameToIndex[animationName] == m_CurrentAnimationIndex) {
+		if (m_AnimationNameToIndex[animationName] == m_CurrentAnimationIndex && m_IsPlaying) {
 			return;
 		}
 		m_CurrentAnimationIndex = m_AnimationNameToIndex[animationName];
 		m_CurrentAnimationName = animationName;
 		m_AnimationTime = 0.0f;
+		m_IsPlaying = true;
 
 	}
 

@@ -49,7 +49,7 @@ namespace Hazel {
 
 		static void Init();
 
-		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent = TransformComponent(), Ref<Shader> shader = s_SceneData->defaultShader, UUID entityID = -1);
+		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, int EntityHandle);
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, std::vector<Ref<Material>> materials, int EntityHandle);
 		static void SubmitSubMesh(const Ref<Mesh> mesh, const Ref<SubMesh> subMesh, const TransformComponent& transformComponent, Ref<Material> material, int EntityHandle);
 
@@ -71,6 +71,7 @@ namespace Hazel {
 		static void FlushDrawList();
 		static Ref<Framebuffer> GetGeometryPassFramebuffer();
 		static Ref<Framebuffer> GetCompositePassFramebuffer();
+		
 
 		//Get/Set Data & Resources
 		static void SetViewportSize(uint32_t width, uint32_t height);
@@ -78,6 +79,8 @@ namespace Hazel {
 		static Ref<Material> GetDefaultPBRMaterial();
 		static Ref<Material> GetDefaultPhongMaterial();
 		static Ref<Shader> GetDefaultPBRShader();
+		static Ref<Texture2D> GetDefaultBlackQuadTexture();
+
 
 		static uint8_t AllocateSlot();
 		static uint8_t GetUsedTextureSlotAmount();
@@ -117,7 +120,7 @@ namespace Hazel {
 			Ref<RenderPass> geometryPass;
 			Ref<RenderPass> compositePass;
 			
-
+			Ref<Texture2D> blackQuadTexture;
 
 			Ref<RenderPass> activePass;
 			std::vector<DrawCommand> drawList;

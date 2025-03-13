@@ -3,6 +3,7 @@
 #include "Hazel/Renderer/Material.h"
 
 #include "Hazel/Utils/MaterialSerializer.h"
+#include "Hazel/Renderer/Renderer.h"
 
 namespace Hazel {
 
@@ -85,11 +86,20 @@ namespace Hazel {
 			m_Shader = shader;
 			FreeMemory();
 			m_Data.clear();
+			m_NameToTextureAndSlot.clear();
 
 			for (auto uniform : m_Shader->GetUniforms()) {
 				//m_Data[uniform->GetName()] = Utils::AllocateMemoryByShaderDataType(uniform->GetType());
 				m_Data[uniform->GetName()].Allocate(Utils::GetAllocatedMemoryByShaderDataType(uniform->GetType()));
 				m_Data[uniform->GetName()].ZeroInitialize();
+			}
+
+			//deal with texture
+			for (auto uniform : m_Shader->GetUniforms()) {
+				if (uniform->GetType() == ShaderDataType::Sampler2D) {
+					m_Data[uniform->GetName()].data = Renderer::GetDefaultBlackQuadTexture().get();
+					m_NameToTextureAndSlot[uniform->GetName()] = std::pair(Renderer::GetDefaultBlackQuadTexture(), m_NameToTextureAndSlot.size());
+				}
 			}
 
 			shader->AddAssocitaedMaterial(this);

@@ -51,12 +51,12 @@ namespace Hazel {
 			return m_EntityID;
 		}
 
-		bool operator ==(Entity& other) {
+		bool operator ==(const Entity& other) {
 			return (m_EntityHandle == other.m_EntityHandle) && (m_Scene == other.m_Scene);
 		}
 
-		bool operator !=(Entity& other) {
-			return !(*this == other);
+		bool operator !=(const Entity& other) {
+			return (m_EntityHandle != other.m_EntityHandle) || (m_Scene != other.m_Scene);;
 		}
 
 		operator bool() {

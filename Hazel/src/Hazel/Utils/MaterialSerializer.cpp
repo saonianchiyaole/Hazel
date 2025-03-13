@@ -15,6 +15,10 @@ namespace Hazel {
 
 		bool MaterialSerializer::Serialize(const std::string& filepath)
 		{
+
+			if (!m_Material)
+				return false;
+
 			YAML::Emitter out;
 			out << YAML::BeginMap;
 			out << YAML::Key << "Material" << YAML::Value << m_Material->GetName();

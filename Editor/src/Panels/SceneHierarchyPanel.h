@@ -28,6 +28,7 @@ namespace Hazel {
 		template<class T, class Function>
 		void DrawComponent(Entity& entity, std::string componentName, Function func);
 
+		
 
 		Entity GenerateSphere();
 		Entity GenerateCube();

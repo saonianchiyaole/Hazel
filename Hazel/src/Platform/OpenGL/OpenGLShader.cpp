@@ -202,7 +202,7 @@ namespace Hazel {
 
 		uint32_t textureSlot = 0;
 
-		std::unordered_set<std::string> removedList = { "u_Transform", "u_View", "u_Projection", "u_BRDFLUT", "u_BoneTransforms", "u_IsAnimation", "u_EntityID"};
+		std::unordered_set<std::string> removedList = { "u_Transform", "u_View", "u_Projection", "u_BRDFLUT", "u_BoneTransforms", "u_IsAnimation", "u_EntityID", "u_BoneTransforms[0]"};
 
 		////Remove ShaderUniform Block 
 		GLint blockIndex = glGetUniformBlockIndex(m_RendererID, "LightUniform");

@@ -11,6 +11,7 @@ namespace Hazel {
 	class Material : public Asset{
 	public:
 		friend class MaterialSerializer;
+		friend class Mesh;
 
 		Material() = default;
 		Material(Ref<Shader> shader);
@@ -120,15 +121,19 @@ namespace Hazel {
 
 		void SetTexturesSlot();
 
+		bool IsFormMesh() { return m_IsFromMesh; }
+
 		static Ref<Material> Create(std::filesystem::path filepath);
 		static Ref<Material> Create();
+		
+
 	private:
 
 		void FreeMemory();
 
 	private:
 
-		std::string m_Name;
+		std::string m_Name = "Main";
 		Ref<Shader> m_Shader;
 		std::string m_Path;
 
@@ -141,6 +146,9 @@ namespace Hazel {
 		//std::unordered_map<std::string, void*> m_Data;
 
 		std::unordered_map<std::string, Buffer> m_Data;
+
+		friend class MaterialSerializer;
+		bool m_IsFromMesh = false;
 	};
 
 	class MaterialTable {

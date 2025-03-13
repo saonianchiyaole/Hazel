@@ -1,0 +1,95 @@
+Scene: Untitled
+Entities:
+  - Entity: 15710083804106495197
+    TagComponent:
+      Tag: Empty0
+    TransformComponent:
+      Translate: [4.124045, 5.9262123, -0.48929566]
+      Rotation: [-0.0638456, 0.048337616, 0.67515373]
+      Scale: [11.399985, 0.9999999, 1]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+    Rigidbody2DComponent:
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5
+  - Entity: 16121274805270091291
+    TagComponent:
+      Tag: Empty
+    TransformComponent:
+      Translate: [3.6078682, -3.372459, 0.25530127]
+      Rotation: [-0.0638456, 0.048337616, 0.67515373]
+      Scale: [11.399985, 0.9999999, 1]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+    Rigidbody2DComponent:
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5
+  - Entity: 3882816925388981321
+    TagComponent:
+      Tag: Empty0
+    TransformComponent:
+      Translate: [-3.8991473, 2.0897686, -0.14111485]
+      Rotation: [0.05142036, -0.031887818, -0.4919964]
+      Scale: [11.399988, 1, 1]
+    SpriteComponent:
+      Color: [1, 0.5, 0.5, 1]
+    Rigidbody2DComponent:
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5
+  - Entity: 18192800447343085111
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      ProjectionType: 1
+      Primary: true
+      Fovy: 77
+      ZoomLevel: 9
+      AspectRatio: 1.43625
+      NearClip: 0.001
+      FarClip: 10000
+  - Entity: 14824066133262354627
+    TagComponent:
+      Tag: ball
+    TransformComponent:
+      Translate: [-0.3412199, 6.76264, 0]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [0.6666666, 0.33986923, 0.33986923, 1]
+      Thickness: 1
+      Fade: 0.005
+    Rigidbody2DComponent:
+      Type: 1
+      FixedRotation: false
+    CircleCollider2DComponent:
+      Offset: [0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.5
+      RestitutionThreshold: 0.5

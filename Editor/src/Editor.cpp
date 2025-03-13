@@ -304,6 +304,13 @@ namespace Hazel {
 				int pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
 				m_SelectedEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
 				m_Framebuffer->Unbind();
+
+
+				Renderer::GetCompositePassFramebuffer()->Bind();
+				pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
+				if(pixelVaule != -1)
+					m_SelectedEntity = Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
+				Renderer::GetCompositePassFramebuffer()->Unbind();
 			}
 
 			m_HierarchyPanel.SetSelectedEntity(m_SelectedEntity);
@@ -336,18 +343,24 @@ namespace Hazel {
 
 		switch (e.GetKeyCode())
 		{
-		case HZ_KEY_Q:
+		case Key::Q:
 			m_ImGuizmoMode = (ImGuizmo::OPERATION)-1;
 			break;
-		case HZ_KEY_W:
+		case Key::W:
 			m_ImGuizmoMode = ImGuizmo::OPERATION::TRANSLATE;
 			break;
-		case HZ_KEY_E:
+		case Key::E:
 			m_ImGuizmoMode = ImGuizmo::OPERATION::ROTATE;
 			break;
-		case HZ_KEY_R:
+		case Key::R:
 			m_ImGuizmoMode = ImGuizmo::OPERATION::SCALE;
 			break;
+		case Key::V:
+		{
+			if (Input::IsKeyPressed(Key::LeftControl)) {
+				DuplicateEntity();
+			}
+		}
 		}
 		return false;
 	}
@@ -621,6 +634,11 @@ namespace Hazel {
 
 		ImGui::End();
 		//Scene Setting End
+	}
+
+	void Editor::DuplicateEntity()
+	{
+		m_ActiveScene->DulpicateEntity(m_SelectedEntity);
 	}
 
 }

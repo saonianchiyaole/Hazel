@@ -16,6 +16,12 @@ namespace Hazel
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Test();
 
+       
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool Input_IsKeyDown(KeyCode keycode);
+
+        #region Transform
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_GetTranslation(ulong id, out Vector3 translation);
 
@@ -23,10 +29,13 @@ namespace Hazel
         internal extern static void TransformComponent_SetTranslation(ulong id, ref Vector3 translation);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool Input_IsKeyDown(KeyCode keycode);
+        internal extern static void TransformComponent_GetRotation(ulong id, out Vector3 rotation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TransformComponent_SetRotation(ulong id, ref Vector3 rotation);
 
 
-
+        #endregion
 
         #region Entity
         [MethodImplAttribute(MethodImplOptions.InternalCall)] 

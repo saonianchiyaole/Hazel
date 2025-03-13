@@ -49,7 +49,13 @@ namespace Hazel {
 
 		TransformComponent() {
 		}
-		TransformComponent(const TransformComponent& other) = default;
+		TransformComponent(const TransformComponent& other) {
+			transform = other.transform;
+			translate = other.translate;
+			rotation = other.rotation;
+			scale = other.scale;
+		
+		};
 		TransformComponent(const glm::mat4& value) : transform(value) {}
 		TransformComponent(const glm::vec3& translateVal, const glm::vec3& rotationVal, const glm::vec3& scaleVal)
 			: translate(translateVal), scale(scaleVal), rotation(rotationVal)
@@ -245,5 +251,10 @@ namespace Hazel {
 		CircleRendererComponent, CameraComponent, NativeScriptComponent, Rigidbody2DComponent,
 		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent, MaterialComponent,
 		AnimationComponent, SubMeshComponent>;
+
+	using AddComponentMenu = ComponentGroup<SpriteComponent,
+		CircleRendererComponent, CameraComponent, NativeScriptComponent, Rigidbody2DComponent,
+		BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent, MeshComponent, LightComponent, MaterialComponent,
+		AnimationComponent>;
 
 }

@@ -160,6 +160,7 @@ namespace Hazel {
 
 		std::string m_FilePath;
 
+
 		bool m_IsVisiable = true;
 		
 		bool m_IsAnimated = false;
