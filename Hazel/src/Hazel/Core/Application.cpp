@@ -14,11 +14,15 @@ namespace Hazel {
 
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application() {
+	Application::Application(std::string windowName) {
 		HZ_CORE_ASSERT(!s_Instance, "Application already exists");
 		s_Instance = this;
 
-		m_Window = Scope<Window>(Window::Create());
+
+		WindowProps props;
+		props.Title = windowName;
+
+		m_Window = Scope<Window>(Window::Create(props));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
 		Renderer::Init();
@@ -82,6 +86,8 @@ namespace Hazel {
 			if (e.m_Handled)
 				break;
 		}
+
+
 	}
 
 	void Application::Close()

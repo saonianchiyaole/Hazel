@@ -1,0 +1,11 @@
+Material: ""
+Shader: assets/Shaders/Standard.glsl
+Uniforms:
+  - u_UseAlbedoTex: false
+  - u_Albedo: [0, 0, 0, 0]
+  - u_UseNormalTex: false
+  - u_UseRoughnessTex: false
+  - u_Roughness: 0
+  - u_UseMetalnessTex: false
+  - u_Metalness: 0
+  - u_Test: [0, 0, 0, 0]

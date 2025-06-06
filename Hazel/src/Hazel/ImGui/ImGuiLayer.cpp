@@ -3,8 +3,13 @@
 
 #define IMGUI_IML_API
 
+
+#include "Hazel/Renderer/RendererAPI.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_vulkan.h"
+
+
 
 #include "Hazel/Core/Application.h"
 #include "Platform/Windows/WindowsWindow.h"
@@ -61,7 +66,16 @@ namespace Hazel {
     }
 
     void ImGuiLayer::Begin() {
-        ImGui_ImplOpenGL3_NewFrame();
+
+        switch (RendererAPI::GetAPI()) {
+        case RendererAPI::API::OpenGL:
+            ImGui_ImplOpenGL3_NewFrame();
+            break;
+        case RendererAPI::API::Vulkan:
+			//ImGui_ImplVulkan_NewFrame();
+            break;
+        }
+       
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
@@ -74,7 +88,14 @@ namespace Hazel {
         io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        switch(RendererAPI::GetAPI()) {
+        case RendererAPI::API::OpenGL:
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            break;
+        case RendererAPI::API::Vulkan:
+			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+            break;
+        }
 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* bacup_current_context = glfwGetCurrentContext();

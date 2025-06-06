@@ -14,7 +14,8 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLVertexArray>();
-
+		case RendererAPI::API::Vulkan:
+			return nullptr;
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;

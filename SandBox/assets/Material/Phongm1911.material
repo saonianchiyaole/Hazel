@@ -1,0 +1,8 @@
+Material: ""
+Shader: G:\Project\visualStudio\Hazel\Editor\assets\Shaders\Phong.glsl
+Uniforms:
+  - u_Normal: assets\m1911\m1911_normal.png
+  - u_Albedo: assets\m1911\m1911_color.png
+  - ambientFactor: 0.09
+  - diffuseFactor: 0.15
+  - specFactor: 0.71

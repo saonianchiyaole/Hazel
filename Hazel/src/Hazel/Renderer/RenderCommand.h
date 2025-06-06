@@ -44,6 +44,7 @@ namespace Hazel {
 		static void Clear() { s_RendererAPI->Clear(); }
 
 	private:
+		friend class Renderer;
 		static RendererAPI* s_RendererAPI;
 	};
 

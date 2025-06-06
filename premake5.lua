@@ -24,6 +24,7 @@ IncludeDir["ImGuizmo"] = "vendor/ImGuizmo"
 IncludeDir["box2d"] = "vendor/box2d/include"
 IncludeDir["mono"] = "vendor/mono/include"
 IncludeDir["assimp"] = "vendor/assimp/include"
+IncludeDir["vulkan"] = "vendor/vulkan/include"
 
 
 
@@ -49,7 +50,7 @@ Lib["Ucrt"] = "libucrt.lib"
 Lib["VCruntime"] = "libvcruntime.lib"
 Lib["assimpd"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc140-mtd.lib"
 Lib["assimp"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc140-mtd.lib"
-
+Lib["vulkan"] = "%{SolutionDir}/vendor/vulkan/vulkan-1.lib"
 
 
 include "vendor/GLFW"
@@ -98,7 +99,8 @@ project "Hazel"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.box2d}",
 		"%{IncludeDir.mono}",
-		"%{IncludeDir.assimp}"
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.vulkan}",
 	}
 
 	libdirs
@@ -192,17 +194,33 @@ project "SandBox"
 
 	includedirs
 	{
+		"$(SolutionDir)Editor/src",
 		"$(SolutionDir)vendor/spdlog/include",
 		"$(SolutionDir)Hazel/src/",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.GLFW}",
 		"$(SolutionDir)vendor/imgui",
-		"$(SolutionDir)vendor/GLAD/include"
+		"$(SolutionDir)vendor/GLAD/include",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.yaml}",
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.box2d}",
+		"%{IncludeDir.mono}",
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.vulkan}",
 	}
 
 
 	links
 	{
-		"Hazel"
+		"Hazel",
+		"%{Lib.mono}",
+		"%{Lib.WinSock}",
+		"%{Lib.WinMM}",
+		"%{Lib.WinVersion}",
+		"%{Lib.BCrypt}",
+		"%{Lib.vulkan}",
+		
 	}
 
 	filter "system:windows"
@@ -273,6 +291,7 @@ project "Editor"
 			"%{Lib.WinMM}",
 			"%{Lib.WinVersion}",
 			"%{Lib.BCrypt}",
+			"%{Lib.vulkan}",			
 		}
 		
 		filter "system:windows"

@@ -2,6 +2,8 @@
 
 #include "Hazel/Renderer/Renderer.h"
 #include "Hazel/Renderer/Renderer2D.h"
+#include "Hazel/Renderer/RenderCommand.h"
+
 
 #include "Hazel/Core/Application.h"
 #include "Platform/OpenGL/OpenGLShader.h"
@@ -12,6 +14,10 @@
 #include "Hazel/Renderer/VertexArray.h"
 #include "Hazel/Renderer/Environment.h"
 #include "Hazel/Renderer/Framebuffer.h"
+#include "Platform/OpenGL/OpenGLRendererAPI.h"
+#include "Platform/Vulkan/VulkanRendererAPI.h"
+
+
 
 namespace Hazel {
 
@@ -72,6 +78,16 @@ namespace Hazel {
 	void Renderer::Init() {
 		RenderCommand::Init();
 		Renderer2D::Init();
+
+
+		switch (RendererAPI::GetAPI()) {
+		case RendererAPI::API::OpenGL:
+			RenderCommand::s_RendererAPI = new OpenGLRendererAPI();
+		case RendererAPI::API::Vulkan:
+			RenderCommand::s_RendererAPI = new VulkanRendererAPI();
+		}
+		
+
 
 		s_SceneData->textureSlotIndex = 0;
 

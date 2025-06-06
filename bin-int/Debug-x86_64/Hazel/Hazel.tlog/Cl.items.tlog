@@ -58,6 +58,8 @@ G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLShader.cpp;G:\Proj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLShaderUniform.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLShaderUniform.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLTexture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLTexture.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLVertexArray.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLVertexArray.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\VulkanContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VulkanContext.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\VulkanRendererAPI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VulkanRendererAPI.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Windows\WindowsInput.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\WindowsInput.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Windows\WindowsUtils.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\WindowsUtils.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Windows\WindowsWindow.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\WindowsWindow.obj

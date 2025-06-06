@@ -1,0 +1,7 @@
+Material: ""
+Shader: assets/Shaders/Standard.glsl
+Uniforms:
+  - u_AlbedoTex: assets\m1911\m1911_color.png
+  - u_MetalnessTex: assets\m1911\m1911_metalness.png
+  - u_NormalTex: assets\m1911\m1911_normal.png
+  - u_RoughnessTex: assets\m1911\m1911_roughness.png

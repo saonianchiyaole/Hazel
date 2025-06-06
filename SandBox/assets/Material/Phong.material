@@ -1,0 +1,10 @@
+Material: ""
+Shader: G:\Project\visualStudio\Hazel\Editor\assets\Shaders\Phong.glsl
+Uniforms:
+  - light.position: [0, 0, 0, 0]
+  - light.direction: [0, 0, 0, 0]
+  - light.color: [0, 0, 0, 0]
+  - u_Albedo: [1, 1, 1, 1]
+  - ambientFactor: 0.08
+  - diffuseFactor: 0.26
+  - specFactor: 0.761

@@ -14,7 +14,7 @@ namespace Hazel {
 	{
 
 	public :
-		Application();
+		Application(std::string windowName = "Hazel Engine");
 		virtual ~Application();
 
 		void Run();

@@ -19,6 +19,7 @@ namespace Hazel {
 
 		std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
 		std::vector<Layer*>::iterator end() { return m_Layers.end(); }
+
 		int GetLayerStackSize() { return m_Layers.size(); }
 	private:
 		std::vector<Layer*> m_Layers;

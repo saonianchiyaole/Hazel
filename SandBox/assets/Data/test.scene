@@ -1,0 +1,13 @@
+Scene: Untitled
+Entities:
+  - Entity: 5826916247951463428
+    TagComponent:
+      Tag: Empty
+    TransformComponent:
+      Translate: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      FilePath: G:\Project\visualStudio\Hazel\Editor\assets\Model\Sphere1m.fbx
+    MaterialComponent:
+      Path: ""

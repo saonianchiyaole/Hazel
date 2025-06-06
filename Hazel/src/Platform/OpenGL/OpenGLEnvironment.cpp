@@ -31,7 +31,6 @@ namespace Hazel {
 		const uint32_t BRDFLUTSize = 512;
 
 		Ref<TextureCube> envUnfiltered = TextureCube::Create(TextureFormat::Float16, cubemapSize, cubemapSize);
-		m_EnvFiltered = TextureCube::Create(TextureFormat::Float16, cubemapSize, cubemapSize);
 
 		{
 			envEquirect->Bind();
