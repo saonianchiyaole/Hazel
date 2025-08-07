@@ -18,9 +18,10 @@ namespace Hazel {
 
 	enum class TextureFormat {
 		None,
-		RG,
-		RGB,
-		RGBA,
+		R,   //R8
+		RG,  //R8G8
+		RGB, //R8G8B8
+		RGBA, //R8G8B8A8
 		Float16
 	};
 

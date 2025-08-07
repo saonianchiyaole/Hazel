@@ -2,6 +2,7 @@
 
 
 #include "Hazel/Utils/PlatformUtils.h"
+#include "Hazel/Core/Process.h"
 
 namespace Hazel {
 
@@ -11,6 +12,12 @@ namespace Hazel {
 		virtual std::string SaveFileInternal(const char* fileter) override;
 	};
 
+
+	class WindowsProcess : public Process {
+
+
+
+	};
 
 
 }

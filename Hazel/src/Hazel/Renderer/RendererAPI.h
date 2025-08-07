@@ -4,6 +4,12 @@
 
 namespace Hazel {
 
+	class CommandBuffer;
+	class RenderPass;
+	class VertexBuffer;
+	class IndexBuffer;
+	class Material;
+
 	class RendererAPI {
 	public:
 		enum class API {
@@ -19,14 +25,26 @@ namespace Hazel {
 
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) = 0;
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count) = 0;
-		
-		virtual void DrawElementsBaseVertex(uint32_t indexCount, uint32_t baseIndex, uint32_t baseVertex) = 0;
-
+				
 		virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) = 0;
 		virtual void SetLineWidth(float width) = 0;
 
 		virtual void SetDepthTest(bool value) = 0;
 		virtual void SetDepthMask(bool value) = 0;
+
+
+		// OpenGL Don't need this, just write empty functions in OpenGLRendererAPI
+		virtual void BeginFrame() = 0;
+		virtual void EndFrame() = 0;
+		virtual void DrawFrame() = 0;		
+		virtual void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex) = 0;
+		virtual void BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer) = 0;
+		virtual void EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
+		virtual void BindVertexArray(Ref<CommandBuffer> commandBuffer, Ref<VertexArray> vertexArray) = 0;
+		virtual void BindIndexBuffer(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) = 0;		
+		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, uint32_t count) = 0;
+
+		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material> material) = 0;
 
 		static 	API GetAPI() { return s_API; }
 

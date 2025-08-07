@@ -15,6 +15,7 @@ namespace Hazel {
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application(std::string windowName) {
+		
 		HZ_CORE_ASSERT(!s_Instance, "Application already exists");
 		s_Instance = this;
 
@@ -23,14 +24,15 @@ namespace Hazel {
 		props.Title = windowName;
 
 		m_Window = Scope<Window>(Window::Create(props));
+
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-		Renderer::Init();
-		ScriptEngine::Init();
+		//Renderer::Init();
+		//ScriptEngine::Init();
 
-		m_ImGuiLayer = new ImGuiLayer();
+		//m_ImGuiLayer = new ImGuiLayer();
 
-		PushLayer(m_ImGuiLayer);
+		//PushLayer(m_ImGuiLayer);
 	}
 
 	Application::~Application() {
@@ -38,6 +40,7 @@ namespace Hazel {
 	}
 
 	void Application::Run() {
+
 		while (m_Running) {
 
 			float time = (float)glfwGetTime();
@@ -48,12 +51,12 @@ namespace Hazel {
 				for (Layer* layer : m_LayerStack)
 					layer->OnUpdate(ts);
 
-			m_ImGuiLayer->Begin();
+			//m_ImGuiLayer->Begin();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnImGuiRender();
 
-			m_ImGuiLayer->End();
+			//m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
 

@@ -52,9 +52,15 @@ namespace Hazel {
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 	}
 
-	void OpenGLRendererAPI::DrawElementsBaseVertex(uint32_t indexCount, uint32_t baseIndex, uint32_t baseVertex)
+
+	void OpenGLRendererAPI::DrawIndexed(Ref<CommandBuffer> commandBuffer, uint32_t count)
 	{
-		glDrawElementsBaseVertex(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)baseIndex, baseVertex);
+
+	}
+
+	void OpenGLRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material>)
+	{
+
 	}
 
 	void OpenGLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
@@ -77,4 +83,46 @@ namespace Hazel {
 	{
 		glDepthMask(value);
 	}
+
+	void OpenGLRendererAPI::BeginFrame()
+	{
+
+	}
+
+	void OpenGLRendererAPI::EndFrame()
+	{
+
+	}
+
+	void OpenGLRendererAPI::DrawFrame()
+	{
+
+	}
+
+
+	void OpenGLRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex)
+	{
+
+	}
+
+	void OpenGLRendererAPI::BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer)
+	{
+
+	}
+
+	void OpenGLRendererAPI::EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+	{
+
+	}
+
+	void OpenGLRendererAPI::BindVertexArray(Ref<CommandBuffer> commandBuffer, Ref<VertexArray> vertexArray)
+	{
+
+	}
+
+	void OpenGLRendererAPI::BindIndexBuffer(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
+	{
+
+	}
+
 }

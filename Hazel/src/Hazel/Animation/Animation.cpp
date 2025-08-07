@@ -72,11 +72,7 @@ namespace Hazel {
 	{
 		return MakeRef<Animation>(mesh);
 	}
-
-	Ref<Animation> Animation::Create()
-	{
-		return MakeRef<Animation>();
-	}
+	
 
 	void Animation::ReadMissingBone(const aiAnimation* animation)
 	{

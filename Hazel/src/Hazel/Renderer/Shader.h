@@ -16,10 +16,27 @@ namespace Hazel {
 	}
 
 	enum class ShaderType {
-		Null = 0,
+		None = 0,
 		VertexShader, FragmentShader,
 		ComputeShader, VertAndFragShader
 	};
+
+	enum class DescriptorType {
+		Sampler, UniformBuffer, StorageBuffer
+	};
+
+
+	struct ShaderReflectionData {
+		std::string name;
+		DescriptorType type;
+		uint32_t binding;
+		uint32_t descriptorSet;
+		uint32_t size;
+		uint32_t offset = 0;
+		uint32_t arraySize = 0;
+		ShaderType stage;
+	};
+
 
 
 	class Material;
@@ -39,13 +56,13 @@ namespace Hazel {
 
 		virtual bool Reload() = 0;
 
-		virtual const void SetInt(const std::string& name, const int val) = 0;
-		virtual const void SetFloat(const std::string& name, const float val) = 0;
-		virtual const void SetFloat2(const std::string& name, const glm::vec2& val) = 0;
-		virtual const void SetFloat3(const std::string& name, const glm::vec3& val) = 0;
-		virtual const void SetFloat4(const std::string& name, const glm::vec4& val) = 0;
-		virtual const void SetMat3(const std::string& name, const glm::mat3& val) = 0;
-		virtual const void SetMat4(const std::string& name, const glm::mat4& val) = 0;
+		virtual const void SetInt		(const std::string& name, const int val)		= 0;
+		virtual const void SetFloat		(const std::string& name, const float val)		= 0;
+		virtual const void SetFloat2	(const std::string& name, const glm::vec2& val) = 0;
+		virtual const void SetFloat3	(const std::string& name, const glm::vec3& val) = 0;
+		virtual const void SetFloat4	(const std::string& name, const glm::vec4& val) = 0;
+		virtual const void SetMat3		(const std::string& name, const glm::mat3& val)	= 0;
+		virtual const void SetMat4		(const std::string& name, const glm::mat4& val)	= 0;
 
 		virtual const void SetIntArray(const std::string& name, const int* val, const uint32_t count) = 0;
 
@@ -64,9 +81,10 @@ namespace Hazel {
 		static Ref<Shader> Create(const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& filepath);
+
 	protected:
-		void AddAssocitaedMaterial(Material* material);
-		void DeleteAssocitaedMaterial(Material* material);
+		void AddAssociatedMaterial(Material* material);
+		void RemoveAssociatedMaterial(Material* material);
 
 		std::string m_Name;
 		std::string m_Path;

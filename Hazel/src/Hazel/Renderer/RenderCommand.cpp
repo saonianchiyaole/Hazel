@@ -3,9 +3,10 @@
 
 #include "Hazel/Renderer/RendererAPI.h"
 #include "Platform/OpenGL/OpenGLRendererAPI.h"
+#include "Platform/Vulkan/VulkanRendererAPI.h"
 
 namespace Hazel {
-
-	RendererAPI* RenderCommand::s_RendererAPI = new OpenGLRendererAPI();
+	
+	Scope<RendererAPI> RenderCommand::s_RendererAPI = nullptr;
 
 }

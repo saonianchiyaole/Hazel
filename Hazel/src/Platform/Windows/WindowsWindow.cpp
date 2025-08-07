@@ -6,6 +6,11 @@
 #include "Hazel/Event/ApplicationEvent.h"
 #include "Hazel/Event/KeyEvent.h"
 #include "Hazel/Event/MouseEvent.h"
+#include "Hazel/Renderer/GraphicsContext.h"
+
+#include "Hazel/Renderer/RendererAPI.h"
+#include "Platform/Vulkan/VulkanSwapchain.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 #include "Platform/OpenGL/OpenGLContext.h"
 
@@ -51,12 +56,28 @@ namespace Hazel {
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		
 		//m_Context = new OpenGLContext();
-		m_Context = new OpenGLContext(m_Window);
-		m_Context->Init();
+		
+
+		// physical device need surface to select the correct one.
+		// but surface is created in swapchain , so we need to create swapchain first.
+		// and transfer the surface to context.
+
+		m_Context = GraphicsContext::Create(m_Window);	
+		Ref<VulkanContext> vulkanContext = std::dynamic_pointer_cast<VulkanContext>(m_Context);
+		vulkanContext->Init();
+
+		m_Swapchain = MakeRef<VulkanSwapchain>();
+
+		if (vulkanContext) {
+			m_Swapchain->Init(vulkanContext->GetDevice());
+			m_Swapchain->InitializeSurface(VulkanContext::GetVulkanInstance(), m_Window);
+			m_Swapchain->Create(m_Data.Width, m_Data.Height, m_Data.VSync);
+			vulkanContext->SetSwapchain(m_Swapchain);
+		}
 		
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		SetVSync(true);
+		//SetVSync(true);
 
 
 
@@ -157,8 +178,11 @@ namespace Hazel {
 	}
 
 	void WindowsWindow::OnUpdate() {
+
 		glfwPollEvents();
+
 		m_Context->Swapbuffers();
+
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) {

@@ -1,24 +1,37 @@
 #include "hzpch.h"
 #include "RenderPass.h"
 
+#include "Hazel/Renderer/RendererAPI.h"
+
+#include "Platform/Vulkan/VulkanRenderPass.h"
+
 namespace Hazel {
 
 
 
-	RenderPass::RenderPass(RenderPassSpec spec)
+	RenderPass::RenderPass(RenderPassSpecification spec)
 		: m_Specification(spec)
 	{
 	}
 
-	RenderPassSpec Hazel::RenderPass::GetSpecification()
+	RenderPassSpecification& RenderPass::GetSpecification()
 	{
 		return m_Specification;
 	}
 
-	Ref<RenderPass> RenderPass::Create(RenderPassSpec spec)
+	Ref<RenderPass> RenderPass::Create(const RenderPassSpecification& spec)
 	{
-		Ref<RenderPass> renderPass = MakeRef<RenderPass>(spec);
-		return renderPass;
+
+		switch (RendererAPI::GetAPI()) {
+
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanRenderPass>(spec);
+		case RendererAPI::API::OpenGL:
+			return MakeRef<RenderPass>(spec);
+		case RendererAPI::API::None:
+			HZ_CORE_ASSERT(false, "Invalid Renderer API!");
+		}
+		
 	}
 
 }

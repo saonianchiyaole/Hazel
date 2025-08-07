@@ -5,7 +5,11 @@
 #include "Hazel/Core/Core.h"
 #include "Hazel/Event/Event.h"
 
+
 namespace Hazel {
+
+
+	class GraphicsContext;
 
 	struct WindowProps
 	{
@@ -35,6 +39,7 @@ namespace Hazel {
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
+		virtual Ref<GraphicsContext> GetGraphicsContext() = 0;
 
 		virtual void* GetNativeWindow() const = 0;
 

@@ -22,7 +22,7 @@
 namespace Hazel {
 
 	Renderer::SceneData* Renderer::s_SceneData = new Renderer::SceneData;
-
+	uint32_t Renderer::s_FrameInFlight = 3;
 
 	float skyboxVertices[] = {
 		// Positions         
@@ -76,18 +76,9 @@ namespace Hazel {
 
 
 	void Renderer::Init() {
+
 		RenderCommand::Init();
 		Renderer2D::Init();
-
-
-		switch (RendererAPI::GetAPI()) {
-		case RendererAPI::API::OpenGL:
-			RenderCommand::s_RendererAPI = new OpenGLRendererAPI();
-		case RendererAPI::API::Vulkan:
-			RenderCommand::s_RendererAPI = new VulkanRendererAPI();
-		}
-		
-
 
 		s_SceneData->textureSlotIndex = 0;
 
@@ -166,7 +157,7 @@ namespace Hazel {
 			geometryFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 			geometryFramebufferSpec.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			Ref<Framebuffer> geometryTargetFramebuffer = Framebuffer::Create(geometryFramebufferSpec);
-			RenderPassSpec geometryPassSpec;
+			RenderPassSpecification geometryPassSpec;
 			geometryPassSpec.targetFrameBuffer = geometryTargetFramebuffer;
 			s_SceneData->geometryPass = RenderPass::Create(geometryPassSpec);
 		}
@@ -178,7 +169,7 @@ namespace Hazel {
 			compositeFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
 			compositeFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER};
 			Ref<Framebuffer> compositeTargetFramebuffer = Framebuffer::Create(compositeFramebufferSpec);
-			RenderPassSpec compositePassSpec;
+			RenderPassSpecification compositePassSpec;
 			compositePassSpec.targetFrameBuffer = compositeTargetFramebuffer;
 			s_SceneData->compositePass = RenderPass::Create(compositePassSpec);
 
@@ -492,6 +483,11 @@ namespace Hazel {
 	Ref<Texture2D> Renderer::GetDefaultBlackQuadTexture()
 	{
 		return s_SceneData->blackQuadTexture;
+	}
+
+	uint32_t Renderer::GetFrameInFlight()
+	{
+		return s_FrameInFlight;
 	}
 
 	uint8_t Renderer::AllocateSlot()

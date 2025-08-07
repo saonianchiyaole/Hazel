@@ -6,6 +6,8 @@ struct GLFWwindow;
 
 namespace Hazel {
 
+	
+
 	class HAZEL_API OpenGLContext : public GraphicsContext {
 	public:
 

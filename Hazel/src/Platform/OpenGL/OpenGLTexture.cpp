@@ -72,7 +72,7 @@ namespace Hazel {
 
 			m_InternalFormat = GL_RGB8;
 			m_DataFormat = GL_RGB;
-			m_DataType = GL_UNSIGNED_BYTE;
+			m_DataType = GL_UNSIGNED_BYTE;			
 
 		}
 		else if (channels == 3 && m_IsHDR) {

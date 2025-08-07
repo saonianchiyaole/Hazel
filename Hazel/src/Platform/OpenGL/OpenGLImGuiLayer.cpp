@@ -1,0 +1,100 @@
+#include "hzpch.h"
+
+
+#include "Platform/OpenGL/OpenGLImGuiLayer.h"
+
+
+#define IMGUI_IML_API
+
+
+#include "Hazel/Renderer/RendererAPI.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_vulkan.h"
+
+
+
+#include "Hazel/Core/Application.h"
+#include "Platform/Windows/WindowsWindow.h"
+
+#include "imgui.h"
+
+#include "ImGuizmo.h"
+
+namespace Hazel {
+
+
+	void OpenGLImGuiLayer::OnAttach() {
+
+        //Setup Dear ImGui context
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;           // Enable viewport
+
+        ImGui::StyleColorsDark();
+        ImGuiStyle& style = ImGui::GetStyle();
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            style.WindowRounding = 0.0f;
+            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        }
+
+        Application& app = Application::GetInstance();
+        GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+
+        //setup platform/renderer bindings
+
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 410");
+
+        SetDarkTheme();
+
+	}
+
+	void OpenGLImGuiLayer::OnDetach() {
+
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+
+
+	}
+
+	void OpenGLImGuiLayer::OnImGuiRender() {
+
+	}
+
+	void OpenGLImGuiLayer::Begin() {
+
+		ImGui_ImplOpenGL3_NewFrame();
+
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
+
+	}
+
+
+	void OpenGLImGuiLayer::End() {
+
+		ImGuiIO& io = ImGui::GetIO();
+		Application& app = Application::GetInstance();
+		io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+			GLFWwindow* bacup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(bacup_current_context);
+		}
+
+	}
+
+
+}

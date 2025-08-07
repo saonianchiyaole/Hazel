@@ -3,10 +3,13 @@
 #include "Hazel/Core/Window.h"
 #include "GLFW/glfw3.h"
 
-#include "Hazel/Renderer/GraphicsContext.h"
+
+
 
 namespace Hazel {
 
+	class GraphicsContext;
+	class VulkanSwapchain;
 
 	class WindowsWindow : public Window {
 	public:
@@ -25,13 +28,19 @@ namespace Hazel {
 
 		inline virtual void* GetNativeWindow() const { return m_Window; }
 
+		virtual Ref<GraphicsContext> GetGraphicsContext() override { return m_Context; }
+
+
 		GLFWwindow& GetGLFWWindow() { return *m_Window; }
 	private:
 		virtual void Init(const WindowProps& props);
 		virtual void Shutdown();
 	private:
 		GLFWwindow* m_Window;
-		GraphicsContext* m_Context;
+		Ref<GraphicsContext> m_Context = nullptr;
+
+		Ref<VulkanSwapchain> m_Swapchain = nullptr;
+		
 
 		struct WindowData
 		{

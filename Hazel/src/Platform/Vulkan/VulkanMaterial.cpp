@@ -1,0 +1,133 @@
+#include "hzpch.h"
+
+#include "Platform/Vulkan/VulkanMaterial.h"
+#include "Platform/Vulkan/VulkanShader.h"
+#include "Platform/Vulkan/VulkanContext.h"
+#include "Platform/Vulkan/VulkanDevice.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
+#include "Hazel/Renderer/Renderer.h"
+
+
+namespace Hazel {
+
+
+
+	VulkanMaterial::VulkanMaterial(Ref<Shader> shader) {
+
+
+		m_UniformBuffers.clear();
+		m_WriteDescriptors.clear();
+
+		m_DescriptorSets.clear();		
+
+		m_Shader = shader;
+		Ref<VulkanShader> vulkanShader = std::dynamic_pointer_cast<VulkanShader>(m_Shader);
+		m_VulkanShader = vulkanShader;
+
+		HZ_CORE_ASSERT(vulkanShader != nullptr, "Invalid shader, need correct vulkan shader");
+
+
+		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
+
+		// Create Descriptor Pool
+		VkDescriptorPoolSize poolSizes[] =
+		{
+			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+		};
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		poolInfo.maxSets = 10 * 3; // frames in flight should partially determine this
+		poolInfo.poolSizeCount = 10;
+		poolInfo.pPoolSizes = poolSizes;
+
+		HZ_CORE_ASSERT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool) == VK_SUCCESS, "Failed to create descriptor pool!");
+
+
+		const std::vector<std::vector<ShaderReflectionData>>& reflectionData = vulkanShader->GetReflectionData();
+		const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts = vulkanShader->GetDescriptorSetLayouts();
+
+		uint32_t frameInFlight = Renderer::GetFrameInFlight();
+		
+		for (int i = 0; i < frameInFlight; i++) {
+
+			m_DescriptorSets.emplace_back();
+					
+		}
+
+		for (uint32_t set = 0; set < reflectionData.size(); set++) {
+
+			for (uint32_t frameIndex = 0; frameIndex < frameInFlight; frameIndex++) {
+				
+
+				VkDescriptorSetAllocateInfo allocInfo{};
+				allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+				allocInfo.descriptorPool = m_DescriptorPool;
+				allocInfo.descriptorSetCount = 1;
+				allocInfo.pSetLayouts = &descriptorSetLayouts[set];
+
+				m_DescriptorSets[frameIndex].emplace_back();
+
+				VkDescriptorSet& descriptorSet = m_DescriptorSets[frameIndex][set];				
+
+				HZ_CORE_ASSERT(vkAllocateDescriptorSets(device, &allocInfo, &m_DescriptorSets[frameIndex][set]) == VK_SUCCESS, "Failed to allocate descriptorSets");
+
+				m_WriteDescriptors.emplace_back();
+				m_UniformBuffers.emplace_back();
+
+				for (uint32_t binding = 0; binding < reflectionData[set].size(); binding++) {
+
+					const ShaderReflectionData& data = reflectionData[set][binding];
+										
+					m_WriteDescriptors[frameIndex][set][binding] = VkWriteDescriptorSet{};
+
+					VkWriteDescriptorSet& writeDesciptor = m_WriteDescriptors[frameIndex][set][binding];
+					writeDesciptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					writeDesciptor.dstSet = m_DescriptorSets[frameIndex][set];
+					writeDesciptor.dstBinding = binding;
+					writeDesciptor.dstArrayElement = 0;
+					writeDesciptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					writeDesciptor.descriptorCount = 1;					
+					writeDesciptor.pImageInfo = nullptr;
+					writeDesciptor.pTexelBufferView = nullptr;
+
+					switch (data.type) {
+					case DescriptorType::UniformBuffer:
+					{
+						m_UniformBuffers[frameIndex][set][binding] = MakeRef<VulkanUniformBuffer>(data.size, binding);						
+						writeDesciptor.pBufferInfo = &m_UniformBuffers[frameIndex].at(set).at(binding)->GetDescriptorBufferInfo();
+						break;
+					}
+					case DescriptorType::StorageBuffer:
+						break;
+					case DescriptorType::Sampler:
+
+						break;
+					}
+
+					vkUpdateDescriptorSets(device, 1, &writeDesciptor, 0, nullptr);
+				}
+
+			}
+
+		}
+	}
+
+
+	
+
+}
+
+
+

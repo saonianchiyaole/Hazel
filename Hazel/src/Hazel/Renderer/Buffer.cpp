@@ -5,6 +5,7 @@
 #include "Platform/OpenGL/OpenGLBuffer.h"
 #include "Hazel/Renderer/RendererAPI.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
 
 namespace Hazel {
 	
@@ -96,6 +97,9 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLIndexBuffer>(indices, count);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanIndexBuffer>(indices, count);
+			break;
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
@@ -109,6 +113,9 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLIndexBuffer>(indices, count);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanIndexBuffer>(indices, count);
+			break;
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

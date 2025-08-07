@@ -8,7 +8,7 @@
 
 namespace Hazel {
 
-	class Material : public Asset{
+	class Material : public Asset {
 	public:
 		friend class MaterialSerializer;
 		friend class Mesh;
@@ -86,7 +86,7 @@ namespace Hazel {
 			if (m_Data.find(name) == m_Data.end())
 				return;
 
-		
+
 			for (const auto& uniform : m_Shader->GetUniforms()) {
 				if (uniform->GetName() == name && Utils::isDataFormatCorrect<Texture2D>(uniform->GetType()))
 				{
@@ -107,7 +107,7 @@ namespace Hazel {
 		}
 
 
-		void Submit();
+		virtual void Submit();
 
 		Ref<Shader> GetShader();
 		std::string GetName();
@@ -125,13 +125,13 @@ namespace Hazel {
 
 		static Ref<Material> Create(std::filesystem::path filepath);
 		static Ref<Material> Create();
-		
+
 
 	private:
 
 		void FreeMemory();
 
-	private:
+	protected:
 
 		std::string m_Name = "Main";
 		Ref<Shader> m_Shader;
@@ -145,7 +145,7 @@ namespace Hazel {
 		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
 		//std::unordered_map<std::string, void*> m_Data;
 
-		std::unordered_map<std::string, Buffer> m_Data;
+		std::unordered_map<std::string, Buffer> m_Data;	
 
 		friend class MaterialSerializer;
 		bool m_IsFromMesh = false;
@@ -153,7 +153,7 @@ namespace Hazel {
 
 	class MaterialTable {
 	public:
-		
+
 	private:
 	};
 

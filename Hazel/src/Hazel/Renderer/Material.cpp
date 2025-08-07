@@ -19,7 +19,7 @@ namespace Hazel {
 	{
 		//FreeMemory();
 
-		m_Shader->DeleteAssocitaedMaterial(this);
+		m_Shader->RemoveAssociatedMaterial(this);
 	}
 
 	void Material::FreeMemory()
@@ -102,7 +102,7 @@ namespace Hazel {
 				}
 			}
 
-			shader->AddAssocitaedMaterial(this);
+			shader->AddAssociatedMaterial(this);
 
 			m_Flag = shader->GetFlag();
 		}

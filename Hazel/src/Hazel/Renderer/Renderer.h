@@ -82,6 +82,8 @@ namespace Hazel {
 		static Ref<Texture2D> GetDefaultBlackQuadTexture();
 
 
+		static uint32_t GetFrameInFlight();
+
 		static uint8_t AllocateSlot();
 		static uint8_t GetUsedTextureSlotAmount();
 	private:
@@ -127,6 +129,9 @@ namespace Hazel {
 		};
 
 		static SceneData* s_SceneData;
+
+		static uint32_t s_FrameInFlight;
+
 	};
 
 }

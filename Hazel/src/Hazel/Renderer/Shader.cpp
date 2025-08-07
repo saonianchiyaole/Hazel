@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Hazel/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLShader.h"
+#include "Platform/Vulkan/VulkanShader.h"
 
 namespace Hazel {
 	
@@ -72,18 +73,19 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLShader>(filepath);
-
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanShader>(filepath);
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;
 	}
 
-	void Shader::AddAssocitaedMaterial(Material* material)
+	void Shader::AddAssociatedMaterial(Material* material)
 	{
 		this->m_AssociatedMaterials.insert(material);
 	}
 
-	void Shader::DeleteAssocitaedMaterial(Material* material)
+	void Shader::RemoveAssociatedMaterial(Material* material)
 	{
 		if (m_AssociatedMaterials.find(material) != m_AssociatedMaterials.end()) {
 			m_AssociatedMaterials.erase(material);

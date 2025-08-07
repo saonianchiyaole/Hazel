@@ -53,6 +53,7 @@ namespace Hazel {
         GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
         //setup platform/renderer bindings
+
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 410");
 
@@ -67,14 +68,7 @@ namespace Hazel {
 
     void ImGuiLayer::Begin() {
 
-        switch (RendererAPI::GetAPI()) {
-        case RendererAPI::API::OpenGL:
-            ImGui_ImplOpenGL3_NewFrame();
-            break;
-        case RendererAPI::API::Vulkan:
-			//ImGui_ImplVulkan_NewFrame();
-            break;
-        }
+        ImGui_ImplOpenGL3_NewFrame();
        
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -88,14 +82,7 @@ namespace Hazel {
         io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());
 
         ImGui::Render();
-        switch(RendererAPI::GetAPI()) {
-        case RendererAPI::API::OpenGL:
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            break;
-        case RendererAPI::API::Vulkan:
-			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
-            break;
-        }
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* bacup_current_context = glfwGetCurrentContext();

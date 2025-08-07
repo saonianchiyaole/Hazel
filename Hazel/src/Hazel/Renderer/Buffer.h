@@ -9,7 +9,7 @@ namespace Hazel {
 		Mat3, Mat4,
 		Int, Int2, Int3, Int4,
 		Bool,
-		Sampler2D, SamplerCube
+		Sampler2D, SamplerCube,		
 	};
 
 
@@ -97,13 +97,17 @@ namespace Hazel {
 
 		virtual void SetData(const void* data, const uint32_t size) = 0;
 
-		virtual void SetLayout(const BufferLayout& layout) = 0;
-		virtual const BufferLayout& GetLayout() const = 0;
+		virtual void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
+		virtual const BufferLayout& GetLayout() const { return m_Layout; }
 
 		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(void* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);
 
+
+	protected:
+
+		BufferLayout m_Layout;
 	};
 
 	class IndexBuffer {
@@ -123,7 +127,7 @@ namespace Hazel {
 	public:
 		virtual ~UniformBuffer() = default;
 		
-		virtual void SetData(const void* data, uint32_t size, uint32_t offset) = 0;
+		virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
 		static Ref<UniformBuffer> Create(uint32_t size, uint32_t binding);
 	};
 

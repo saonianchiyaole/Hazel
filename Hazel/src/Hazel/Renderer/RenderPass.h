@@ -2,26 +2,36 @@
 
 #include "Hazel/Core/Core.h"
 
+
+
+
 namespace Hazel {
-	
+
+	class Pipeline;
 
 	class Framebuffer;
 
-	struct RenderPassSpec {
-		Ref<Framebuffer> targetFrameBuffer;
+	struct RenderPassSpecification {
+		Ref<Framebuffer> targetFrameBuffer = nullptr;
+		Ref<Pipeline> pipeline = nullptr;
+
 	};
 
 
 	class RenderPass {
 	public:
 		RenderPass() = default;
-		RenderPass(RenderPassSpec spec);
+		virtual ~RenderPass() = default;
+		RenderPass(RenderPassSpecification spec);
 
-		virtual RenderPassSpec GetSpecification();
+		virtual RenderPassSpecification& GetSpecification();
 
-		static Ref<RenderPass> Create(RenderPassSpec spec);
-	private:
-		RenderPassSpec m_Specification;
+		static Ref<RenderPass> Create(const RenderPassSpecification& spec);
+
+
+	protected:
+
+		RenderPassSpecification m_Specification;
 	};
 
 }

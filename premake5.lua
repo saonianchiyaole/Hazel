@@ -25,7 +25,8 @@ IncludeDir["box2d"] = "vendor/box2d/include"
 IncludeDir["mono"] = "vendor/mono/include"
 IncludeDir["assimp"] = "vendor/assimp/include"
 IncludeDir["vulkan"] = "vendor/vulkan/include"
-
+IncludeDir["spirv"] = "vendor/spirv/include"
+IncludeDir["shaderc"] = "vendor/shaderc/include"
 
 
 
@@ -51,6 +52,24 @@ Lib["VCruntime"] = "libvcruntime.lib"
 Lib["assimpd"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc140-mtd.lib"
 Lib["assimp"] = "%{SolutionDir}/vendor/assimp/lib/Debug/assimp-vc140-mtd.lib"
 Lib["vulkan"] = "%{SolutionDir}/vendor/vulkan/vulkan-1.lib"
+Lib["shaderc"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc.lib"
+Lib["shaderc_combined"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc_combined.lib"
+Lib["shaderc_shared"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc_shared.lib"
+Lib["shaderc_util"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc_util.lib"
+
+Lib["shadercd"] = "%{SolutionDir}/vendor/shaderc/lib/shadercd.lib"
+Lib["shaderc_combinedd"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc_combinedd.lib"
+Lib["shaderc_sharedd"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc_sharedd.lib"
+Lib["shaderc_utild"] = "%{SolutionDir}/vendor/shaderc/lib/shaderc_utild.lib"
+
+Lib["spirv_cross_cored"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-cored.lib"
+Lib["spirv_cross_cppd"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-cppd.lib"
+Lib["spirv_cross_c_sharedd"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-c-sharedd.lib"
+Lib["spirv_cross_glsld"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-glsld.lib"
+Lib["spirv_cross_hlsld"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-hlsld.lib"
+Lib["spirv_cross_msld"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-msld.lib"
+Lib["spirv_cross_reflectd"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-reflectd.lib"
+Lib["spirv_cross_utild"] = "%{SolutionDir}/vendor/spirv/lib/spirv-cross-utild.lib"
 
 
 include "vendor/GLFW"
@@ -101,6 +120,8 @@ project "Hazel"
 		"%{IncludeDir.mono}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.vulkan}",
+		"%{IncludeDir.spirv}",		
+		"%{IncludeDir.shaderc}",
 	}
 
 	libdirs
@@ -123,7 +144,7 @@ project "Hazel"
 	flags { "NoPCH" }
 
 	filter "system:windows"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 
 		links
@@ -208,6 +229,8 @@ project "SandBox"
 		"%{IncludeDir.mono}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.vulkan}",
+		"%{IncludeDir.spirv}",
+		"%{IncludeDir.shaderc}",
 	}
 
 
@@ -221,10 +244,11 @@ project "SandBox"
 		"%{Lib.BCrypt}",
 		"%{Lib.vulkan}",
 		
+		
 	}
 
 	filter "system:windows"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 
 		defines
@@ -238,8 +262,33 @@ project "SandBox"
 		runtime "Debug"
 		symbols "on"
 
+		links{
+			"%{Lib.shadercd}",
+			"%{Lib.shaderc_utild}",		
+			"%{Lib.shaderc_sharedd}",
+			"%{Lib.shaderc_combinedd}",		
+					
+			"%{Lib.spirv_cross_cored}",
+			"%{Lib.spirv_cross_cppd}",
+			"%{Lib.spirv_cross_c_sharedd}",
+			"%{Lib.spirv_cross_glsld}",
+			"%{Lib.spirv_cross_hlsld}",
+			"%{Lib.spirv_cross_msld}",
+			"%{Lib.spirv_cross_reflectd}",
+			"%{Lib.spirv_cross_utild}",
+		}
+
 	filter "configurations:Release"
 		defines "HZ_RELEASE"
+
+		links{
+			"%{Lib.shaderc}",
+			"%{Lib.shaderc_util}",
+			"%{Lib.shaderc_shared}",
+			"%{Lib.shaderc_combined}",
+			
+		}
+
 		runtime "Release"
 		optimize "on"
 
@@ -295,7 +344,7 @@ project "Editor"
 		}
 		
 		filter "system:windows"
-			staticruntime "On"
+			staticruntime "Off"
 			systemversion "latest"
 	
 			defines

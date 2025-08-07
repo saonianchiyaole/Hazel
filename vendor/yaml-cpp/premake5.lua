@@ -1,6 +1,6 @@
 project "yaml-cpp"
 	kind "StaticLib"
-	language "C++"
+	language "C++"	
 
 	targetdir ("bin/" .. outputDir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputDir .. "/%{prj.name}")
@@ -20,7 +20,7 @@ project "yaml-cpp"
 	filter "system:windows"
 		systemversion "latest"
         cppdialect "C++17"
-        staticruntime "On"
+        staticruntime "Off"
 
         defines{
             "YAML_CPP_STATIC_DEFINE",
