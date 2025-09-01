@@ -9,6 +9,7 @@ namespace Hazel {
 	class VertexBuffer;
 	class IndexBuffer;
 	class Material;
+	class Pipeline;
 
 	class RendererAPI {
 	public:
@@ -37,14 +38,14 @@ namespace Hazel {
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 		virtual void DrawFrame() = 0;		
-		virtual void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex) = 0;
+		virtual void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
 		virtual void BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer) = 0;
 		virtual void EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
 		virtual void BindVertexArray(Ref<CommandBuffer> commandBuffer, Ref<VertexArray> vertexArray) = 0;
 		virtual void BindIndexBuffer(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) = 0;		
 		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, uint32_t count) = 0;
 
-		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material> material) = 0;
+		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material) = 0;
 
 		static 	API GetAPI() { return s_API; }
 

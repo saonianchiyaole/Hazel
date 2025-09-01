@@ -237,6 +237,7 @@ project "SandBox"
 	links
 	{
 		"Hazel",
+		"imgui",
 		"%{Lib.mono}",
 		"%{Lib.WinSock}",
 		"%{Lib.WinMM}",

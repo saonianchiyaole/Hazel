@@ -2,6 +2,7 @@
 #include "Hazel/Renderer/Texture.h"
 
 #include "Platform/OpenGL/OpenGLTexture.h"
+#include "Platform/Vulkan/VulkanTexture.h"
 #include "Hazel/Renderer/Renderer.h"
 
 #include <fstream>
@@ -17,6 +18,7 @@ namespace Hazel {
 
 			return levels;
 		}
+		
 
 		template<typename T>
 		uint32_t GetSizeOfTextureType() {
@@ -56,20 +58,23 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLTexture2D>(width, height);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanTexture2D>(width, height);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;
 	}
 
-	Ref<Texture2D> Texture2D::Create(TextureFormat format, const uint32_t width, const uint32_t height)
+	Ref<Texture2D> Texture2D::Create(TextureFormat format, const uint32_t width, const uint32_t height, TextureUsage usage)
 	{
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLTexture2D>(format, width, height);
-
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanTexture2D>(format, width, height, usage);
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;
@@ -86,7 +91,8 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLTexture2D>(path.string());
-
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanTexture2D>(path.string());
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;

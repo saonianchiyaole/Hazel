@@ -21,7 +21,7 @@ namespace Hazel {
 
 		m_Shader->RemoveAssociatedMaterial(this);
 	}
-
+	
 	void Material::FreeMemory()
 	{
 		for (auto& it : m_Data)
@@ -145,6 +145,5 @@ namespace Hazel {
 	{
 		return MakeRef<Material>();
 	}
-
 
 }

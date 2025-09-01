@@ -102,8 +102,7 @@ namespace Hazel {
 
 		static VkSurfaceKHR s_Surface;
 		static VkInstance s_VulkanInstance;
-		
-
+				
 	};
 
 

@@ -14,11 +14,7 @@ namespace Hazel {
 	{
 	}
 
-	RenderPassSpecification& RenderPass::GetSpecification()
-	{
-		return m_Specification;
-	}
-
+	
 	Ref<RenderPass> RenderPass::Create(const RenderPassSpecification& spec)
 	{
 

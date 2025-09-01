@@ -123,6 +123,9 @@ namespace Hazel {
 
 	void VulkanContext::Swapbuffers()
 	{
+
+		m_Swapchain->Present();
+
 		//HZ_CORE_ASSERT(false, "Function: {0} not impelemented yet! In file : {1}!", __FILE__, __FUNCTION__);
 	}
 

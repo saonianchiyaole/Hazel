@@ -16,18 +16,24 @@ namespace Hazel {
 		
 	}
 
-	VulkanCommandBuffer::VulkanCommandBuffer(VkCommandPool commandPool)
+	VulkanCommandBuffer::VulkanCommandBuffer(VkCommandPool commandPool, bool isPrimary) : m_IsPrimary(isPrimary)
 	{
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.level = isPrimary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 		allocInfo.commandPool = commandPool;
 		allocInfo.commandBufferCount = 1;
 
 		vkAllocateCommandBuffers(device, &allocInfo, &m_CommandBuffer);
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = 0;
+
+		HZ_CORE_ASSERT(vkCreateFence(device, &fenceInfo, nullptr, &m_Fence) == VK_SUCCESS, "Failed to create fence!");
 
 	}
 
@@ -48,9 +54,11 @@ namespace Hazel {
 
 		VkFenceCreateInfo fenceInfo{};
 		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+		fenceInfo.flags = 0;
 
 		HZ_CORE_ASSERT(vkCreateFence(rawDevice, &fenceInfo, nullptr, &m_Fence) == VK_SUCCESS, "Failed to create fence!");
+
+		m_IsPrimary = true;
 	}
 
 	VulkanCommandBuffer::~VulkanCommandBuffer()

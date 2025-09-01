@@ -28,7 +28,13 @@ namespace Hazel {
 	}
 
 	void VulkanRendererAPI::Init()
-	{
+	{		
+		VulkanContext::GetCurrentContext()->GetDevice()->CreateCommandPool();			
+
+		// todo shouldn't be here
+		Ref<VulkanSwapchain> swapchain = std::static_pointer_cast<VulkanSwapchain>(Application::GetInstance().GetWindow().GetSwapchain());
+		swapchain->CreateCommandBuffers();
+
 	}
 
 	void VulkanRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray)
@@ -73,18 +79,20 @@ namespace Hazel {
 
 	}
 
-	void VulkanRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex) {
+	void VulkanRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) {
+
 
 		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
 		Ref<VulkanRenderPass> vulkanRenderPass = std::static_pointer_cast<VulkanRenderPass>(renderPass);
 
-
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
+
+		Ref<VulkanFramebuffer> framebuffer = std::static_pointer_cast<VulkanFramebuffer>(renderPass->GetPipeline()->GetTargetFramebuffer());
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = vulkanRenderPass->GetRawRenderPass();
-		renderPassInfo.framebuffer = swapchain->GetFramebuffers()[imageIndex];
+		renderPassInfo.framebuffer = framebuffer->GetRawFramebuffer();
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapchain->GetDetails().swapChainExtent;
@@ -153,6 +161,23 @@ namespace Hazel {
 		vkCmdDrawIndexed(vulkanCommandBuffer->GetRawCommandBuffer(), count, 1, 0, 0, 0);
 	}
 
+	void VulkanRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+	{
+
+		Ref<VulkanPipeline> vulkanPipeline = std::static_pointer_cast<VulkanPipeline>(pipeline);
+		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
+		Ref<VulkanMaterial> vulkanMaterial = std::static_pointer_cast<VulkanMaterial>(material);
+
+
+		vkCmdBindDescriptorSets(vulkanCommandBuffer->GetRawCommandBuffer(), 
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			vulkanPipeline->GetPipelineLayout(),
+			0, vulkanMaterial->GetDescriptorSets().size(),
+			vulkanMaterial->GetDescriptorSets()[0].data(),
+			0, nullptr);
+
+	}
+
 	void VulkanRendererAPI::BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer)
 	{
 		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
@@ -162,19 +187,7 @@ namespace Hazel {
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(vulkanCommandBuffer->GetRawCommandBuffer(), 0, 1, vertexBuffers, offsets);
 	}
-
-	void VulkanRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material> material)
-	{
-		static uint32_t currentFrame = 0;
-
-		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
-		Ref<VulkanMaterial> vulkanMaterial = std::static_pointer_cast<VulkanMaterial>(material);
-		
-
-		vkCmdBindDescriptorSets(vulkanCommandBuffer->GetRawCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, /* todo remove this*/vulkanMaterial->pipelineLayout, 0, vulkanMaterial->GetDescriptorSets()[currentFrame].size(), vulkanMaterial->GetDescriptorSets()[currentFrame].data(), 0, nullptr);
-		
-		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-	}
+	
 }
 
 

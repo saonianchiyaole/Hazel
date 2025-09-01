@@ -2,12 +2,9 @@
 
 #include "Hazel/ImGui/ImGuiLayer.h"
 
-#include <vulkan/vulkan.h>
-#include "backends/imgui_impl_vulkan.h"
-
 namespace Hazel {
 
-		
+	class VulkanCommandBuffer;
 
 	class VulkanImGuiLayer: public ImGuiLayer {
 
@@ -17,15 +14,14 @@ namespace Hazel {
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
-		virtual void OnImGuiRender();
+		virtual void OnImGuiRender() override;
 
 		virtual void Begin() override;
 		virtual void End() override;
 
 	private:
 
-		VkDevice m_Device;		
-		ImGui_ImplVulkanH_Window* wd;
+		std::vector<Ref<VulkanCommandBuffer>> m_CommandBuffers;		
 
 	};
 

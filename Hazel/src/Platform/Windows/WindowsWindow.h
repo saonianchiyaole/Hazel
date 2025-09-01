@@ -10,6 +10,7 @@ namespace Hazel {
 
 	class GraphicsContext;
 	class VulkanSwapchain;
+	class Swapchain;
 
 	class WindowsWindow : public Window {
 	public:
@@ -29,7 +30,7 @@ namespace Hazel {
 		inline virtual void* GetNativeWindow() const { return m_Window; }
 
 		virtual Ref<GraphicsContext> GetGraphicsContext() override { return m_Context; }
-
+		virtual Ref<Swapchain> GetSwapchain() const override { return m_Swapchain; }
 
 		GLFWwindow& GetGLFWWindow() { return *m_Window; }
 	private:
@@ -39,7 +40,7 @@ namespace Hazel {
 		GLFWwindow* m_Window;
 		Ref<GraphicsContext> m_Context = nullptr;
 
-		Ref<VulkanSwapchain> m_Swapchain = nullptr;
+		Ref<Swapchain> m_Swapchain = nullptr;
 		
 
 		struct WindowData

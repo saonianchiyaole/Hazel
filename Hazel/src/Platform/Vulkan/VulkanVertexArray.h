@@ -21,8 +21,8 @@ namespace Hazel {
 		virtual void Unbind() const override;
 
 		//Set
-		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override { m_VertexBuffers.push_back(vertexBuffer); }
-		virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override { m_IndexBuffer = indexBuffer; };
+		virtual void AddVertexBuffer	(const Ref<VertexBuffer>& vertexBuffer) override { m_VertexBuffers.push_back(vertexBuffer); }
+		virtual void SetIndexBuffer		(const Ref<IndexBuffer>& indexBuffer) override { m_IndexBuffer = indexBuffer; };
 		
 		virtual const std::vector<Ref<VertexBuffer>>&	GetVertexBuffers() const override { return m_VertexBuffers; }
 		virtual const Ref<IndexBuffer>&					GetIndexBuffer() const override { return m_IndexBuffer; };

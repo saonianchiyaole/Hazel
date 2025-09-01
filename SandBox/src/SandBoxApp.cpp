@@ -43,10 +43,10 @@
 
 
 std::vector<float> vertices = {
-	0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-	0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-	-0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-	-0.5f, -0.5f, 1.0f, 1.0f, 0.0f
+	0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+	0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	-0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 };
 
 std::vector<uint32_t> indices = {
@@ -69,57 +69,54 @@ public:
 	ExampleLayer()
 		:ImGuiLayer() {
 
-
 		
-		m_UBO.model = glm::mat4(1.0f);
+		m_UBO.model = glm::mat4(1.0f);		
 		m_UBO.view = m_Camera.GetViewMatrix();
-		m_UBO.projection = glm::mat4(1.0f);
+		m_UBO.projection = m_Camera.GetProjectionMatrix();
 
 		RenderCommand::Init();		
 
-
-		
-		// TODO: Move this to Vulkan Renderer
-		VulkanContext::GetCurrentContext()->GetDevice()->CreateCommandPool();
-		VulkanContext::GetCurrentContext()->GetDevice()->CreateCommandBuffers();
-		
-
-		m_VertexBuffer = MakeRef<VulkanVertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
+		m_Texture2D = TextureLibrary::Load("assets/Checkboard.png");
+				
+		m_VertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(float));			
 
 		Hazel::BufferLayout layout = std::vector<Hazel::BufferElement>{
 			Hazel::BufferElement{ Hazel::ShaderDataType::Float2, "Position"},
-			Hazel::BufferElement{ Hazel::ShaderDataType::Float3, "Color"}
+			Hazel::BufferElement{ Hazel::ShaderDataType::Float3, "Color"},
+			Hazel::BufferElement{ Hazel::ShaderDataType::Float2, "TexCoord"},
 		};
 
 		m_VertexBuffer->SetLayout(layout);	
 
-		m_IndexBuffer = MakeRef<VulkanIndexBuffer>(indices.data(),	indices.size());
+		m_IndexBuffer = IndexBuffer::Create(indices.data(), indices.size());
 
 		m_Shader = Shader::Create("assets/Shaders/vulkanShader.glsl");
 
 		m_Material = MakeRef<VulkanMaterial>(m_Shader);
-		m_Material->Set<UniformBufferObject>("UniformBufferObject", m_UBO);
+		m_Material->SetData("UniformBufferObject", m_UBO);
+		m_Material->SetData("picture", m_Texture2D);
+		
+		
 
-		
-		Ref<VulkanShader> vulkanshader = std::dynamic_pointer_cast<VulkanShader>(m_Shader);
-		
+		FramebufferSpecification fbSpec;
+		fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
+		fbSpec.height = Application::GetInstance().GetWindow().GetHeight();
+		fbSpec.attachments = { TextureFormat::RGBA, TextureFormat::DEPTH24STENCIL8 };
+
+		m_OffScreenFramebuffer = Framebuffer::Create(fbSpec);
 
 		PipelineSpecification pipelineSpecification;
 		pipelineSpecification.shader = m_Shader;
 		pipelineSpecification.bufferLayout = layout;		
+		pipelineSpecification.targetFramebuffer = m_OffScreenFramebuffer;
 
 		m_Pipeline = Pipeline::Create(pipelineSpecification);
-
+		
 		RenderPassSpecification renderPassSpec = {
 			nullptr, m_Pipeline
 		};
-
-		m_RenderPass = MakeRef<VulkanRenderPass>(renderPassSpec);
-
-		Ref<VulkanPipeline> vulkanPipeline = std::dynamic_pointer_cast<VulkanPipeline>(m_Pipeline);
-		m_Material->pipelineLayout = vulkanPipeline->GetPipelineLayout();
-
-
+		m_RenderPass = RenderPass::Create(renderPassSpec);
+		
 	}
 
 	void OnAttach() override {
@@ -131,98 +128,34 @@ public:
 	}
 
 	void OnUpdate(Hazel::Timestep ts) override {
-
+				
+		// todo shouldn't exsist
+		//Ref<VulkanCommandBuffer> commandBuffer = device->CreateCommandBuffer();
+		 
+		//commandBuffer->Begin();
 		
+		{
 
-		//Hazel::VulkanContext::GetDevice()->DrawFrame();
+			
+			// todo : where to go ?
+			/*RenderCommand::BeginRenderPass(commandBuffer, m_RenderPass);
+			RenderCommand::BindVertexBuffer(commandBuffer, m_VertexBuffer);
+			RenderCommand::BindIndexBuffer(commandBuffer, m_IndexBuffer);
 
-		static int currentFrame = 0;
-
-		Ref<Hazel::VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
-		Ref<Hazel::VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
-
-		std::vector<VkSemaphore> imageAvailableSemaphores = swapchain->GetImageAvailableSemaphores();
-		std::vector<VkSemaphore> renderFinishedSemaphores = swapchain->GetRenderFinishedSemaphores();
-		std::vector<VkFence> InFlightFences = swapchain->GetInFlightFences();
-		Ref<VulkanCommandBuffer> commandBuffer = device->GetCommandBuffers()[currentFrame];
-
-
-		vkWaitForFences(device->GetRawDevice(), 1, &InFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-		vkResetFences(device->GetRawDevice(), 1, &InFlightFences[currentFrame]);
-
-		uint32_t imageIndex;
-
-		VkResult result = vkAcquireNextImageKHR(device->GetRawDevice(), swapchain->GetRawSwapchain(), UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
-
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-		
-			swapchain->Recreate(Application::GetInstance().GetWindow().GetWidth(), Application::GetInstance().GetWindow().GetHeight(), Application::GetInstance().GetWindow().IsVSync());
-			return;
-		}
-		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-			throw std::runtime_error("failed to acquire swap chain image");
+			RenderCommand::SubmitMaterial(commandBuffer, m_Pipeline, m_Material);
+			RenderCommand::DrawIndexed(commandBuffer, indices.size());
+			RenderCommand::EndRenderPass(commandBuffer, m_RenderPass);*/
+			//
 		}
 
-		vkResetCommandBuffer(device->GetCommandBuffers()[currentFrame]->GetRawCommandBuffer(), 0);
+		//commandBuffer->End();
 
-		commandBuffer->Begin();
-
-		RenderCommand::BeginRenderPass(commandBuffer, m_RenderPass, imageIndex);
-		RenderCommand::BindVertexBuffer(commandBuffer, m_VertexBuffer);
-		RenderCommand::BindIndexBuffer(commandBuffer, m_IndexBuffer);		
-
-		Ref<VulkanShader> vulkanshader = std::dynamic_pointer_cast<VulkanShader>(m_Shader);
-		RenderCommand::SubmitMaterial(commandBuffer, m_Material);
-		RenderCommand::DrawIndexed(commandBuffer, indices.size());
-		RenderCommand::EndRenderPass(commandBuffer, m_RenderPass);
-
-		commandBuffer->End();
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer->GetRawCommandBuffer();
-
-		VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
-		if (vkQueueSubmit(device->GetGraphicQueue(), 1, &submitInfo, InFlightFences[currentFrame]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to submit draw command buffer!");
-		}
-
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
-		VkSwapchainKHR swapChains[] = { swapchain->GetRawSwapchain() };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
-
-		//presentInfo.pResults = nullptr;
-
-
-		vkQueuePresentKHR(device->GetPresentQueue(), &presentInfo);
-
-		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-
-
-
-		//glfw
+		//commandBuffer->Submit();			
 	}
 
 	virtual void OnImGuiRender() override {
 
-
+		ImGui::ShowDemoWindow();
 	}
 
 	void OnEvent(Hazel::Event& event) override {
@@ -243,17 +176,15 @@ private:
 
 	//Resources
 
-	Ref<VertexBuffer> m_VertexBuffer;
+	Ref<VertexBuffer> m_VertexBuffer;	
+	Ref<Framebuffer> m_OffScreenFramebuffer;
 	Ref<RenderPass> m_RenderPass;
 	Ref<Pipeline> m_Pipeline;	
 	Ref<Shader> m_Shader;
+	Ref<Texture2D> m_Texture2D;
 
-	Ref<VulkanMaterial> m_Material;
-
-	std::vector<VkBuffer> uniformBuffer;
-	std::vector<VkDeviceMemory> uniformBufferMemory;
-	std::vector<void*> uniformBuffersMapped;
-
+	Ref<Material> m_Material;
+		
 	Ref<IndexBuffer> m_IndexBuffer;
 
 	Camera m_Camera;

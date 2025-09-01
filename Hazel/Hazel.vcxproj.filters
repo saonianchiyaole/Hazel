@@ -228,6 +228,9 @@
     <ClInclude Include="src\Hazel\Renderer\ShaderUniform.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\Swapchain.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\Texture.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
@@ -321,6 +324,9 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanImGuiLayer.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanMaterial.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanPipeline.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
@@ -339,6 +345,9 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanSwapchain.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VulkanTexture.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanVertexArray.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
@@ -353,9 +362,6 @@
     </ClInclude>
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\VulkanMaterial.h">
-      <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -491,6 +497,9 @@
     <ClCompile Include="src\Hazel\Renderer\ShaderUniform.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\Renderer\Swapchain.cpp">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\Texture.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
@@ -575,6 +584,9 @@
     <ClCompile Include="src\Platform\Vulkan\VulkanImGuiLayer.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanMaterial.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanPipeline.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
@@ -593,6 +605,9 @@
     <ClCompile Include="src\Platform\Vulkan\VulkanSwapchain.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VulkanTexture.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanVertexArray.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
@@ -607,9 +622,6 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanMaterial.cpp">
-      <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

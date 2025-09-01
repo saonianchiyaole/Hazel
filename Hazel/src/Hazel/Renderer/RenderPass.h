@@ -12,7 +12,10 @@ namespace Hazel {
 	class Framebuffer;
 
 	struct RenderPassSpecification {
-		Ref<Framebuffer> targetFrameBuffer = nullptr;
+		
+		// todo : shoudn't be used, should be move to pipeline
+		Ref<Framebuffer> targetFramebuffer;
+
 		Ref<Pipeline> pipeline = nullptr;
 
 	};
@@ -23,8 +26,10 @@ namespace Hazel {
 		RenderPass() = default;
 		virtual ~RenderPass() = default;
 		RenderPass(RenderPassSpecification spec);
-
-		virtual RenderPassSpecification& GetSpecification();
+		
+		RenderPassSpecification&	GetSpecification()		{ return m_Specification; }
+		Ref<Framebuffer>			GetTargetFramebuffer()	{ return m_Specification.targetFramebuffer; }
+		Ref<Pipeline>				GetPipeline()			{ return m_Specification.pipeline; }
 
 		static Ref<RenderPass> Create(const RenderPassSpecification& spec);
 

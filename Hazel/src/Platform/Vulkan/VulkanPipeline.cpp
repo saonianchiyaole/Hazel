@@ -21,6 +21,7 @@ namespace Hazel {
 		m_Specification = specification;
 
 
+
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		
@@ -44,8 +45,6 @@ namespace Hazel {
 		fragmentShaderStageInfo.pName = "main";
 
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
-
-
 
 		//---------------------------------------------------------------------------------------------
 
@@ -181,11 +180,7 @@ namespace Hazel {
 		pipelineInfo.basePipelineIndex = -1;
 
 
-		HZ_CORE_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) == VK_SUCCESS, "failed to create pipeline layout");		
-
-		vkDestroyShaderModule(device, vertexShaderModule, nullptr);
-		vkDestroyShaderModule(device, fragmentShaderModule, nullptr);
-
+		HZ_CORE_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) == VK_SUCCESS, "failed to create pipeline layout");			
 
 	}
 

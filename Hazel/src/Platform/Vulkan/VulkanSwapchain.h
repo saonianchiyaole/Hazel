@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vulkan/vulkan.h"
-
+#include "Hazel/Renderer/Swapchain.h"
 
 struct GLFWwindow;
 
@@ -10,7 +10,8 @@ namespace Hazel {
 	class VulkanDevice;
 	class VulkanFramebuffer;
 	class VulkanRenderPass;
-
+	class VulkanCommandBuffer;
+	class VulkanContext;
 
 	struct SwapchainDetails {
 		VkSurfaceFormatKHR	surfaceFormat;
@@ -36,7 +37,7 @@ namespace Hazel {
 	}
 
 
-	class VulkanSwapchain {
+	class VulkanSwapchain : public Swapchain{
 
 
 	public:
@@ -56,20 +57,27 @@ namespace Hazel {
 		std::vector<VkSemaphore>&	GetRenderFinishedSemaphores()		{ return m_RenderFinishedSemaphores; }
 		std::vector<VkFence>&		GetInFlightFences()					{ return m_InFlightFences; }
 
+		Ref<VulkanCommandBuffer>	GetCurrentCommandBuffer()			{ return m_CommandBuffers[m_CurrentFrameIndex]; }		
+		VkFramebuffer				GetCurrentFramebuffer()				{ return m_Framebuffers[m_CurrentFrameIndex]; }
+
 		void						InitializeSurface		(VkInstance instance, GLFWwindow* window);
 		void						Init					(Ref<VulkanDevice> device);
 		void						Create					(uint32_t width, uint32_t height, bool isVsync);
 		void						Recreate				(uint32_t width, uint32_t height, bool isVsync);
 		void						Destroy					();
+		
+
+		virtual void BeginFrame()	override;
+		virtual void EndFrame()		override;
+		virtual void Present()		override;
 
 	private:
 
-
-		void CreateImageViews();
-		void CreateFramebuffers();
-		//TODO: RenderPass's creation temporarily stay here		
-		//void CreateRenderPass();
-		void CreateSyncObjects();
+		uint32_t	AcquireNextImage() override;
+		void		CreateImageViews();
+		void		CreateFramebuffers();		
+		void		CreateSyncObjects();
+		void		CreateCommandBuffers();
 
 	private:
 
@@ -89,19 +97,20 @@ namespace Hazel {
 
 		VkSwapchainKHR m_Swapchain = nullptr;
 		VkSurfaceKHR m_Surface = nullptr;
-
-		uint32_t m_CurrentFrameIndex = 0;
-
-		//Semaphore
+		
+		// Semaphore
 
 		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
 		std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+
+		// used to render a final frame 
+		std::vector<Ref<VulkanCommandBuffer>> m_CommandBuffers;
 
 		//Fence
 
 		std::vector<VkFence> m_InFlightFences;
 
-
+		friend class VulkanRendererAPI;
 	};
 
 

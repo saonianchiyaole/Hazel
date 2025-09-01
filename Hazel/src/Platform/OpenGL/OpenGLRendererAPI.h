@@ -28,14 +28,14 @@ namespace Hazel {
 		virtual void BeginFrame() override;
 		virtual void EndFrame() override;
 		virtual void DrawFrame() override;		
-		virtual void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex) override;
+		virtual void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) override;
 		virtual void BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer) override;
 		virtual void EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) override;
 		virtual void BindVertexArray(Ref<CommandBuffer> commandBuffer, Ref<VertexArray> vertexArray) override;
 		virtual void BindIndexBuffer(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) override;
 		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, uint32_t count) override;
 
-		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material>) override;
+		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material>) override;
 
 	};
 }

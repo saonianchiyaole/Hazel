@@ -53,6 +53,8 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLVertexBuffer>(vertices, size);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanVertexBuffer>(vertices, size);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
@@ -66,6 +68,8 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLVertexBuffer>(vertices, size);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanVertexBuffer>(vertices, size);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
@@ -80,6 +84,7 @@ namespace Hazel {
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLVertexBuffer>(size);
 		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanVertexBuffer>(size);
 			break;
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

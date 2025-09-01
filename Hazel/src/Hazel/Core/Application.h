@@ -43,7 +43,7 @@ namespace Hazel {
 		
 		Scope<Window> m_Window;
 	
-		ImGuiLayer* m_ImGuiLayer;
+		Ref<ImGuiLayer> m_ImGuiLayer;
 		bool m_Running = true;
 		
 		static Application* s_Instance;

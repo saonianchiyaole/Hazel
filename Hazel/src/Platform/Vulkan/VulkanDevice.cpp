@@ -142,6 +142,7 @@ namespace Hazel {
 				if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 					indices.graphicsFamily = i;
 					indices.presentFamily = i;
+					indices.transferFamily = i;
 				}
 				
 
@@ -167,6 +168,9 @@ namespace Hazel {
 		std::vector<VkPhysicalDevice> physicalDevice(deviceCount);
 		vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevice.data());
 
+
+		
+
 		for (const auto& device : physicalDevice) {
 
 			
@@ -183,6 +187,8 @@ namespace Hazel {
 				std::cout << "Device Name: " << m_Properties.deviceName << std::endl;
 				std::cout << "API Version : " << m_Properties.apiVersion << std::endl;
 				std::cout << "Driver Version : " << m_Properties.driverVersion << std::endl;
+
+				m_QueueFamilyIndices = Utils::FindQueueFamilies(m_PhysicalDevice);
 
 				break;
 			}
@@ -205,7 +211,7 @@ namespace Hazel {
 
 
 			
-		QueueFamilyIndices indices = Utils::FindQueueFamilies(physicalDevice->GetRawPhysicalDevice());
+		QueueFamilyIndices indices = physicalDevice->GetQueueFamilyIndices();
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -253,13 +259,12 @@ namespace Hazel {
 		vkGetDeviceQueue(m_Device, indices.graphicsFamily.value(), 0, &m_GraphicQueue);
 		vkGetDeviceQueue(m_Device, indices.presentFamily.value(), 0, &m_PresentQueue);
 		
+		CreateCommandPool();
 	}
 
 	void VulkanDevice::CreateCommandPool() {
-
-		VkSurfaceKHR surface = VulkanContext::GetCurrentContext()->GetSurface();
-
-		QueueFamilyIndices queueFamilyIndices = Utils::FindQueueFamilies(m_PhysicalDevice->GetRawPhysicalDevice(), surface);
+		
+		QueueFamilyIndices queueFamilyIndices = m_PhysicalDevice->GetQueueFamilyIndices();
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -289,40 +294,16 @@ namespace Hazel {
 
 	}
 
-	void VulkanDevice::CreateCommandBuffers() {
+	Ref<VulkanCommandBuffer> VulkanDevice::CreateCommandBuffer() {
 
-		std::vector<VkCommandBuffer> commandBuffers;
-
-		commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = m_CommandPool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
-
-
-		if (vkAllocateCommandBuffers(m_Device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create command buffer!");
-		}
-
-
-
-		for (int i = 0; i < commandBuffers.size(); i++) {
-			
-			m_CommandBuffers[i] = MakeRef<VulkanCommandBuffer>(commandBuffers[i]);
-
-		}
-
-
+		Ref<VulkanCommandBuffer> commandBuffer = MakeRef<VulkanCommandBuffer>(m_CommandPool);
+		return commandBuffer;
 	}
 
+	Ref<VulkanCommandBuffer> VulkanDevice::CreateSecondaryCommandBuffer() {
 
-	
-
-
-
-	
+		Ref<VulkanCommandBuffer> commandBuffer = MakeRef<VulkanCommandBuffer>(m_CommandPool, false);
+		return commandBuffer;
+	}
 
 }

@@ -7,13 +7,13 @@
 #include "Hazel/Event/KeyEvent.h"
 #include "Hazel/Event/MouseEvent.h"
 #include "Hazel/Renderer/GraphicsContext.h"
-
+#include "Hazel/Renderer/Swapchain.h"
 #include "Hazel/Renderer/RendererAPI.h"
+
 #include "Platform/Vulkan/VulkanSwapchain.h"
 #include "Platform/Vulkan/VulkanContext.h"
 
 #include "Platform/OpenGL/OpenGLContext.h"
-
 
 namespace Hazel {
 
@@ -53,6 +53,7 @@ namespace Hazel {
 			s_GLFWInitialized = true;
 		}
 
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		
 		//m_Context = new OpenGLContext();
@@ -66,13 +67,14 @@ namespace Hazel {
 		Ref<VulkanContext> vulkanContext = std::dynamic_pointer_cast<VulkanContext>(m_Context);
 		vulkanContext->Init();
 
-		m_Swapchain = MakeRef<VulkanSwapchain>();
+		m_Swapchain = Swapchain::Create();
 
 		if (vulkanContext) {
-			m_Swapchain->Init(vulkanContext->GetDevice());
-			m_Swapchain->InitializeSurface(VulkanContext::GetVulkanInstance(), m_Window);
-			m_Swapchain->Create(m_Data.Width, m_Data.Height, m_Data.VSync);
-			vulkanContext->SetSwapchain(m_Swapchain);
+			Ref<VulkanSwapchain> vulkanSwapchain = std::dynamic_pointer_cast<VulkanSwapchain>(m_Swapchain);
+			vulkanSwapchain->InitializeSurface(VulkanContext::GetVulkanInstance(), m_Window);
+			vulkanSwapchain->Init(vulkanContext->GetDevice());
+			vulkanSwapchain->Create(m_Data.Width, m_Data.Height, m_Data.VSync);
+			vulkanContext->SetSwapchain(vulkanSwapchain);			
 		}
 		
 

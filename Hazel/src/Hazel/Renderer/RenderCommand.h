@@ -16,8 +16,10 @@ namespace Hazel {
 			{
 			case RendererAPI::API::OpenGL:
 				s_RendererAPI = MakeScope<OpenGLRendererAPI>();
+				break;
 			case RendererAPI::API::Vulkan:
 				s_RendererAPI = MakeScope<VulkanRendererAPI>();
+				break;
 			case RendererAPI::API::None:
 				HZ_CORE_ASSERT(false, "Not Valid Render API!");
 				return;
@@ -57,8 +59,8 @@ namespace Hazel {
 		static void BeginFrame() { s_RendererAPI->BeginFrame(); }
 		static void EndFrame() { s_RendererAPI->EndFrame(); }
 		static void DrawFrame() { s_RendererAPI->DrawFrame(); }
-		static void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex) 	{
-			s_RendererAPI->BeginRenderPass(commandBuffer, renderPass, imageIndex);
+		static void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) 	{
+			s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
 		}
 		static void BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer) { 
 			s_RendererAPI->BindVertexBuffer(commandBuffer, vertexBuffer);
@@ -76,8 +78,8 @@ namespace Hazel {
 			s_RendererAPI->DrawIndexed(commandBuffer, count);
 		}
 
-		static void  SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material> material) {
-			s_RendererAPI->SubmitMaterial(commandBuffer, material);
+		static void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material) {
+			s_RendererAPI->SubmitMaterial(commandBuffer, pipeline, material);
 		}
 
 	private:

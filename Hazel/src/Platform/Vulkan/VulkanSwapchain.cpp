@@ -103,10 +103,12 @@ namespace Hazel {
 		}
 
 	}
-	
+
 
 	void VulkanSwapchain::Destroy()
 	{
+		vkDeviceWaitIdle(m_Device->GetRawDevice());
+
 		VkDevice device = m_Device->GetRawDevice();
 
 		for (auto framebuffer : m_Framebuffers) {
@@ -118,16 +120,82 @@ namespace Hazel {
 		}
 
 		vkDestroySwapchainKHR(device, m_Swapchain, nullptr);
+
+		vkDestroyCommandPool(device, m_Device->GetCommandPool(), nullptr);
 	}
 
+	uint32_t VulkanSwapchain::AcquireNextImage()
+	{
+
+		vkWaitForFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex], VK_TRUE, UINT64_MAX);
+
+		VkResult result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			Recreate(Application::GetInstance().GetWindow().GetWidth(), Application::GetInstance().GetWindow().GetHeight(), Application::GetInstance().GetWindow().IsVSync());
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			throw std::runtime_error("failed to acquire swap chain image");
+		}
+		
+		return m_CurrentImageIndex;
+	}
+
+	void VulkanSwapchain::BeginFrame()
+	{
+
+		AcquireNextImage();
+
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer(), 0);
+		
+	}
+
+	void VulkanSwapchain::EndFrame()
+	{
+
+	}
+
+	void VulkanSwapchain::Present() {
+
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = &m_ImageAvailableSemaphores[m_CurrentFrameIndex];
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer();
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrameIndex];
+
+		vkResetFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex]);
+
+		if (vkQueueSubmit(m_Device->GetGraphicQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrameIndex]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer!");
+		}
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrameIndex];
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &m_Swapchain;
+		presentInfo.pImageIndices = &m_CurrentImageIndex;
+
+		//presentInfo.pResults = nullptr;
+
+		vkQueuePresentKHR(m_Device->GetPresentQueue(), &presentInfo);
+
+		m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+	}
 
 	void VulkanSwapchain::Create(uint32_t width, uint32_t height, bool isVsync) {
 
-		
+
 		SwapchainSupportDetails swapChainSupport = Utils::QuerySwapchainSupport(m_Device->GetPhysicalDevice()->GetRawPhysicalDevice(), m_Surface);
 
 		m_Details = Utils::ChooseSwapchain(swapChainSupport, m_Window);
-		
+
 		VkExtent2D extent = {
 			width,
 			height
@@ -139,21 +207,21 @@ namespace Hazel {
 		VkPresentModeKHR presentMode = m_Details.presentModle;
 		VkExtent2D swapExtent = m_Details.swapChainExtent;
 
-		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+		m_ImageCount = swapChainSupport.capabilities.minImageCount + 1;
 
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
-			imageCount = swapChainSupport.capabilities.maxImageCount;
+		if (swapChainSupport.capabilities.maxImageCount > 0 && m_ImageCount > swapChainSupport.capabilities.maxImageCount) {
+			m_ImageCount = swapChainSupport.capabilities.maxImageCount;
 		}
 
 		VkSwapchainCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		createInfo.surface = m_Surface;
-		createInfo.minImageCount = imageCount;
+		createInfo.minImageCount = m_ImageCount;
 		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;								
+		createInfo.imageColorSpace = surfaceFormat.colorSpace;
 		createInfo.imageExtent = swapExtent;
 
-	
+
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -182,16 +250,13 @@ namespace Hazel {
 			throw std::runtime_error("failed to create swap chain!");
 
 
-		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &imageCount, nullptr);
-		m_Images.resize(imageCount);
-		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &imageCount, m_Images.data());
-
-		
+		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &m_ImageCount, nullptr);
+		m_Images.resize(m_ImageCount);
+		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &m_ImageCount, m_Images.data());
 
 		CreateImageViews();
 		CreateFramebuffers();
-		CreateSyncObjects();
-
+		CreateSyncObjects();		
 	}
 
 
@@ -200,7 +265,7 @@ namespace Hazel {
 		vkDeviceWaitIdle(m_Device->GetRawDevice());
 
 		Destroy();
-		
+
 		Create(width, height, isVsync);
 		CreateImageViews();
 		CreateFramebuffers();
@@ -218,22 +283,22 @@ namespace Hazel {
 		VkResult result = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &m_Surface);
 
 		if (result != VK_SUCCESS)
-			HZ_CORE_ASSERT(false, "Failed to create window surface");			
-		
+			HZ_CORE_ASSERT(false, "Failed to create window surface");
+
 
 	}
 
 	void VulkanSwapchain::Init(Ref<VulkanDevice> device)
 	{
-		m_Device = device;		
+		m_Device = device;
 
 	}
 
 	void VulkanSwapchain::CreateImageViews() {
 
-		m_ImageViews.resize(m_Images.size());
+		m_ImageViews.resize(m_ImageCount);
 
-		for (int i = 0; i < m_ImageViews.size(); i++) {
+		for (int i = 0; i < m_ImageCount; i++) {
 			VkImageViewCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			createInfo.image = m_Images[i];
@@ -250,7 +315,7 @@ namespace Hazel {
 			createInfo.subresourceRange.levelCount = 1;
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
-		
+
 
 			if (vkCreateImageView(m_Device->GetRawDevice(), &createInfo, nullptr, &m_ImageViews[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create image views!");
@@ -299,6 +364,16 @@ namespace Hazel {
 
 	}
 
+	void VulkanSwapchain::CreateCommandBuffers()
+	{
+
+		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			m_CommandBuffers[i] = MakeRef<VulkanCommandBuffer>();
+		}
+
+	}
+
 
 	void VulkanSwapchain::CreateFramebuffers() {
 
@@ -328,7 +403,7 @@ namespace Hazel {
 
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		
+
 
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -337,21 +412,20 @@ namespace Hazel {
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;
-		
+		renderPassInfo.pDependencies = &dependency;	
+
 
 		if (vkCreateRenderPass(m_Device->GetRawDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
 			HZ_CORE_ASSERT(false, "Fail to create render pass!");
 		}
 
-		m_Framebuffers.resize(m_ImageViews.size());
+		m_Framebuffers.resize(m_ImageCount);
 
-		for (int i = 0; i < m_ImageViews.size(); i++) {
+		for (int i = 0; i < m_ImageCount; i++) {
 
 			VkImageView attachments[] = {
 				m_ImageViews[i]
 			};
-						
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -360,7 +434,7 @@ namespace Hazel {
 			framebufferInfo.pAttachments = attachments;
 			framebufferInfo.width = m_Details.swapChainExtent.width;
 			framebufferInfo.height = m_Details.swapChainExtent.height;
-			framebufferInfo.layers = 1;
+			framebufferInfo.layers = 1;			
 
 			if (vkCreateFramebuffer(m_Device->GetRawDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create framebuffer!");

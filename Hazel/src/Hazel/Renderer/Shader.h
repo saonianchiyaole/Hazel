@@ -22,7 +22,7 @@ namespace Hazel {
 	};
 
 	enum class DescriptorType {
-		Sampler, UniformBuffer, StorageBuffer
+		Sampler, UniformBuffer, StorageBuffer, Sampler2D, SamplerCube, Sampler3D
 	};
 
 
@@ -35,6 +35,8 @@ namespace Hazel {
 		uint32_t offset = 0;
 		uint32_t arraySize = 0;
 		ShaderType stage;
+
+		uint32_t dimension = 1;
 	};
 
 

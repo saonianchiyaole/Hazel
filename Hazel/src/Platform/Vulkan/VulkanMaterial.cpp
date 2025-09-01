@@ -5,15 +5,23 @@
 #include "Platform/Vulkan/VulkanContext.h"
 #include "Platform/Vulkan/VulkanDevice.h"
 #include "Platform/Vulkan/VulkanBuffer.h"
+#include "Platform/Vulkan/VulkanTexture.h"
 #include "Hazel/Renderer/Renderer.h"
 
 
 namespace Hazel {
 
+	Ref<Texture2D> VulkanMaterial::s_DefaultBlackQuad = nullptr;
 
 
 	VulkanMaterial::VulkanMaterial(Ref<Shader> shader) {
 
+		if(s_DefaultBlackQuad == nullptr) {
+			//s_DefaultBlackQuad = Texture2D::Create("");
+			uint32_t black = 0;
+			s_DefaultBlackQuad = MakeRef<VulkanTexture2D>(TextureFormat::RGBA, 1, 1);
+			s_DefaultBlackQuad->SetData(&black, sizeof(uint32_t));
+		}
 
 		m_UniformBuffers.clear();
 		m_WriteDescriptors.clear();
@@ -85,6 +93,7 @@ namespace Hazel {
 
 				m_WriteDescriptors.emplace_back();
 				m_UniformBuffers.emplace_back();
+				m_Samplers.emplace_back();
 
 				for (uint32_t binding = 0; binding < reflectionData[set].size(); binding++) {
 
@@ -96,8 +105,7 @@ namespace Hazel {
 					writeDesciptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 					writeDesciptor.dstSet = m_DescriptorSets[frameIndex][set];
 					writeDesciptor.dstBinding = binding;
-					writeDesciptor.dstArrayElement = 0;
-					writeDesciptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+					writeDesciptor.dstArrayElement = 0;					
 					writeDesciptor.descriptorCount = 1;					
 					writeDesciptor.pImageInfo = nullptr;
 					writeDesciptor.pTexelBufferView = nullptr;
@@ -105,14 +113,21 @@ namespace Hazel {
 					switch (data.type) {
 					case DescriptorType::UniformBuffer:
 					{
+						writeDesciptor.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 						m_UniformBuffers[frameIndex][set][binding] = MakeRef<VulkanUniformBuffer>(data.size, binding);						
 						writeDesciptor.pBufferInfo = &m_UniformBuffers[frameIndex].at(set).at(binding)->GetDescriptorBufferInfo();
 						break;
 					}
 					case DescriptorType::StorageBuffer:
 						break;
-					case DescriptorType::Sampler:
-
+					case DescriptorType::Sampler2D:
+						writeDesciptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+						Ref<VulkanTexture2D> texture = std::dynamic_pointer_cast<VulkanTexture2D>(VulkanMaterial::s_DefaultBlackQuad);
+						m_Samplers[frameIndex][set][binding] = texture;
+						if (!texture)
+							continue;																									
+						VkDescriptorImageInfo& imageInfo = texture->GetDescriptorImageInfo();						 												
+						writeDesciptor.pImageInfo = &imageInfo;
 						break;
 					}
 
@@ -122,6 +137,13 @@ namespace Hazel {
 			}
 
 		}
+	}
+
+	
+	// todo 
+	void VulkanMaterial::Submit()
+	{
+
 	}
 
 

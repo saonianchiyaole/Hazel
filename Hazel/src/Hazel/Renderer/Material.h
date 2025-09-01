@@ -17,6 +17,7 @@ namespace Hazel {
 		Material(Ref<Shader> shader);
 		~Material();
 
+		
 		virtual AssetType GetAssetType() override {
 			return AssetType::Material;
 		}
@@ -123,9 +124,8 @@ namespace Hazel {
 
 		bool IsFormMesh() { return m_IsFromMesh; }
 
-		static Ref<Material> Create(std::filesystem::path filepath);
+		static Ref<Material> Create(std::filesystem::path filepath);		
 		static Ref<Material> Create();
-
 
 	private:
 
@@ -142,8 +142,7 @@ namespace Hazel {
 		bool m_UseRoughnessTex = false;
 		bool m_UseMetalnessTex = false;
 
-		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
-		//std::unordered_map<std::string, void*> m_Data;
+		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;		
 
 		std::unordered_map<std::string, Buffer> m_Data;	
 

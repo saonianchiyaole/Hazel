@@ -24,6 +24,9 @@ namespace Hazel {
 		virtual void End();
 
 		inline const std::string& GetName() const { return  m_DebugName; }
+
+		static void Create();
+
 	protected:
 		std::string m_DebugName;
 

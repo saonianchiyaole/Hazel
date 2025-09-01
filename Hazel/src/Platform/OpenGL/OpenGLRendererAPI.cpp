@@ -58,7 +58,7 @@ namespace Hazel {
 
 	}
 
-	void OpenGLRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Material>)
+	void OpenGLRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material>)
 	{
 
 	}
@@ -100,7 +100,7 @@ namespace Hazel {
 	}
 
 
-	void OpenGLRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass, uint32_t imageIndex)
+	void OpenGLRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
 	{
 
 	}

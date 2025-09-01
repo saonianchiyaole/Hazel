@@ -154,11 +154,11 @@ namespace Hazel {
 			FramebufferSpecification geometryFramebufferSpec;
 			geometryFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
 			geometryFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
-			geometryFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
+			geometryFramebufferSpec.attachments = { TextureFormat::RGBA, TextureFormat::R, TextureFormat::Depth };
 			geometryFramebufferSpec.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			Ref<Framebuffer> geometryTargetFramebuffer = Framebuffer::Create(geometryFramebufferSpec);
 			RenderPassSpecification geometryPassSpec;
-			geometryPassSpec.targetFrameBuffer = geometryTargetFramebuffer;
+			geometryPassSpec.targetFramebuffer = geometryTargetFramebuffer;
 			s_SceneData->geometryPass = RenderPass::Create(geometryPassSpec);
 		}
 
@@ -167,10 +167,10 @@ namespace Hazel {
 			FramebufferSpecification compositeFramebufferSpec;
 			compositeFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
 			compositeFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
-			compositeFramebufferSpec.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER};
+			compositeFramebufferSpec.attachments = { TextureFormat::RGBA, TextureFormat::R};
 			Ref<Framebuffer> compositeTargetFramebuffer = Framebuffer::Create(compositeFramebufferSpec);
 			RenderPassSpecification compositePassSpec;
-			compositePassSpec.targetFrameBuffer = compositeTargetFramebuffer;
+			compositePassSpec.targetFramebuffer = compositeTargetFramebuffer;
 			s_SceneData->compositePass = RenderPass::Create(compositePassSpec);
 
 			s_SceneData->compositeShader = ShaderLibrary::Load("assets/Shaders/Composite.glsl");
@@ -304,11 +304,11 @@ namespace Hazel {
 	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
 	{
 		s_SceneData->activePass = renderPass;
-		s_SceneData->activePass->GetSpecification().targetFrameBuffer->Bind();
+		s_SceneData->activePass->GetSpecification().targetFramebuffer->Bind();
 
 		if (clear)
 		{
-			const glm::vec4& clearColor = s_SceneData->activePass->GetSpecification().targetFrameBuffer->GetSpecification().clearColor;
+			const glm::vec4& clearColor = s_SceneData->activePass->GetSpecification().targetFramebuffer->GetSpecification().clearColor;
 			RenderCommand::SetClearColor(clearColor);
 			RenderCommand::Clear();
 		}
@@ -316,7 +316,7 @@ namespace Hazel {
 
 	void Renderer::EndRenderPass()
 	{
-		s_SceneData->activePass->GetSpecification().targetFrameBuffer->Unbind();
+		s_SceneData->activePass->GetSpecification().targetFramebuffer->Unbind();
 		s_SceneData->activePass = nullptr;
 	}
 
@@ -326,7 +326,7 @@ namespace Hazel {
 		Renderer::BeginRenderPass(s_SceneData->geometryPass, true);
 
 		int textureValue = -1;
-		s_SceneData->geometryPass->GetSpecification().targetFrameBuffer->ClearAttachment(1, (void*)&textureValue);
+		s_SceneData->geometryPass->GetSpecification().targetFramebuffer->ClearAttachment(1, (void*)&textureValue);
 
 
 		if (s_SceneData->environment)
@@ -426,9 +426,9 @@ namespace Hazel {
 		Renderer::BeginRenderPass(s_SceneData->compositePass);
 
 		int textureValue = -1;
-		s_SceneData->compositePass->GetSpecification().targetFrameBuffer->ClearAttachment(1, (void*)&textureValue);
+		s_SceneData->compositePass->GetSpecification().targetFramebuffer->ClearAttachment(1, (void*)&textureValue);
 
-		s_SceneData->geometryPass->GetSpecification().targetFrameBuffer->BindTexture(0);
+		s_SceneData->geometryPass->GetSpecification().targetFramebuffer->BindTexture(0);
 		s_SceneData->compositeShader->Bind();
 		s_SceneData->compositeShader->SetInt("u_Texture", 0);
 		s_SceneData->fullScreenQuad->Bind();
@@ -449,18 +449,18 @@ namespace Hazel {
 
 	Ref<Framebuffer> Renderer::GetGeometryPassFramebuffer()
 	{
-		return s_SceneData->geometryPass->GetSpecification().targetFrameBuffer;
+		return s_SceneData->geometryPass->GetSpecification().targetFramebuffer;
 	}
 
 	Ref<Framebuffer> Renderer::GetCompositePassFramebuffer()
 	{
-		return s_SceneData->compositePass->GetSpecification().targetFrameBuffer;
+		return s_SceneData->compositePass->GetSpecification().targetFramebuffer;
 	}
 
 	void Renderer::SetViewportSize(uint32_t width, uint32_t height)
 	{
-		s_SceneData->compositePass->GetSpecification().targetFrameBuffer->Resize(glm::vec2{ width, height });
-		s_SceneData->compositePass->GetSpecification().targetFrameBuffer->Resize(glm::vec2{ width, height });
+		s_SceneData->compositePass->GetSpecification().targetFramebuffer->Resize(glm::vec2{ width, height });
+		s_SceneData->compositePass->GetSpecification().targetFramebuffer->Resize(glm::vec2{ width, height });
 	}
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)

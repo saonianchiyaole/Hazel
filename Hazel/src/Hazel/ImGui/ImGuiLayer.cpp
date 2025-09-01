@@ -7,18 +7,27 @@
 #include "Hazel/Renderer/RendererAPI.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
-#include "backends/imgui_impl_vulkan.h"
-
-
 
 #include "Hazel/Core/Application.h"
 #include "Platform/Windows/WindowsWindow.h"
+#include "Platform/Vulkan/VulkanImGuiLayer.h"
 
 #include "imgui.h"
 
 #include "ImGuizmo.h"
 
 namespace Hazel {
+
+    Ref<ImGuiLayer> ImGuiLayer::Create() {
+        switch (RendererAPI::GetAPI()) {
+		case RendererAPI::API::None:    
+            HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); ;
+        case RendererAPI::API::OpenGL:
+			return MakeRef<ImGuiLayer>();
+        case RendererAPI::API::Vulkan:
+            return MakeRef<VulkanImGuiLayer>();
+        }
+    }
 
 	ImGuiLayer::ImGuiLayer()
 		:Layer("ImGuiLayer")

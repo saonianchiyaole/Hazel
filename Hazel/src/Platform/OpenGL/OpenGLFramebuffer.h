@@ -25,12 +25,10 @@ namespace Hazel {
 		virtual void Unbind() override;
 	private:
 		uint32_t m_RendererID;
-		
-		FramebufferSpecification m_Specification;
-
-		std::vector<FramebufferTextureFormat> m_ColorAttachmentFormats;
+				
+		std::vector<TextureFormat> m_ColorAttachmentFormats;
 		std::vector<uint32_t> m_ColorAttachments; 
 		uint32_t m_DepthAttachment = 0;
-		FramebufferTextureFormat m_DepthAttachmentFormat = FramebufferTextureFormat::None;
+		TextureFormat m_DepthAttachmentFormat = TextureFormat::None;
 	};
 }

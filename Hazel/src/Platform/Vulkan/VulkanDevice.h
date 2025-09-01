@@ -18,6 +18,7 @@ namespace Hazel {
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
+		std::optional<uint32_t> transferFamily;
 
 		bool IsComplete() {
 			return graphicsFamily.has_value() && presentFamily;
@@ -50,7 +51,7 @@ namespace Hazel {
 
 		const VkPhysicalDevice				GetRawPhysicalDevice()	const { return m_PhysicalDevice; }
 		const VkPhysicalDeviceProperties	GetProperties()			const { return m_Properties; }
-
+		const QueueFamilyIndices			GetQueueFamilyIndices() const { return m_QueueFamilyIndices; }
 
 
 		operator VkPhysicalDevice() {
@@ -63,9 +64,8 @@ namespace Hazel {
 	private:
 
 		VkPhysicalDeviceProperties m_Properties;
-		VkPhysicalDevice m_PhysicalDevice;
-
-
+		VkPhysicalDevice m_PhysicalDevice;		
+		QueueFamilyIndices m_QueueFamilyIndices;
 	};
 
 
@@ -80,8 +80,7 @@ namespace Hazel {
 
 		//Get
 		inline	VkDevice								GetRawDevice()			{ return m_Device; }
-		inline	VkCommandPool							GetCommandPool()		{ return m_CommandPool; }
-		inline	std::vector<Ref<VulkanCommandBuffer>>	GetCommandBuffers()		{ return m_CommandBuffers; }
+		inline	VkCommandPool							GetCommandPool()		{ return m_CommandPool; }		
 		inline	VkQueue&								GetGraphicQueue()		{ return m_GraphicQueue; }
 		inline	VkQueue&								GetPresentQueue()		{ return m_PresentQueue; }
 		inline	Ref<VulkanPhysicalDevice>				GetPhysicalDevice()		{ return m_PhysicalDevice; }
@@ -90,11 +89,10 @@ namespace Hazel {
 		//Set
 		inline	void	SetPhysicalDevice(Ref<VulkanPhysicalDevice> physicalDevice) { m_PhysicalDevice = physicalDevice; }
 
-
-
 		void CreateCommandPool();
-		void CreateCommandBuffers();
+		Ref<VulkanCommandBuffer> CreateCommandBuffer();
 		void CreateDescriptorPool();
+		Ref<VulkanCommandBuffer> CreateSecondaryCommandBuffer();
 
 		//void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
@@ -110,19 +108,12 @@ namespace Hazel {
 		VkDevice					m_Device;
 
 		VkCommandPool							m_CommandPool;
-		std::vector<Ref<VulkanCommandBuffer>>	m_CommandBuffers;
 
 		VkDescriptorPool m_DescriptorPool;
 
 		VkQueue m_GraphicQueue;
 		VkQueue m_PresentQueue;
-
-		
-		
-
-
+						
 	};
-
-
 
 }

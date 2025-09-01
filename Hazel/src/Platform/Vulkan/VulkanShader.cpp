@@ -256,8 +256,8 @@ namespace Hazel {
 				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			case DescriptorType::StorageBuffer:
 				return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			case DescriptorType::Sampler:
-				return VK_DESCRIPTOR_TYPE_SAMPLER;
+			case DescriptorType::Sampler2D:
+				return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			}
 		}
 
@@ -416,9 +416,9 @@ namespace Hazel {
 			}
 			Reflect(it.first, it.second);
 		}
-		
+
 		CreateDescriptorSetLayout();
-		
+
 
 	}
 
@@ -437,7 +437,7 @@ namespace Hazel {
 	{
 
 		for (auto& it : data) {
-			
+
 			switch (m_RelectionDataByName[it.first].type) {
 
 			case DescriptorType::UniformBuffer:
@@ -451,8 +451,8 @@ namespace Hazel {
 
 			case DescriptorType::Sampler:
 
-				continue;			
-			}			
+				continue;
+			}
 		}
 
 	}
@@ -507,18 +507,18 @@ namespace Hazel {
 
 		spirv_cross::Compiler compiler(spirvBinary);
 		auto resources = compiler.get_shader_resources();
-
+		// uniform buffers
 		for (const auto& resource : resources.uniform_buffers) {
 
 			auto activeBuffers = compiler.get_active_buffer_ranges(resource.id);
 			if (activeBuffers.size()) {
-			
+
 				const auto& name = resource.name;
 				auto& bufferType = compiler.get_type(resource.base_type_id);
 				int memberCount = bufferType.member_types.size();
 				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 				uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-				uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);				
+				uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
 
 				ShaderReflectionData reflectionData;
 				reflectionData.name = name;
@@ -527,19 +527,54 @@ namespace Hazel {
 				reflectionData.size = size;
 				reflectionData.stage = stage;
 				reflectionData.type = DescriptorType::UniformBuffer;
+				reflectionData.dimension = 1;
 
 				if (descriptorSet >= m_RelectionData.size()) {
 
-					m_RelectionData.resize(descriptorSet + 1);				
+					m_RelectionData.resize(descriptorSet + 1);
 				}
 
 				m_RelectionData[descriptorSet].push_back(reflectionData);
 				m_RelectionDataByName[name] = reflectionData;
-										
+
 			}
 
 		}
+		// sampling images
+		for (const auto& resource : resources.sampled_images) {
 
+			const auto& name = resource.name;
+			auto& type = compiler.get_type(resource.base_type_id);
+			int memberCount = type.member_types.size();
+			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);						
+
+			ShaderReflectionData reflectionData;
+			reflectionData.name = name;
+			reflectionData.binding = binding;
+			reflectionData.descriptorSet = descriptorSet;			
+			reflectionData.stage = stage;
+			reflectionData.dimension = type.image.dim + 1;
+			switch (reflectionData.dimension)
+			{
+			case 1:
+				reflectionData.type = DescriptorType::Sampler2D;
+			case 2:
+				reflectionData.type = DescriptorType::Sampler2D;
+				break;
+			case 3:
+				reflectionData.type = DescriptorType::Sampler3D;
+				break;
+			}
+
+			if (descriptorSet >= m_RelectionData.size()) {
+				m_RelectionData.resize(descriptorSet + 1);
+			}
+
+			m_RelectionData[descriptorSet].push_back(reflectionData);
+			m_RelectionDataByName[name] = reflectionData;
+
+		}
 	}
 
 	void VulkanShader::CreateDescriptorSetLayout()
@@ -548,16 +583,16 @@ namespace Hazel {
 
 		m_DescriptorSetLayouts.resize(m_RelectionData.size());
 
-		for (uint32_t i = 0; i < m_RelectionData.size(); i++) {
+		for (uint32_t set = 0; set < m_RelectionData.size(); set++) {
 
 
 			std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-			layoutBindings.resize(m_RelectionData[i].size());
+			layoutBindings.resize(m_RelectionData[set].size());
 
-			for (uint32_t j = 0; j < m_RelectionData[i].size(); j++) {
+			for (uint32_t binding = 0; binding < m_RelectionData[set].size(); binding++) {
 
-				VkDescriptorSetLayoutBinding& LayoutBinding = layoutBindings[i];
-				const ShaderReflectionData& reflectData = m_RelectionData[i][j];
+				VkDescriptorSetLayoutBinding& LayoutBinding = layoutBindings[binding];
+				const ShaderReflectionData& reflectData = m_RelectionData[set][binding];
 				LayoutBinding.binding = reflectData.binding;
 				LayoutBinding.descriptorType = Utils::GetVulkanDescriptorTypeFromDescriptorType(reflectData.type);
 				LayoutBinding.descriptorCount = 1;
@@ -573,10 +608,10 @@ namespace Hazel {
 			layoutInfo.pBindings = layoutBindings.data();
 
 
-			HZ_CORE_ASSERT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayouts[i]) == VK_SUCCESS, "Failed to create descriptor!");
+			HZ_CORE_ASSERT(vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayouts[set]) == VK_SUCCESS, "Failed to create descriptor!");
 
 
-		}	
+		}
 
 	}
 

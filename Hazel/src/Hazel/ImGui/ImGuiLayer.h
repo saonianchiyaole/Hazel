@@ -21,6 +21,8 @@ namespace Hazel {
 		virtual void End() override;
 
 		void SetDarkTheme();
+
+		static Ref<ImGuiLayer> Create();
 	private:
 		float m_Time = 0.0f;
 	};

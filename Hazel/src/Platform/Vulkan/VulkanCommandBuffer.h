@@ -14,8 +14,8 @@ namespace Hazel {
 	public :
 
 
-		VulkanCommandBuffer();
-		VulkanCommandBuffer(VkCommandPool commandPool);
+		VulkanCommandBuffer();		
+		VulkanCommandBuffer(VkCommandPool commandPool, bool isPrimary = true);
 		VulkanCommandBuffer(VkCommandBuffer commandBuffer);		
 		~VulkanCommandBuffer();
 
@@ -24,7 +24,6 @@ namespace Hazel {
 		virtual void Submit() override;
 
 		virtual void End() override;
-
 		
 		inline	VkCommandBuffer&		GetRawCommandBuffer()		{ return m_CommandBuffer; }
 
@@ -32,7 +31,7 @@ namespace Hazel {
 
 		VkCommandBuffer m_CommandBuffer = nullptr;
 		VkFence m_Fence;
-
+		bool m_IsPrimary = true;
 	};
 
 

@@ -8,7 +8,8 @@ namespace Hazel {
 		uint32_t CalculateMipmapCount(uint32_t width, uint32_t height);
 
 		template<typename T>
-		uint32_t GetSizeOfTextureType();
+		uint32_t GetSizeOfTextureType();		
+
 	}
 
 
@@ -22,7 +23,16 @@ namespace Hazel {
 		RG,  //R8G8
 		RGB, //R8G8B8
 		RGBA, //R8G8B8A8
-		Float16
+		Float16,
+		DEPTH24STENCIL8,
+		// Defaults
+		Depth = DEPTH24STENCIL8,
+	};
+
+	enum class TextureUsage {
+		None,
+		Attachment,
+		Texture
 	};
 
 
@@ -50,15 +60,15 @@ namespace Hazel {
 		//static Ref<Texture2D> Create(const std::string& path);
 
 		static Ref<Texture2D> Create(const uint32_t width, const uint32_t height);
-		static Ref<Texture2D> Create(TextureFormat format, const uint32_t width, const uint32_t height);
+		static Ref<Texture2D> Create(TextureFormat format, const uint32_t width, const uint32_t height, TextureUsage usage = TextureUsage::Texture);
 		static Ref<Texture2D> Create(std::filesystem::path path);
 		// Pre create to allocate memory
 		static Ref<Texture2D> PreCreate();
 		static Texture2D* PreCreateNakedPointer();
 
 		//Get
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
+		virtual uint32_t GetWidth() const override;
+		virtual uint32_t GetHeight() const override;
 		std::string GetPath() const;
 
 		TextureType GetType();
@@ -77,7 +87,7 @@ namespace Hazel {
 		virtual const uint32_t GetRendererID() = 0;
 		bool IsLoaded() { return m_IsLoaded; }
 
-		bool operator == (Texture2D& other) {
+		virtual bool operator == (Texture2D& other) const {
 			return this->m_Path == other.m_Path;
 		}
 
@@ -95,6 +105,8 @@ namespace Hazel {
 		unsigned int m_DataFormat = 0;
 		unsigned int m_DataType = 0;
 		
+		TextureUsage m_Usage;
+
 		bool m_IsLoaded = false;
 		bool m_IsHDR = false;
 	};

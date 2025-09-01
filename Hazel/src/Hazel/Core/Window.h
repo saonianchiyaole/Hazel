@@ -10,6 +10,7 @@ namespace Hazel {
 
 
 	class GraphicsContext;
+	class Swapchain;
 
 	struct WindowProps
 	{
@@ -42,6 +43,7 @@ namespace Hazel {
 		virtual Ref<GraphicsContext> GetGraphicsContext() = 0;
 
 		virtual void* GetNativeWindow() const = 0;
+		virtual Ref<Swapchain> GetSwapchain() const = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

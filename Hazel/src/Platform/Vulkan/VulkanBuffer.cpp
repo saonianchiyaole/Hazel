@@ -106,6 +106,8 @@ namespace Hazel {
 			}
 
 			vkBindBufferMemory(device, buffer, bufferMemory, 0);
+
+			return buffer;
 		}
 
 		void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size, Ref<VulkanDevice> device)

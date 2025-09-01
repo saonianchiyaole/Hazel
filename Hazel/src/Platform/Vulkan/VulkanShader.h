@@ -98,12 +98,12 @@ namespace Hazel {
 		std::unordered_map<ShaderType, std::string>				m_SPIRVFilePathByShaderType;
 		std::unordered_map<ShaderType, std::vector<uint32_t>>	m_SPIRVBinaryByShaderType;
 
-		std::unordered_map<std::string, ShaderReflectionData> m_RelectionDataByName;
+		std::unordered_map<std::string, ShaderReflectionData>	m_RelectionDataByName;
 
-		// [frameIndex][set]
-		std::vector<std::vector<ShaderReflectionData>> m_RelectionData;
+		// [set][binding]
+		std::vector<std::vector<ShaderReflectionData>>			m_RelectionData;
 		// [set]
-		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
+		std::vector<VkDescriptorSetLayout>						m_DescriptorSetLayouts;
 		
 	};
 

@@ -6,7 +6,8 @@
 
 #include "Hazel/Renderer/Renderer.h"
 #include "Hazel/Scripting/ScriptEngine.h"
-
+#include "Hazel/Core/Window.h"
+#include "Hazel/Renderer/Swapchain.h"
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -30,9 +31,9 @@ namespace Hazel {
 		//Renderer::Init();
 		//ScriptEngine::Init();
 
-		//m_ImGuiLayer = new ImGuiLayer();
+		m_ImGuiLayer = ImGuiLayer::Create();
 
-		//PushLayer(m_ImGuiLayer);
+		PushLayer(m_ImGuiLayer.get());
 	}
 
 	Application::~Application() {
@@ -43,6 +44,9 @@ namespace Hazel {
 
 		while (m_Running) {
 
+			
+			m_Window->GetSwapchain()->BeginFrame();
+
 			float time = (float)glfwGetTime();
 			Timestep ts = time - m_LastFrameTime;
 			m_LastFrameTime = time;
@@ -51,12 +55,12 @@ namespace Hazel {
 				for (Layer* layer : m_LayerStack)
 					layer->OnUpdate(ts);
 
-			//m_ImGuiLayer->Begin();
+			m_ImGuiLayer->Begin();
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnImGuiRender();
 
-			//m_ImGuiLayer->End();
+			m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
 
