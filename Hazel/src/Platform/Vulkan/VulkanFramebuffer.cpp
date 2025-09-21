@@ -35,6 +35,9 @@ namespace Hazel {
 		std::vector<VkAttachmentDescription> attachmentDescriptions;
 		std::vector<VkAttachmentReference> colorAttachmentRefs;
 
+		m_ColorAttachments.clear();
+		m_DepthAttachment = nullptr;
+
 		uint32_t attachmentIndex = 0;
 		
 		VkAttachmentDescription depthAttachment{};
@@ -55,7 +58,7 @@ namespace Hazel {
 				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;				
 				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 				
 				depthAttachmentRef.attachment = m_Specification.attachments.attachments.size() - 1;
 				depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -68,10 +71,10 @@ namespace Hazel {
 			VkAttachmentDescription& attachemnt = attachmentDescriptions.emplace_back();
 			attachemnt.format = Utils::GetVulkanFormatFromTextureFormat(attachment.textureFormat);
 			attachemnt.samples = VK_SAMPLE_COUNT_1_BIT;
-			attachemnt.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachemnt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachemnt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachemnt.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			attachemnt.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			attachemnt.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			VkAttachmentReference& colorAttachmentRef = colorAttachmentRefs.emplace_back();
 			colorAttachmentRef.attachment = attachmentIndex;
@@ -115,11 +118,7 @@ namespace Hazel {
 		HZ_CORE_ASSERT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RawRenderPass) == VK_SUCCESS, "Failed to create render pass for framebuffer");
 
 		// cast		
-		std::vector<Ref<VulkanTexture2D>> vulkanAttachments;
-		vulkanAttachments.reserve(m_ColorAttachments.size());		
-		for (int i = 0; i < m_ColorAttachments.size(); i++) {
-			vulkanAttachments.push_back(std::static_pointer_cast<VulkanTexture2D>(m_ColorAttachments[i]));
-		}
+		std::vector<Ref<VulkanTexture2D>> vulkanAttachments = RefVectorStaticCast<VulkanTexture2D>(m_ColorAttachments);				
 		
 		std::vector<VkImageView> attachmentImageViews;
 		attachmentImageViews.reserve(vulkanAttachments.size() + (m_DepthAttachment == nullptr ? 0 : 1));

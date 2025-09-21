@@ -262,51 +262,55 @@ namespace Hazel {
 			// Material submit
 		}
 
+		// 3D Part
+		/* {
+			Renderer::BeginScene(camera);
+			//Skybox
+			if (m_Environment && m_Environment->IsLoaded())
+				Renderer::SubmitEnvironment(m_Environment);
 
-		Renderer::BeginScene(camera);
-		//Skybox
-		if(m_Environment && m_Environment->IsLoaded())
-			Renderer::SubmitEnvironment(m_Environment);
-		
-		// 3D part
-		auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
+			// 3D part
+			auto meshGroup = m_Registry.view<TransformComponent, MeshComponent>();
 
-		for (auto entityID : meshGroup) {
-			
-			
-			Entity entity = { entityID, this };
+			for (auto entityID : meshGroup) {
 
-			auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
-			if (mesh.mesh && mesh.mesh->GetFlag())
-			{
+
 				Entity entity = { entityID, this };
-				if (!entity.HasComponent<MaterialComponent>())
-					Renderer::SubmitMesh(mesh.mesh, transform, (int)entityID);
-				else {
-					Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().materials, (int)entityID);
+
+				auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
+				if (mesh.mesh && mesh.mesh->GetFlag())
+				{
+					Entity entity = { entityID, this };
+					if (!entity.HasComponent<MaterialComponent>())
+						Renderer::SubmitMesh(mesh.mesh, transform, (int)entityID);
+					else {
+						Renderer::SubmitMesh(mesh.mesh, transform, entity.GetComponent<MaterialComponent>().materials, (int)entityID);
+					}
 				}
 			}
-		}
 
-		Renderer::EndScene();
+			Renderer::EndScene();
+		}*/
 
 		// 2D part
-		Renderer2D::BeginScene(camera);
+		{
+			Renderer2D::BeginScene(camera);
 
-		auto quadGroup = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
-		for (auto entityID : quadGroup) {
-			auto& [transform, sprite] = quadGroup.get<TransformComponent, SpriteComponent>(entityID);
+			auto quadGroup = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
+			for (auto entityID : quadGroup) {
+				auto& [transform, sprite] = quadGroup.get<TransformComponent, SpriteComponent>(entityID);
 
-			Renderer2D::DrawSprite(transform, sprite, (int)entityID);
+				Renderer2D::DrawSprite(transform, sprite, (int)entityID);
+			}
+
+			auto circleGroup = m_Registry.view<TransformComponent, CircleRendererComponent>();
+			for (auto entityID : circleGroup) {
+				auto& [transform, circle] = circleGroup.get<TransformComponent, CircleRendererComponent>(entityID);
+				Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
+			}
+
+			Renderer2D::EndScene();
 		}
-
-		auto circleGroup = m_Registry.view<TransformComponent, CircleRendererComponent>();
-		for (auto entityID : circleGroup) {
-			auto& [transform, circle] = circleGroup.get<TransformComponent, CircleRendererComponent>(entityID);
-			Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
-		}
-
-		Renderer2D::EndScene();
 
 	}
 

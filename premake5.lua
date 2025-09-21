@@ -330,6 +330,7 @@ project "Editor"
 			"%{IncludeDir.box2d}",
 			"%{IncludeDir.mono}",
 			"%{IncludeDir.assimp}",
+			"%{IncludeDir.vulkan}",
 		}
 	
 	
@@ -358,6 +359,22 @@ project "Editor"
 			defines "HZ_DEBUG"
 			runtime "Debug"
 			symbols "on"
+			
+			links{
+			"%{Lib.shadercd}",
+			"%{Lib.shaderc_utild}",		
+			"%{Lib.shaderc_sharedd}",
+			"%{Lib.shaderc_combinedd}",		
+					
+			"%{Lib.spirv_cross_cored}",
+			"%{Lib.spirv_cross_cppd}",
+			"%{Lib.spirv_cross_c_sharedd}",
+			"%{Lib.spirv_cross_glsld}",
+			"%{Lib.spirv_cross_hlsld}",
+			"%{Lib.spirv_cross_msld}",
+			"%{Lib.spirv_cross_reflectd}",
+			"%{Lib.spirv_cross_utild}",
+			}
 	
 		filter "configurations:Release"
 			defines "HZ_RELEASE"

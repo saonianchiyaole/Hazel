@@ -60,8 +60,9 @@ namespace Hazel {
 		virtual void			ClearAttachment(uint32_t attachmentIndex, const void* value) = 0;
 		virtual const void		BindTexture(uint32_t index, uint32_t slot = 0) = 0;
 
-		virtual const uint32_t	GetColorAttachment(int index = 0) = 0;
-		virtual const uint32_t	GetDpethAttachment() = 0;
+		virtual const std::vector<Ref<Texture2D>>	GetColorAttachments()				{ return m_ColorAttachments; }
+		virtual const Ref<Texture2D>				GetColorAttachment(int index = 0)	{ return m_ColorAttachments[index]; }
+		virtual const Ref<Texture2D>				GetDpethAttachment()				{ return m_DepthAttachment; };
 
 
 		static Ref<Framebuffer> Create(const FramebufferSpecification& spec);

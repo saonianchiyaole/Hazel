@@ -48,6 +48,8 @@ namespace Hazel {
 		static void Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
 
 		static void Init();
+		static void BegineFrame();
+
 
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, int EntityHandle);
 		static void SubmitMesh(const Ref<Mesh>& mesh, const TransformComponent& transformComponent, std::vector<Ref<Material>> materials, int EntityHandle);
@@ -83,6 +85,8 @@ namespace Hazel {
 
 
 		static uint32_t GetFrameInFlight();
+		static uint32_t GetCurrentFrameIndex();
+
 
 		static uint8_t AllocateSlot();
 		static uint8_t GetUsedTextureSlotAmount();
@@ -92,6 +96,9 @@ namespace Hazel {
 			glm::mat4 ViewMatrix;
 			glm::mat4 ProjectionMatrix;
 			glm::mat4 ViewProjectionMatrix;
+
+			uint32_t frameIndex = 0;
+
 
 			Ref<Shader> defaultShader;
 			Ref<Shader> skyboxShader;
@@ -128,7 +135,12 @@ namespace Hazel {
 			std::vector<DrawCommand> drawList;
 		};
 
+
+
+
 		static SceneData* s_SceneData;
+
+		
 
 		static uint32_t s_FrameInFlight;
 

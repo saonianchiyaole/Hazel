@@ -4,6 +4,9 @@
 #include "glad/glad.h"
 
 #include "Hazel/Renderer/RenderCommand.h"
+#include "OpenGLTexture.h"
+
+
 
 namespace Hazel {
 
@@ -123,7 +126,14 @@ namespace Hazel {
 			}
 			else {
 				m_DepthAttachmentFormat = spec.textureFormat;
+				m_DepthAttachment = Texture2D::PreCreate();
 			}
+		}
+
+		// Just used for recored the attachemntID;
+		m_ColorAttachments.reserve(m_ColorAttachmentFormats.size());
+		for (uint32_t i = 0; i < m_ColorAttachmentFormats.size(); i++) {
+			m_ColorAttachments.push_back(Texture2D::PreCreate());
 		}
 
 		Invalidate();
@@ -132,8 +142,8 @@ namespace Hazel {
 	OpenGLFramebuffer::~OpenGLFramebuffer()
 	{
 		glDeleteFramebuffers(1, &m_RendererID);
-		glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
-		glDeleteTextures(1, &m_DepthAttachment);
+		glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachmentIDs.data());
+		glDeleteTextures(1, &m_DepthAttachmentID);
 	}
 
 	const FramebufferSpecification& OpenGLFramebuffer::GetSpecification()
@@ -147,24 +157,41 @@ namespace Hazel {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 
 
-		bool isMultisampled = m_Specification.samples > 1 ? true : false;
+		bool isMultisampled = m_Specification.samples > 1 ? true : false;		
 
+		
 
+		// ------------------------------------------------------- Color Attachment ------------------------------------------------------- 
+		
+		
 		if (m_ColorAttachmentFormats.size()) {
 			m_ColorAttachments.resize(m_ColorAttachmentFormats.size());
-			Utils::CreateTexture(isMultisampled, m_ColorAttachments.data(), m_ColorAttachments.size());
+			Utils::CreateTexture(isMultisampled, m_ColorAttachmentIDs.data(), m_ColorAttachments.size());
+
+			std::vector<Ref<OpenGLTexture2D>> openGLTextures = RefVectorStaticCast<OpenGLTexture2D>(m_ColorAttachments);
+			for (uint32_t i = 0; i < m_ColorAttachmentFormats.size(); i++) {
+				openGLTextures[i]->m_RendererID = m_ColorAttachmentIDs[i];
+			}
+
 			for (size_t i = 0; i < m_ColorAttachments.size(); i++) {
 				Utils::BindColorTexture(m_Specification.samples, m_Specification.width, m_Specification.height,
-									Utils::GetInternalFormat(m_ColorAttachmentFormats[i]), Utils::GetFormat(m_ColorAttachmentFormats[i]), m_ColorAttachments[i], i);
+									Utils::GetInternalFormat(m_ColorAttachmentFormats[i]), Utils::GetFormat(m_ColorAttachmentFormats[i]), m_ColorAttachmentIDs[i], i);
 
 			}
 		}
 
 
+
+		// ------------------------------------------------------- Depth Attachment ------------------------------------------------------- 
+		
 		if (m_DepthAttachmentFormat != TextureFormat::None) {
-			Utils::CreateTexture(isMultisampled, &m_DepthAttachment, 1);
+			
+			Utils::CreateTexture(isMultisampled, &m_DepthAttachmentID, 1);
 			Utils::BindDepthTexture(m_Specification.samples, m_Specification.width, m_Specification.height,
-				Utils::GetInternalFormat(m_DepthAttachmentFormat), Utils::GetAttachmentType(m_DepthAttachmentFormat), m_DepthAttachment);
+				Utils::GetInternalFormat(m_DepthAttachmentFormat), Utils::GetAttachmentType(m_DepthAttachmentFormat), m_DepthAttachmentID);
+
+			Ref<OpenGLTexture2D> openGLDepthTexture = std::static_pointer_cast<OpenGLTexture2D>(m_DepthAttachment);
+			openGLDepthTexture->m_RendererID = m_DepthAttachmentID;
 		}
 
 		if (m_ColorAttachments.size() > 1) {
@@ -181,26 +208,28 @@ namespace Hazel {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
+
 	void OpenGLFramebuffer::Resize(const FramebufferSpecification& spec)
 	{
 		glDeleteFramebuffers(1, &m_RendererID);
-		glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
-		glDeleteTextures(1, &m_DepthAttachment);
+		glDeleteTextures(m_ColorAttachmentIDs.size(), m_ColorAttachmentIDs.data());
+		glDeleteTextures(1, &m_DepthAttachmentID);
 		
 		m_Specification = spec;
-		m_ColorAttachments.clear();
+		m_ColorAttachmentIDs.clear();
 		m_DepthAttachment = 0;
 
 		RenderCommand::SetViewPort(0, 0, m_Specification.width, m_Specification.height);
 		Invalidate();
 	}
+
 	void OpenGLFramebuffer::Resize(const glm::vec2 size)
 	{
 		glDeleteFramebuffers(1, &m_RendererID);
-		glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
-		glDeleteTextures(1, &m_DepthAttachment);
+		glDeleteTextures(m_ColorAttachmentIDs.size(), m_ColorAttachmentIDs.data());
+		glDeleteTextures(1, &m_DepthAttachmentID);
 		
-		m_ColorAttachments.clear();
+		m_ColorAttachmentIDs.clear();
 		m_DepthAttachment = 0;
 
 		m_Specification.width = size.x;
@@ -208,6 +237,7 @@ namespace Hazel {
 		RenderCommand::SetViewPort(0, 0, m_Specification.width, m_Specification.height);
 		Invalidate();
 	}
+
 	int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
 	{
 		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "Index is out of range");
@@ -216,23 +246,17 @@ namespace Hazel {
 		glReadPixels(x, y, 1, 1, Utils::GetFormat(m_ColorAttachmentFormats[attachmentIndex]), Utils::GetType(m_ColorAttachmentFormats[attachmentIndex]), &pixel);
 		return pixel;
 	}
+
 	void OpenGLFramebuffer::ClearAttachment(uint32_t attachmentIndex, const void* value)
 	{
 		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "Index is out of range");
 
-		glClearTexImage(m_ColorAttachments[attachmentIndex], 0, Utils::GetFormat(m_ColorAttachmentFormats[attachmentIndex]), GL_INT, value);
+		glClearTexImage(m_ColorAttachmentIDs[attachmentIndex], 0, Utils::GetFormat(m_ColorAttachmentFormats[attachmentIndex]), GL_INT, value);
 	}
-	const uint32_t OpenGLFramebuffer::GetColorAttachment(int index)
-	{
-		return m_ColorAttachments[index];
-	}
-	const uint32_t OpenGLFramebuffer::GetDpethAttachment()
-	{
-		return m_DepthAttachment;
-	}
+	
 	const void OpenGLFramebuffer::BindTexture(uint32_t index, uint32_t slot)
 	{
-		glBindTextureUnit(slot, m_ColorAttachments[index]);
+		glBindTextureUnit(slot, m_ColorAttachmentIDs[index]);
 	}
 	void OpenGLFramebuffer::Bind()
 	{

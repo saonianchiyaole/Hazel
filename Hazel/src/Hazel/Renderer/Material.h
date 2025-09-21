@@ -8,6 +8,52 @@
 
 namespace Hazel {
 
+
+	namespace Utils {
+
+		template<typename T>
+		bool IsDataFormatCorrect(ShaderReflectionData& data) {
+
+			switch (data.type)
+			{			
+			case DescriptorType::Sampler2D:
+			{
+				return (std::is_same<T, Hazel::Texture2D*>::value ||
+					std::is_same<T, Ref<Texture2D>>::value ||
+					std::is_same<T, Hazel::Texture2D>::value) && data.size == 8;
+			}
+			case DescriptorType::SamplerCube:
+				break;
+			default:
+				break;
+			}
+		}
+
+		template<typename T>
+		bool IsDataFormatCorrect(ShaderDataType type) {
+
+			switch (type)
+			{
+			case Hazel::ShaderDataType::None:
+				return false;
+			case Hazel::ShaderDataType::Sampler2D:
+
+			{
+				return std::is_same<T, Hazel::Texture2D*>::value ||
+					std::is_same<T, Ref<Texture2D>>::value ||
+					std::is_same<T, Hazel::Texture2D>::value;
+			}
+			case Hazel::ShaderDataType::SamplerCube:
+				break;
+			default:
+				break;
+			}
+
+			return sizeof(T) == Utils::ShaderDataTypeSize(type);
+		}
+
+	}
+
 	class Material : public Asset {
 	public:
 		friend class MaterialSerializer;
@@ -17,15 +63,15 @@ namespace Hazel {
 		Material(Ref<Shader> shader);
 		~Material();
 
-		
+
 		virtual AssetType GetAssetType() override {
 			return AssetType::Material;
 		}
 
 		template<typename T>
-		inline T* GetData(std::string name)
+		inline T* GetData(const std::string& name)
 		{
-			if (m_Data.find(name) != m_Data.end() && m_Data[name].data != nullptr)
+			if (m_Data.find(name) != m_Data.end())
 			{
 				return m_Data[name].Read<T>();
 			}
@@ -33,78 +79,51 @@ namespace Hazel {
 		}
 
 		template<typename T>
-		inline void SetData(std::string name, T data)
+		inline void SetData(const std::string& name, T data)
 		{
-			if (m_Data.find(name) == m_Data.end())
+			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
 				return;
 
-			for (const auto& uniform : m_Shader->GetUniforms()) {
-				if (uniform->GetName() == name && Utils::isDataFormatCorrect<T>(uniform->GetType()))
-				{
-					m_Data[name].Write(&data, sizeof(T));
+			m_Data[name].Write(&data, sizeof(T));
+		}
 
-					break;
-				}
-			}
+		template<typename T>
+		inline void SetData(const std::string& name, T* data)
+		{
+			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
+				return;
+
+			m_Data[name].Write(&data, sizeof(T));
 
 		}
 
 		template<typename T>
-		inline void SetData(std::string name, T* data)
+		inline void SetData(const std::string& name, Ref<T> data)
 		{
-			if (m_Data.find(name) == m_Data.end())
+			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
 				return;
 
-			for (const auto& uniform : m_Shader->GetUniforms()) {
-				if (uniform->GetName() == name && Utils::isDataFormatCorrect<T>(uniform->GetType()))
-				{
-					m_Data[name].Write(data, sizeof(T));
-					break;
-				}
-			}
+			m_Data[name].Write(&data.get(), sizeof(T));
 
 		}
 
-		template<typename T>
-		inline void SetData(std::string name, Ref<T> data)
+		
+		virtual void SetData(const std::string& name, Ref<Texture2D> data)
 		{
-			if (m_Data.find(name) == m_Data.end())
+			if (m_Data.find(name) == m_Data.end() || !Utils::IsDataFormatCorrect<Texture2D>(*m_Shader->GetReflectionDataByName(name)))
 				return;
 
-			for (const auto& uniform : m_Shader->GetUniforms()) {
-				if (uniform->GetName() == name && Utils::isDataFormatCorrect<T>(uniform->GetType()))
-				{
-					m_Data[name].Write(data.get(), sizeof(T));
-					break;
-				}
+			if (!m_Data[name] && m_NameToTextureAndSlot.find(name) == m_NameToTextureAndSlot.end()) {
+				static size_t slotIndex = 0;
+				m_NameToTextureAndSlot[name] = { data, slotIndex };
+				slotIndex++;
+			}
+			else {
+				m_NameToTextureAndSlot[name] = { data, m_NameToTextureAndSlot[name].second };
 			}
 
-		}
-
-		template<>
-		inline void SetData(std::string name, Ref<Texture2D> data)
-		{
-			if (m_Data.find(name) == m_Data.end())
-				return;
-
-
-			for (const auto& uniform : m_Shader->GetUniforms()) {
-				if (uniform->GetName() == name && Utils::isDataFormatCorrect<Texture2D>(uniform->GetType()))
-				{
-					if (!m_Data[name] && m_NameToTextureAndSlot.find(name) == m_NameToTextureAndSlot.end()) {
-						static size_t slotIndex = 0;
-						m_NameToTextureAndSlot[name] = { data, slotIndex };
-						slotIndex++;
-					}
-					else {
-						m_NameToTextureAndSlot[name] = { data, m_NameToTextureAndSlot[name].second };
-					}
-
-					m_Data[name].data = data.get();
-					break;
-				}
-			}
-
+			m_Data[name].Write(data.get());
+		
 		}
 
 
@@ -116,7 +135,7 @@ namespace Hazel {
 
 		void ReloadShader();
 
-		void SetShader(Ref<Shader> shader);
+		virtual void SetShader(Ref<Shader> shader);
 		void SetName(const std::string& name);
 		void SetPath(const std::string& path);
 
@@ -124,7 +143,7 @@ namespace Hazel {
 
 		bool IsFormMesh() { return m_IsFromMesh; }
 
-		static Ref<Material> Create(std::filesystem::path filepath);		
+		static Ref<Material> Create(std::filesystem::path filepath);
 		static Ref<Material> Create();
 
 	private:
@@ -142,9 +161,10 @@ namespace Hazel {
 		bool m_UseRoughnessTex = false;
 		bool m_UseMetalnessTex = false;
 
-		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;		
 
-		std::unordered_map<std::string, Buffer> m_Data;	
+		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
+
+		std::unordered_map<std::string, Buffer> m_Data;
 
 		friend class MaterialSerializer;
 		bool m_IsFromMesh = false;

@@ -68,6 +68,13 @@ namespace Hazel {
 
 		virtual const void SetIntArray(const std::string& name, const int* val, const uint32_t count) = 0;
 
+		virtual ShaderReflectionData* GetReflectionDataByName(const std::string& name) {
+			if (m_RelectionDataByName.find(name) != m_RelectionDataByName.end()) {
+				return &m_RelectionDataByName.at(name);
+			}
+			return nullptr;
+		}
+
 		virtual const GLint GetRendererID() = 0;
 
 		AssetType GetAssetType() {
@@ -76,8 +83,8 @@ namespace Hazel {
 
 		virtual void Submit(std::unordered_map<std::string, Buffer>& data) = 0;
 		std::vector<Ref<ShaderUniform>> GetUniforms();
-		Ref<ShaderUniform> GetUniform(std::string);
-		std::string GetPath();
+		Ref<ShaderUniform>				GetUniform(std::string);
+		std::string						GetPath();
 		//Ref<ShaderUniform> GetUniform(std::string name);
 
 		static Ref<Shader> Create(const std::string& vertexSrc, const std::string& fragmentSrc);
@@ -93,6 +100,8 @@ namespace Hazel {
 		std::vector<Ref<ShaderUniform>> m_Uniforms;
 		uint32_t m_SampleUniformAmount = 0;
 		ShaderType m_Type;
+
+		std::unordered_map<std::string, ShaderReflectionData> m_RelectionDataByName;
 
 		std::unordered_set<Material*> m_AssociatedMaterials;
 		

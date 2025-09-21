@@ -64,21 +64,28 @@ namespace Hazel {
 	VulkanCommandBuffer::~VulkanCommandBuffer()
 	{
 
-		/*Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
+		static const Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
 		VkCommandPool commandPool = device->GetCommandPool();
 		VkDevice rawDevice = device->GetRawDevice();
 
-		vkFreeCommandBuffers(rawDevice, commandPool, 1, &m_CommandBuffer);*/
+		vkFreeCommandBuffers(rawDevice, commandPool, 1, &m_CommandBuffer);
 
 	}
 
 	void VulkanCommandBuffer::Begin()
 	{
 
+	
+		static const VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0;
 		beginInfo.pInheritanceInfo = nullptr;
+
+
+		vkWaitForFences(device, 1, &m_Fence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &m_Fence);
 
 		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");

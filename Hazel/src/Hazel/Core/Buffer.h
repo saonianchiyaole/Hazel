@@ -20,52 +20,63 @@ namespace Hazel
 
 
 		uint64_t GetSize() {
-			return this->size;
-		}
-		void Copy(void* srcData, uint64_t size) {
-			memcpy(srcData, data, size);
+			return this->m_Size;
 		}
 
+		void CopyFrom(void* srcData, uint64_t size) {
+			memcpy(m_Data, srcData, size);
+		}
 
-		void Allocate(uint64_t sizeVal) {
 
-			if (size != 0) {
+		void Allocate(uint64_t size) {
+
+			if (m_Size != 0) {
 				Free();
 			}
-			size = sizeVal;
-			if (size != 0)
-				data = new char[size];
+			m_Size = size;
+			if (m_Size != 0)
+				m_Data = (void*)malloc(m_Size);
 			
 		}
 
 		void Free() {
-			if (size != 0)
-				delete[] data;
-			size = 0;
+			if (m_Size != 0 && m_Data)
+				free(m_Data);
+			m_Size = 0;
 		}
 
 		template<typename T>
 		T* Read(uint64_t offset = 0) {
-			return (T*)((char*)data + offset);
+			return (T*)((char*)m_Data + offset);
 		}
 
 		void Write(const void* data, uint64_t size, uint64_t offset = 0) {
-			HZ_CORE_ASSERT(offset + size <= this->size, "Buffer overflow!");
-			memcpy((char*)this->data + offset, data, size);
+			HZ_CORE_ASSERT(offset + size <= m_Size, "Buffer overflow!");
+			memcpy((char*)this->m_Data + offset, data, m_Size);
+		}
+
+		// directly copy the input pointer's value to buffer's, don't suggest to use this
+		void Write(void* ptr) {
+			HZ_CORE_ASSERT(m_Size >= 8, "Buffer overflow");
+			m_Data = ptr;
 		}
 
 		operator bool() {
-			return data != nullptr;
+			return m_Data != nullptr;
+		}
+
+		operator void*() {
+			return m_Data;
 		}
 
 		void ZeroInitialize()
 		{
-			if (data)
-				memset(data, 0, size);
+			if (m_Data)
+				memset(m_Data, 0, m_Size);
 		}
 	private:
 
-		void* data = nullptr;
-		uint64_t size = 0;
+		void* m_Data = nullptr;
+		uint64_t m_Size = 0;
 	};
 }

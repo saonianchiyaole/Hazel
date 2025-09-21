@@ -5,6 +5,8 @@
 #include "Platform/Vulkan/VulkanDevice.h"
 #include "Platform/Vulkan/VulkanRenderPass.h"
 #include "Platform/Vulkan/VulkanFramebuffer.h"
+#include "Platform/Vulkan/VulkanRendererAPI.h"
+
 
 #include "Hazel/Renderer/RenderPass.h"
 #include "Hazel/Renderer/Framebuffer.h"
@@ -136,8 +138,8 @@ namespace Hazel {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image");
-		}
-		
+		}				
+
 		return m_CurrentImageIndex;
 	}
 
@@ -172,7 +174,7 @@ namespace Hazel {
 
 		if (vkQueueSubmit(m_Device->GetGraphicQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrameIndex]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
-		}
+		}		
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -183,10 +185,10 @@ namespace Hazel {
 		presentInfo.pImageIndices = &m_CurrentImageIndex;
 
 		//presentInfo.pResults = nullptr;
-
 		vkQueuePresentKHR(m_Device->GetPresentQueue(), &presentInfo);
 
-		m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+		// only when get the next image, we can start new frame
+		m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;		
 	}
 
 	void VulkanSwapchain::Create(uint32_t width, uint32_t height, bool isVsync) {
@@ -217,8 +219,8 @@ namespace Hazel {
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		createInfo.surface = m_Surface;
 		createInfo.minImageCount = m_ImageCount;
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
+		createInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+		createInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		createInfo.imageExtent = swapExtent;
 
 
@@ -303,7 +305,7 @@ namespace Hazel {
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			createInfo.image = m_Images[i];
 			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = m_Details.surfaceFormat.format;
+			createInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
 
 			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -379,7 +381,7 @@ namespace Hazel {
 
 
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = GetDetails().surfaceFormat.format;
+		colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

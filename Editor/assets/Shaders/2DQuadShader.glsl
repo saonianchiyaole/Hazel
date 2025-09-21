@@ -6,27 +6,23 @@ layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec2 a_TexCrood;
 layout(location = 2) in vec4 a_Color;
 layout(location = 3) in int a_TexIndex;		
-layout(location = 4) in int a_EntityID;	
 
-uniform mat4 u_Transform;
 layout(std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
 };
 
-out vec2 v_TexCrood;		
-out vec3 v_Position;
-out vec4 v_Color;
-flat out int v_TexIndex;
-flat out int v_EntityID;
+layout(location = 0) out vec2 v_TexCrood;		
+layout(location = 1) out vec3 v_Position;
+layout(location = 2) out vec4 v_Color;
+layout(location = 3) flat out int v_TexIndex;
 
 void main()
 {		
 	v_TexCrood = a_TexCrood;
 	v_Position = a_Position;
 	v_TexIndex = a_TexIndex;
-	v_Color = a_Color;
-	v_EntityID = a_EntityID;
+	v_Color = a_Color;	
 	
 	gl_Position = u_ViewProjection *  vec4(a_Position, 1.0);
 }
@@ -37,16 +33,13 @@ void main()
 #version 450 core
 
 layout(location = 0) out vec4 color;
-layout(location = 1) out int color2;
 
+layout(binding = 1) uniform sampler2D u_Textures[20];
 
-uniform sampler2D u_Textures[20];
-
-in vec2 v_TexCrood;
-in vec3 v_Position;
-in vec4 v_Color;
-flat in int v_TexIndex;
-flat in int v_EntityID;
+layout(location = 0) in vec2 v_TexCrood;
+layout(location = 1) in vec3 v_Position;
+layout(location = 2) in vec4 v_Color;
+layout(location = 3) flat in int v_TexIndex;
 
 void main()
 {
@@ -59,7 +52,5 @@ void main()
 		case 4: color = texture(u_Textures[4], v_TexCrood) * v_Color; break;
 		case 5: color = texture(u_Textures[5], v_TexCrood) * v_Color; break;
 		case 6: color = texture(u_Textures[6], v_TexCrood) * v_Color; break;
-	}
-	//color = vec4();
-	color2 = v_EntityID;
+	}	
 }

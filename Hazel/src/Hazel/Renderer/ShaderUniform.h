@@ -11,28 +11,7 @@ namespace Hazel {
 		void FreeMemoryByShaderDataType(ShaderDataType type, void* data);
 		uint64_t GetAllocatedMemoryByShaderDataType(ShaderDataType type);
 
-		template<typename T>
-		bool isDataFormatCorrect(ShaderDataType m_Type) {
-
-			switch (m_Type)
-			{
-			case Hazel::ShaderDataType::None:
-				return false;
-			case Hazel::ShaderDataType::Sampler2D:
-
-			{
-				return std::is_same<T, Hazel::Texture2D*>::value ||
-					std::is_same<T, Ref<Texture2D>>::value ||
-					std::is_same<T, Hazel::Texture2D>::value;
-			}
-			case Hazel::ShaderDataType::SamplerCube:
-				break;
-			default:
-				break;
-			}
-
-			return sizeof(T) == Utils::ShaderDataTypeSize(m_Type);
-		}
+		
 
 	}
 

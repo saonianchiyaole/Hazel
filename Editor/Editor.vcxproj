@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;..\vendor\GLFW\include;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;..\vendor\ImGuizmo;..\vendor\box2d\include;..\vendor\mono\include;..\vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;..\vendor\GLFW\include;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;..\vendor\ImGuizmo;..\vendor\box2d\include;..\vendor\mono\include;..\vendor\assimp\include;..\vendor\vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -89,7 +89,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\vendor\mono\lib\Debug\mono-2.0-sgen.lib;Ws2_32.lib;Winmm.lib;Version.lib;Bcrypt.lib;..\vendor\vulkan\vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\vendor\mono\lib\Debug\mono-2.0-sgen.lib;Ws2_32.lib;Winmm.lib;Version.lib;Bcrypt.lib;..\vendor\vulkan\vulkan-1.lib;..\vendor\shaderc\lib\shadercd.lib;..\vendor\shaderc\lib\shaderc_utild.lib;..\vendor\shaderc\lib\shaderc_sharedd.lib;..\vendor\shaderc\lib\shaderc_combinedd.lib;..\vendor\spirv\lib\spirv-cross-cored.lib;..\vendor\spirv\lib\spirv-cross-cppd.lib;..\vendor\spirv\lib\spirv-cross-c-sharedd.lib;..\vendor\spirv\lib\spirv-cross-glsld.lib;..\vendor\spirv\lib\spirv-cross-hlsld.lib;..\vendor\spirv\lib\spirv-cross-msld.lib;..\vendor\spirv\lib\spirv-cross-reflectd.lib;..\vendor\spirv\lib\spirv-cross-utild.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -97,7 +97,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;..\vendor\GLFW\include;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;..\vendor\ImGuizmo;..\vendor\box2d\include;..\vendor\mono\include;..\vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;..\vendor\GLFW\include;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;..\vendor\ImGuizmo;..\vendor\box2d\include;..\vendor\mono\include;..\vendor\assimp\include;..\vendor\vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -119,7 +119,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>HZ_PLATFORM_WINDOWS;HZ_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;..\vendor\GLFW\include;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;..\vendor\ImGuizmo;..\vendor\box2d\include;..\vendor\mono\include;..\vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Editor\src;$(SolutionDir)vendor\spdlog\include;$(SolutionDir)Hazel\src;..\vendor\glm;..\vendor\GLFW\include;$(SolutionDir)vendor\imgui;$(SolutionDir)vendor\GLAD\include;..\vendor\entt;..\vendor\yaml-cpp\include;..\vendor\ImGuizmo;..\vendor\box2d\include;..\vendor\mono\include;..\vendor\assimp\include;..\vendor\vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>

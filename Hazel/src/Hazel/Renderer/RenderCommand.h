@@ -28,6 +28,10 @@ namespace Hazel {
 			s_RendererAPI->Init();
 		}
 
+		inline static void BeginFrame() {
+			s_RendererAPI->BeginFrame();
+		}
+
 		inline static void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 			s_RendererAPI->SetViewPort(x, y, width, height);
 		}
@@ -55,27 +59,20 @@ namespace Hazel {
 		}
 		static void SetClearColor(const glm::vec4& color) { s_RendererAPI->SetClearColor(color); }
 		static void Clear() { s_RendererAPI->Clear(); }
-
-		static void BeginFrame() { s_RendererAPI->BeginFrame(); }
+		
 		static void EndFrame() { s_RendererAPI->EndFrame(); }
-		static void DrawFrame() { s_RendererAPI->DrawFrame(); }
+
 		static void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) 	{
 			s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
-		}
-		static void BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer) { 
-			s_RendererAPI->BindVertexBuffer(commandBuffer, vertexBuffer);
-		}
+		}		
 		static void EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) { 
 			s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
+		}		
+		static void DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray> vertexArray) { 
+			s_RendererAPI->DrawIndexed(commandBuffer, vertexArray);
 		}
-		static void BindVertexArray(Ref<CommandBuffer> commandBuffer, Ref<VertexArray> vertexArray) { 
-			s_RendererAPI->BindVertexArray(commandBuffer, vertexArray);
-		}
-		static void BindIndexBuffer(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) { 
-			s_RendererAPI->BindIndexBuffer(commandBuffer, indexBuffer);
-		}
-		static void DrawIndexed(Ref<CommandBuffer> commandBuffer, uint32_t count) { 
-			s_RendererAPI->DrawIndexed(commandBuffer, count);
+		static void DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray> vertexArray, uint32_t count) {
+			s_RendererAPI->DrawIndexed(commandBuffer, vertexArray, count);
 		}
 
 		static void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material) {

@@ -28,6 +28,8 @@
 #include "Platform/Vulkan/DescriptorSetManager.h"
 #include "Platform/Vulkan/VulkanMaterial.h"
 
+#include "backends/imgui_impl_vulkan.h"
+
 
 #include "Hazel/Renderer/Pipeline.h"
 #include "Hazel/Renderer/Shader.h"
@@ -69,16 +71,24 @@ public:
 	ExampleLayer()
 		:ImGuiLayer() {
 
-		
-		m_UBO.model = glm::mat4(1.0f);		
-		m_UBO.view = m_Camera.GetViewMatrix();
-		m_UBO.projection = m_Camera.GetProjectionMatrix();
 
-		RenderCommand::Init();		
+		m_UBO.model = glm::mat4(1.0f);
+		m_UBO.view = glm::mat4(1.0f);//m_Camera.GetViewMatrix();
+		m_UBO.projection = glm::mat4(1.0f);
+
+		RenderCommand::Init();
+
+		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < m_CommandBuffers.size(); i++) {
+			m_CommandBuffers[i] = CommandBuffer::Create();
+		}
 
 		m_Texture2D = TextureLibrary::Load("assets/Checkboard.png");
-				
-		m_VertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(float));			
+
+
+		m_VertexArray = VertexArray::Create();
+		
+		m_VertexBuffer = VertexBuffer::Create(vertices.data(), vertices.size() * sizeof(float));
 
 		Hazel::BufferLayout layout = std::vector<Hazel::BufferElement>{
 			Hazel::BufferElement{ Hazel::ShaderDataType::Float2, "Position"},
@@ -86,17 +96,19 @@ public:
 			Hazel::BufferElement{ Hazel::ShaderDataType::Float2, "TexCoord"},
 		};
 
-		m_VertexBuffer->SetLayout(layout);	
+		m_VertexBuffer->SetLayout(layout);
+		m_VertexArray->AddVertexBuffer(m_VertexBuffer);
 
 		m_IndexBuffer = IndexBuffer::Create(indices.data(), indices.size());
+		m_VertexArray->SetIndexBuffer(m_IndexBuffer);
 
 		m_Shader = Shader::Create("assets/Shaders/vulkanShader.glsl");
 
 		m_Material = MakeRef<VulkanMaterial>(m_Shader);
 		m_Material->SetData("UniformBufferObject", m_UBO);
 		m_Material->SetData("picture", m_Texture2D);
-		
-		
+
+
 
 		FramebufferSpecification fbSpec;
 		fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
@@ -107,16 +119,16 @@ public:
 
 		PipelineSpecification pipelineSpecification;
 		pipelineSpecification.shader = m_Shader;
-		pipelineSpecification.bufferLayout = layout;		
+		pipelineSpecification.bufferLayout = layout;
 		pipelineSpecification.targetFramebuffer = m_OffScreenFramebuffer;
 
 		m_Pipeline = Pipeline::Create(pipelineSpecification);
-		
+
 		RenderPassSpecification renderPassSpec = {
 			nullptr, m_Pipeline
 		};
 		m_RenderPass = RenderPass::Create(renderPassSpec);
-		
+
 	}
 
 	void OnAttach() override {
@@ -128,34 +140,149 @@ public:
 	}
 
 	void OnUpdate(Hazel::Timestep ts) override {
+
 				
-		// todo shouldn't exsist
-		//Ref<VulkanCommandBuffer> commandBuffer = device->CreateCommandBuffer();
-		 
-		//commandBuffer->Begin();
-		
+		uint32_t currentFrameIndex = Application::GetInstance().GetWindow().GetSwapchain()->GetCurrentFrameIndex();
+		Ref<CommandBuffer> commandBuffer = m_CommandBuffers[currentFrameIndex];
+
+		/*commandBuffer->Begin();
+
 		{
 
+			RenderCommand::BeginRenderPass(commandBuffer, m_RenderPass);		
+			RenderCommand::SubmitMaterial(commandBuffer, m_RenderPass->GetPipeline(), m_Material);
+			RenderCommand::DrawIndexed(commandBuffer, m_VertexArray);
+			RenderCommand::EndRenderPass(commandBuffer, m_RenderPass);
 			
-			// todo : where to go ?
-			/*RenderCommand::BeginRenderPass(commandBuffer, m_RenderPass);
-			RenderCommand::BindVertexBuffer(commandBuffer, m_VertexBuffer);
-			RenderCommand::BindIndexBuffer(commandBuffer, m_IndexBuffer);
-
-			RenderCommand::SubmitMaterial(commandBuffer, m_Pipeline, m_Material);
-			RenderCommand::DrawIndexed(commandBuffer, indices.size());
-			RenderCommand::EndRenderPass(commandBuffer, m_RenderPass);*/
-			//
 		}
 
-		//commandBuffer->End();
+		commandBuffer->End();
 
-		//commandBuffer->Submit();			
+		commandBuffer->Submit();	*/		
 	}
 
 	virtual void OnImGuiRender() override {
 
+
 		ImGui::ShowDemoWindow();
+
+		static bool m_Open = true;
+
+		static bool opt_fullscreen = true;
+		static bool opt_padding = false;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
+		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
+		else
+		{
+			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+		}
+
+		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+		// and handle the pass-thru hole, so we ask Begin() to not render a background.
+		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+			window_flags |= ImGuiWindowFlags_NoBackground;
+
+		// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+		// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+		// all active windows docked into it will lose their parent and become undocked.
+		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+		if (!opt_padding)
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("DockSpace Demo", &m_Open, window_flags);
+		if (!opt_padding)
+			ImGui::PopStyleVar();
+
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(2);
+
+		// Submit the DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		}
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Options"))
+			{
+				if (ImGui::MenuItem("Open...")) {
+
+				}
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("SaveAs...")) {
+
+				}
+
+				if (ImGui::MenuItem("Save", "Ctrl+S")) {
+
+				}
+				if (ImGui::MenuItem("SaveAndClose")) {
+
+				}
+
+				if (ImGui::MenuItem("Close")) {
+
+				}
+
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
+
+		ImGui::End();
+
+
+
+		ImGui::Begin("ViewPort");
+
+
+		uint8_t frameIndex = Application::GetInstance().GetWindow().GetSwapchain()->GetCurrentFrameIndex();
+
+		Ref<VulkanTexture2D> texture = std::static_pointer_cast<VulkanTexture2D>(m_OffScreenFramebuffer->GetColorAttachment(0));
+		if (!m_ImGuiDescriptorSet) {			
+			m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);			
+		}
+
+		//Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		
+
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		if (viewportSize.x != 0 && viewportSize.y != 0) {
+			if (m_ViewportSize != *(glm::vec2*)&viewportSize) {
+				/*m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
+				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
+				m_ViewportSize = { viewportSize.x, viewportSize.y };
+				m_ActiveScene->SetViewPortSize(m_ViewportSize);
+				Renderer::SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);*/
+				m_ViewportSize = { viewportSize.x, viewportSize.y };
+			}
+			
+
+			
+			//ImGui::Image(m_ImGuiDescriptorSet, *(ImVec2*)&m_ViewportSize);
+		}
+
+		ImGui::End();
+		
 	}
 
 	void OnEvent(Hazel::Event& event) override {
@@ -175,20 +302,26 @@ private:
 
 
 	//Resources
+	Ref<VertexArray> m_VertexArray;
+	Ref<VertexBuffer> m_VertexBuffer;
+	Ref<IndexBuffer> m_IndexBuffer;
 
-	Ref<VertexBuffer> m_VertexBuffer;	
+	std::vector<Ref<CommandBuffer>> m_CommandBuffers;
+
 	Ref<Framebuffer> m_OffScreenFramebuffer;
 	Ref<RenderPass> m_RenderPass;
-	Ref<Pipeline> m_Pipeline;	
+	Ref<Pipeline> m_Pipeline;
 	Ref<Shader> m_Shader;
 	Ref<Texture2D> m_Texture2D;
 
 	Ref<Material> m_Material;
-		
-	Ref<IndexBuffer> m_IndexBuffer;
+
+	VkDescriptorSet m_ImGuiDescriptorSet = nullptr;
 
 	Camera m_Camera;
 	UniformBufferObject m_UBO;
+
+	glm::vec2 m_ViewportSize = { 0,0 };
 
 };
 

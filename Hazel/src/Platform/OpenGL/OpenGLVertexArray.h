@@ -22,12 +22,10 @@ namespace Hazel {
 		
 		virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const override;
 		virtual const Ref<IndexBuffer>& GetIndexBuffer() const override;
-
-		static OpenGLVertexArray* Create();
+		
 	private:
 		uint32_t m_RendererID;
-		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
-		Ref<IndexBuffer> m_IndexBuffer;
+		
 		uint32_t m_VertexAtrributeAmount;
 	};
 }

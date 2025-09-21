@@ -52,7 +52,7 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLVertexBuffer>(vertices, size);
+			return MakeRef<OpenGLVertexBuffer>(vertices, size);
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanVertexBuffer>(vertices, size);
 
@@ -67,7 +67,7 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLVertexBuffer>(vertices, size);
+			return MakeRef<OpenGLVertexBuffer>(vertices, size);
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanVertexBuffer>(vertices, size);
 
@@ -82,7 +82,7 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLVertexBuffer>(size);
+			return MakeRef<OpenGLVertexBuffer>(size);
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanVertexBuffer>(size);
 			break;
@@ -101,7 +101,7 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLIndexBuffer>(indices, count);
+			return MakeRef<OpenGLIndexBuffer>(indices, count);
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanIndexBuffer>(indices, count);
 			break;
@@ -117,7 +117,7 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLIndexBuffer>(indices, count);
+			return MakeRef<OpenGLIndexBuffer>(indices, count);
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanIndexBuffer>(indices, count);
 			break;
@@ -137,7 +137,9 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLUniformBuffer>(size, binding);
+			return MakeRef<OpenGLUniformBuffer>(size, binding);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanUniformBuffer>(size, binding);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

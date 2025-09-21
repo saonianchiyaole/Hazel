@@ -12,7 +12,7 @@
 #include "Hazel/UI/UI.h"
 //#include "Hazel/Utils/PlatformUtils.h"
 #include "Platform/Windows/WindowsUtils.cpp"
-
+#include "Hazel/ImGui/ImGuiUI.h"
 
 namespace Hazel {
 
@@ -28,7 +28,7 @@ namespace Hazel {
 		m_PlayButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PlayButton.png");
 		m_PauseButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PauseButton.png");
 
-		m_Framebuffer = Renderer::GetGeometryPassFramebuffer();
+		m_Framebuffer = Renderer2D::GetFramebuffer();
 
 		m_EditorScene.reset(new Scene);
 
@@ -70,6 +70,8 @@ namespace Hazel {
 
 		int textureValue = -1;
 		m_Framebuffer->ClearAttachment(1, (void*)&textureValue);
+
+		Renderer::BegineFrame();
 
 		switch (m_SceneState) {
 		case SceneState::Edit:
@@ -229,11 +231,11 @@ namespace Hazel {
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
 				m_ActiveScene->SetViewPortSize(m_ViewportSize);
-				Renderer::SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+				//Renderer::SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);				
 			}
-			Renderer::GetCompositePassFramebuffer()->Bind();
-			ImGui::Image((void*)Renderer::GetCompositePassFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
-			Renderer::GetCompositePassFramebuffer()->Unbind();
+			
+			//ImGui::Image(Renderer2D::GetFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+			
 		}
 
 		if (ImGui::BeginDragDropTarget()) {
@@ -286,35 +288,36 @@ namespace Hazel {
 
 	bool Editor::OnMoustLeftButtonClicked(Hazel::MouseButtonPressedEvent& event)
 	{
-		if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(HZ_KEY_LEFT_ALT) && m_IsViewportHovered && (!ImGuizmo::IsOver() || !m_HierarchyPanel.GetSelectedEntity())) {
-			
-			//Get Pixel value
-			glm::vec2 mousePos = *(glm::vec2*)&ImGui::GetMousePos();
-			mousePos = mousePos - m_ViewportButtomLeftPos;
-			mousePos.y = -mousePos.y;
-			//mousePos -= ImGui::GetStyle().WindowBorderSize;
-			if (mousePos.x < 0 || mousePos.x > m_ViewportSize.x - 1
-				|| mousePos.y < 0 || mousePos.y > m_ViewportSize.y - 1) {
-				// Out of ViewPort
-				m_SelectedEntity = Entity{};
-			}
-			else {
-				//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
-				m_Framebuffer->Bind();
-				int pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
-				m_SelectedEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
-				m_Framebuffer->Unbind();
+		// todo remove the comment these when it's time
+		//if (event.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(HZ_KEY_LEFT_ALT) && m_IsViewportHovered && (!ImGuizmo::IsOver() || !m_HierarchyPanel.GetSelectedEntity())) {
+		//	
+		//	//Get Pixel value
+		//	glm::vec2 mousePos = *(glm::vec2*)&ImGui::GetMousePos();
+		//	mousePos = mousePos - m_ViewportButtomLeftPos;
+		//	mousePos.y = -mousePos.y;
+		//	//mousePos -= ImGui::GetStyle().WindowBorderSize;
+		//	if (mousePos.x < 0 || mousePos.x > m_ViewportSize.x - 1
+		//		|| mousePos.y < 0 || mousePos.y > m_ViewportSize.y - 1) {
+		//		// Out of ViewPort
+		//		m_SelectedEntity = Entity{};
+		//	}
+		//	else {
+		//		//HZ_CORE_INFO("Mouse pos : {0} {1}", mousePos.x, mousePos.y);
+		//		m_Framebuffer->Bind();
+		//		int pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
+		//		m_SelectedEntity = pixelVaule == -1 ? Entity{} : Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
+		//		m_Framebuffer->Unbind();
 
 
-				Renderer::GetCompositePassFramebuffer()->Bind();
-				pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
-				if(pixelVaule != -1)
-					m_SelectedEntity = Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
-				Renderer::GetCompositePassFramebuffer()->Unbind();
-			}
+		//		Renderer::GetCompositePassFramebuffer()->Bind();
+		//		pixelVaule = Renderer::GetGeometryPassFramebuffer()->ReadPixel(1, mousePos.x, mousePos.y);
+		//		if(pixelVaule != -1)
+		//			m_SelectedEntity = Entity{ (entt::entity)pixelVaule, m_ActiveScene.get() };
+		//		Renderer::GetCompositePassFramebuffer()->Unbind();
+		//	}
 
-			m_HierarchyPanel.SetSelectedEntity(m_SelectedEntity);
-		}
+		//	m_HierarchyPanel.SetSelectedEntity(m_SelectedEntity);
+		//}
 
 		/*auto [x, y] = Hazel::Input::GetMousePos();
 		auto windowWidth = Hazel::Application::GetInstance().GetWindow().GetWidth();
@@ -422,7 +425,7 @@ namespace Hazel {
 		switch (m_SceneState)
 		{
 		case Hazel::SceneState::Edit:
-			if (ImGui::ImageButton("##PlayButton", (ImTextureID)m_PlayButtonTexture->GetRendererID(), { size, size }, { 0, 1 }, { 1, 0 })) {
+			if (ImGui::ImageButton("##PlayButton", m_PlayButtonTexture, { size, size }, { 0, 1 }, { 1, 0 })) {
 				m_SceneState = SceneState::Play;
 
 				m_RuntimeScene = Scene::CopyScene(m_EditorScene);
@@ -432,7 +435,7 @@ namespace Hazel {
 			}
 			break;
 		case Hazel::SceneState::Play:
-			if (ImGui::ImageButton("##PauseButton", (ImTextureID)m_PauseButtonTexture->GetRendererID(), { size, size }, { 0, 1 }, { 1, 0 })) {
+			if (ImGui::ImageButton("##PauseButton", m_PauseButtonTexture, { size, size }, { 0, 1 }, { 1, 0 })) {
 				m_SceneState = SceneState::Edit;
 
 				m_RuntimeScene->OnRuntimeStop();

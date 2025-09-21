@@ -15,6 +15,8 @@ namespace Hazel {
 
 		virtual void End() = 0;
 
+		static Ref<CommandBuffer> Create();
+
 	private:
 
 	};

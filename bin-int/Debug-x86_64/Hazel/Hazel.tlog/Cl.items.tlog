@@ -13,11 +13,13 @@ G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\LayerStack.cpp;G:\Project\vis
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Log.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Log.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Process.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Process.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Random.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Random.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Thread.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Thread.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Timer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\Timestep.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Timestep.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Core\UUID.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\UUID.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiBuild.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiBuild.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiLayer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiLayer.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Hazel\ImGui\ImGuiUI.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\ImGuiUI.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Math\Math.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Math.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Buffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Buffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Hazel\Renderer\Camera.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Camera.obj
@@ -64,6 +66,7 @@ G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLShaderUniform.cpp;
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLTexture.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLTexture.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\OpenGL\OpenGLVertexArray.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\OpenGLVertexArray.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\DescriptorSetManager.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\DescriptorSetManager.obj
+G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\Vulkan.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\Vulkan.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\VulkanBuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VulkanBuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\VulkanCommandBuffer.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VulkanCommandBuffer.obj
 G:\Project\visualStudio\Hazel\Hazel\src\Platform\Vulkan\VulkanContext.cpp;G:\Project\visualStudio\Hazel\bin-int\Debug-x86_64\Hazel\VulkanContext.obj

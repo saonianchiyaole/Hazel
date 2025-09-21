@@ -7,7 +7,13 @@ namespace Hazel {
 
 	enum AssetFlag {
 		Valid = 1,
+		Loading = 2,
 		Invalid = 0
+	};
+
+	enum AssetSource {
+		File,
+		Program
 	};
 
 	enum class AssetType {
@@ -43,6 +49,7 @@ namespace Hazel {
 	protected:
 		AssetHandle m_Handle = 0;
 		AssetFlag m_Flag = AssetFlag::Invalid;
+		std::mutex m_Mutex;
 
 
 	};

@@ -148,6 +148,12 @@ namespace Hazel {
 	{
 		glDeleteTextures(1, &m_RendererID);
 	}
+
+	OpenGLTexture2D::OpenGLTexture2D()
+	{
+		
+	}
+
 	void OpenGLTexture2D::SetData(const void* data, const uint32_t size)
 	{
 		uint32_t bpp = m_DataFormat == GL_RGBA ? 4 : 3;

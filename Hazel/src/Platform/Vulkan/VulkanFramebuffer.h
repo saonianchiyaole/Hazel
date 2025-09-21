@@ -27,13 +27,8 @@ namespace Hazel {
 		virtual void			ClearAttachment(uint32_t attachmentIndex, const void* value) override {}
 		virtual const void		BindTexture(uint32_t index, uint32_t slot = 0) {};
 
-		virtual const uint32_t	GetColorAttachment(int index = 0) override { return 0; }
-		virtual const uint32_t	GetDpethAttachment() override { return 0; }
-
-
-
-		inline VkFramebuffer GetRawFramebuffer() const { return m_Framebuffer; }
-		inline VkRenderPass	 GetRawRenderPass() const { return m_RawRenderPass; }
+		inline VkFramebuffer	GetRawFramebuffer() const { return m_Framebuffer; }
+		inline VkRenderPass		GetRawRenderPass() const { return m_RawRenderPass; }
 
 	private:
 

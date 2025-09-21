@@ -161,7 +161,7 @@ namespace Hazel {
 		
 		static bool Exists(const std::string& name);
 		static Ref<Texture2D> Get(const std::string& name);
-
+		
 		
 	private:
 

@@ -129,6 +129,9 @@
     <ClInclude Include="src\Hazel\Core\Random.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Core\Thread.h">
+      <Filter>src\Hazel\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Core\Timer.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
@@ -154,6 +157,9 @@
       <Filter>src\Hazel\Event</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\ImGui\ImGuiLayer.h">
+      <Filter>src\Hazel\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\ImGui\ImGuiUI.h">
       <Filter>src\Hazel\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Math\Math.h">
@@ -363,6 +369,9 @@
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\Vulkan.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -410,6 +419,9 @@
     <ClCompile Include="src\Hazel\Core\Random.cpp">
       <Filter>src\Hazel\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\Core\Thread.cpp">
+      <Filter>src\Hazel\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Core\Timer.cpp">
       <Filter>src\Hazel\Core</Filter>
     </ClCompile>
@@ -423,6 +435,9 @@
       <Filter>src\Hazel\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\ImGui\ImGuiLayer.cpp">
+      <Filter>src\Hazel\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\ImGui\ImGuiUI.cpp">
       <Filter>src\Hazel\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Math\Math.cpp">
@@ -622,6 +637,9 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\Vulkan.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -97,7 +97,8 @@ namespace Hazel {
 			//deal with texture
 			for (auto uniform : m_Shader->GetUniforms()) {
 				if (uniform->GetType() == ShaderDataType::Sampler2D) {
-					m_Data[uniform->GetName()].data = Renderer::GetDefaultBlackQuadTexture().get();
+					//  todo Should I store the address of the shared pointer or the raw pointer's ?
+					m_Data[uniform->GetName()].Write(Renderer::GetDefaultBlackQuadTexture().get());
 					m_NameToTextureAndSlot[uniform->GetName()] = std::pair(Renderer::GetDefaultBlackQuadTexture(), m_NameToTextureAndSlot.size());
 				}
 			}

@@ -104,7 +104,9 @@ namespace Hazel {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return std::make_shared<OpenGLTexture2D>();
+			return MakeRef<OpenGLTexture2D>();
+		case RendererAPI::API::Vulkan:
+			return MakeRef<VulkanTexture2D>();
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

@@ -14,10 +14,8 @@
 #include "Hazel/Renderer/VertexArray.h"
 #include "Hazel/Renderer/Environment.h"
 #include "Hazel/Renderer/Framebuffer.h"
-#include "Platform/OpenGL/OpenGLRendererAPI.h"
-#include "Platform/Vulkan/VulkanRendererAPI.h"
-
-
+#include "Hazel/Renderer/Swapchain.h"
+#include "Hazel/Renderer/Pipeline.h"
 
 namespace Hazel {
 
@@ -80,9 +78,11 @@ namespace Hazel {
 		RenderCommand::Init();
 		Renderer2D::Init();
 
+		// only test 2d graphic
+
 		s_SceneData->textureSlotIndex = 0;
 
-		s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
+		/* s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
 		s_SceneData->lightUniformBuffer = UniformBuffer::Create(sizeof(LightUniformBuffer), 1);
 
 		ShaderLibrary::Load("assets/Shaders/Standard.glsl");
@@ -95,17 +95,9 @@ namespace Hazel {
 		s_SceneData->defaultWhiteShader = ShaderLibrary::Get("simple");
 
 
-		// default texture
-		{
-			uint32_t blackTextureData = 0;
-			s_SceneData->blackQuadTexture = Texture2D::Create(1, 1);
-			s_SceneData->blackQuadTexture->SetData(&blackTextureData, sizeof(uint32_t));
-
-		}
-
-		//ShaderLibrary::Load("assets/Shaders/Animation.glsl");
-		//s_SceneData->animationShader = ShaderLibrary::Get("Animation");
-
+		
+	
+		// Initialize shader, material
 		{
 			s_SceneData->skybox = VertexArray::Create();
 			BufferLayout skyboxBufferLayout = std::vector<Hazel::BufferElement>{
@@ -127,7 +119,7 @@ namespace Hazel {
 			s_SceneData->skyboxMaterial->SetShader(s_SceneData->skyboxShader);
 
 		}
-
+		*/
 		//Set Dufault Light Uniform
 
 
@@ -149,21 +141,38 @@ namespace Hazel {
 		}
 
 
+		// default texture
+		{
+			uint32_t blackTextureData = 0;
+			s_SceneData->blackQuadTexture = Texture2D::Create(1, 1);
+			s_SceneData->blackQuadTexture->SetData(&blackTextureData, sizeof(uint32_t));
+
+		}
+
+
 		//set geometry pass
 		{
-			FramebufferSpecification geometryFramebufferSpec;
+			/*FramebufferSpecification geometryFramebufferSpec;
 			geometryFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
 			geometryFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
 			geometryFramebufferSpec.attachments = { TextureFormat::RGBA, TextureFormat::R, TextureFormat::Depth };
 			geometryFramebufferSpec.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			Ref<Framebuffer> geometryTargetFramebuffer = Framebuffer::Create(geometryFramebufferSpec);
+			
+			PipelineSpecification geometryPipelineSpc;
+			geometryPipelineSpc.shader = ;
+			geometryPipelineSpc.bufferLayout = ;
+			geometryPipelineSpc.targetFramebuffer;
+			Ref<Pipeline> geometryPipeline = Pipeline::Create(geometryPipelineSpc);
+
 			RenderPassSpecification geometryPassSpec;
+			geometryPassSpec.pipeline = geometryPipeline;
 			geometryPassSpec.targetFramebuffer = geometryTargetFramebuffer;
-			s_SceneData->geometryPass = RenderPass::Create(geometryPassSpec);
+			s_SceneData->geometryPass = RenderPass::Create(geometryPassSpec);*/
 		}
 
 		//set composite pass
-		{
+		/*{
 			FramebufferSpecification compositeFramebufferSpec;
 			compositeFramebufferSpec.width = Hazel::Application::GetInstance().GetWindow().GetWidth();
 			compositeFramebufferSpec.height = Hazel::Application::GetInstance().GetWindow().GetHeight();
@@ -175,8 +184,14 @@ namespace Hazel {
 
 			s_SceneData->compositeShader = ShaderLibrary::Load("assets/Shaders/Composite.glsl");
 
-		}
+		}*/
 
+	}
+
+	void Renderer::BegineFrame()
+	{
+		s_SceneData->frameIndex = Application::GetInstance().GetWindow().GetSwapchain()->GetCurrentFrameIndex();
+		RenderCommand::BeginFrame();
 	}
 
 	void Renderer::BeginScene(const Camera& camera)
@@ -456,11 +471,12 @@ namespace Hazel {
 	{
 		return s_SceneData->compositePass->GetSpecification().targetFramebuffer;
 	}
+	
 
 	void Renderer::SetViewportSize(uint32_t width, uint32_t height)
 	{
-		s_SceneData->compositePass->GetSpecification().targetFramebuffer->Resize(glm::vec2{ width, height });
-		s_SceneData->compositePass->GetSpecification().targetFramebuffer->Resize(glm::vec2{ width, height });
+		//s_SceneData->compositePass->GetSpecification().targetFramebuffer->Resize(glm::vec2{ width, height });
+		//s_SceneData->compositePass->GetSpecification().targetFramebuffer->Resize(glm::vec2{ width, height });
 	}
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
@@ -488,6 +504,10 @@ namespace Hazel {
 	uint32_t Renderer::GetFrameInFlight()
 	{
 		return s_FrameInFlight;
+	}
+
+	uint32_t Renderer::GetCurrentFrameIndex() {
+		return s_SceneData->frameIndex;
 	}
 
 	uint8_t Renderer::AllocateSlot()

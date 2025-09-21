@@ -16385,8 +16385,10 @@ void ImGui::RenderPlatformWindowsDefault(void* platform_render_arg, void* render
         ImGuiViewport* viewport = platform_io.Viewports[i];
         if (viewport->Flags & ImGuiViewportFlags_IsMinimized)
             continue;
-        if (platform_io.Platform_SwapBuffers) platform_io.Platform_SwapBuffers(viewport, platform_render_arg);
-        if (platform_io.Renderer_SwapBuffers) platform_io.Renderer_SwapBuffers(viewport, renderer_render_arg);
+        if (platform_io.Platform_SwapBuffers)
+            platform_io.Platform_SwapBuffers(viewport, platform_render_arg);
+        if (platform_io.Renderer_SwapBuffers)
+            platform_io.Renderer_SwapBuffers(viewport, renderer_render_arg);
     }
 }
 

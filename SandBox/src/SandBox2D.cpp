@@ -200,7 +200,7 @@ void SandBox2D::OnImGuiRender()
         m_CameraController->SetAspectRatio(viewportSize.x / viewportSize.y);
         m_ViewportSize = { viewportSize.x, viewportSize.y };
     }
-    ImGui::Image((void*)m_Framebuffer->GetColorAttachment(), { (float)m_ViewportSize.x, (float)m_ViewportSize.y });
+    //ImGui::Image((void*)m_Framebuffer->GetColorAttachment(), { (float)m_ViewportSize.x, (float)m_ViewportSize.y });
     ImGui::End();
 
 

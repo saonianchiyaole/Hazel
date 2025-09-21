@@ -1,6 +1,6 @@
 #include "hzpch.h"
 #include "Panels/ContentBrowserPanel.h"
-#include <imgui.h>
+#include "Hazel/ImGui/ImGuiUI.h"
 
 namespace Hazel {
 
@@ -64,7 +64,7 @@ namespace Hazel {
 			Ref<Texture2D> icon = isFolder ? m_FolderTexture : m_FileTexture;
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-			ImGui::ImageButton(path.c_str(), (ImTextureID)icon->GetRendererID(), { 30, 30 }, { 0, 1 }, { 1, 0 });
+			ImGui::ImageButton(path.c_str(), icon, { 30, 30 }, { 0, 1 }, { 1, 0 });
 
 			if (ImGui::BeginDragDropSource()) {
 

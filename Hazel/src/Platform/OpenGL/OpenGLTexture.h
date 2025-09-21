@@ -12,7 +12,7 @@ namespace Hazel {
 	class OpenGLTexture2D : public Texture2D {
 	public:
 		~OpenGLTexture2D();
-		OpenGLTexture2D() = default;
+		OpenGLTexture2D();
 		OpenGLTexture2D(const std::string& path);
 		OpenGLTexture2D(const uint32_t width, const uint32_t height);
 		OpenGLTexture2D(TextureFormat format, const uint32_t width, const uint32_t height);
@@ -21,13 +21,15 @@ namespace Hazel {
 
 		virtual void Bind(uint32_t slot = 0) const override;
 
-		virtual const uint32_t GetRendererID() override;
+		virtual const uint32_t GetRendererID() override;	
 	
 		virtual bool operator ==(Texture& other) const override {
 			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
 		}
 
 		friend class OpenGLTextureCube;
+		friend class OpenGLFramebuffer;
+
 	private:
 		uint32_t m_RendererID;
 	};

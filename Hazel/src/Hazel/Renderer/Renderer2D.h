@@ -1,10 +1,12 @@
 #pragma once
 #include "Hazel/Renderer/OrthographicCamera.h"
 #include "Hazel/Renderer/EditorCamera.h"
-#include "Hazel/Renderer/Texture.h"
 #include "Hazel/Scene/Component.h"
 
 namespace Hazel {
+
+	class Framebuffer;
+	class Texture2D;
 
 	class Renderer2D {
 	public:
@@ -54,7 +56,9 @@ namespace Hazel {
 
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int enitityID = -1);
 		static void DrawRect(const glm::mat4 transform, const glm::vec4& color, int enitityID = -1);
-
+		
+		// todo remove this to renderer / sceneRenderer
+		static Ref<Framebuffer> GetFramebuffer();
 
 		const static RendererState* GetState();
 		static void ResetState();

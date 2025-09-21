@@ -49,7 +49,7 @@ namespace Hazel {
 			return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT || VK_FORMAT_D32_SFLOAT;
 		}
 
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout& oldLayout, VkImageLayout newLayout) {
 
 			Ref<VulkanCommandBuffer> commandBuffer = MakeRef<VulkanCommandBuffer>();
 			commandBuffer->Begin();
@@ -111,6 +111,14 @@ namespace Hazel {
 				srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 				dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			}
+			else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+				barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+				srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+			}
 			else {
 				HZ_CORE_ASSERT(false, "Unsupport image layout transition!");
 			}
@@ -127,6 +135,8 @@ namespace Hazel {
 			commandBuffer->End();
 
 			commandBuffer->Submit();
+
+			oldLayout = newLayout;
 
 		}
 
@@ -279,6 +289,8 @@ namespace Hazel {
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.flags = 0;
 
+		m_Layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
 		HZ_CORE_ASSERT(vkCreateImage(device, &imageInfo, nullptr, &m_Image) == VK_SUCCESS, "Failed to create vulkan image!");
 
 		VkMemoryRequirements memRequirements;
@@ -297,14 +309,14 @@ namespace Hazel {
 
 		Utils::TransitionImageLayout(m_Image,
 			Utils::GetVulkanFormatFromTextureFormat(m_TextureFormat),
-			VK_IMAGE_LAYOUT_UNDEFINED,
+			m_Layout,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		Utils::CopyBufferToImage(stagingBuffer, m_Image, width, height);
 
 		Utils::TransitionImageLayout(m_Image,
 			Utils::GetVulkanFormatFromTextureFormat(m_TextureFormat),
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			m_Layout,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		//clean up
@@ -393,6 +405,8 @@ namespace Hazel {
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.flags = 0;
 
+		m_Layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
 		HZ_CORE_ASSERT(vkCreateImage(device, &imageInfo, nullptr, &m_Image) == VK_SUCCESS, "Failed to create vulkan image!");
 
 		VkMemoryRequirements memRequirements;
@@ -411,7 +425,7 @@ namespace Hazel {
 
 		Utils::TransitionImageLayout(m_Image,
 			Utils::GetVulkanFormatFromTextureFormat(m_TextureFormat),
-			VK_IMAGE_LAYOUT_UNDEFINED,
+			m_Layout,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		//image view part
@@ -493,7 +507,7 @@ namespace Hazel {
 			vulkanusage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
 		else {
-			vulkanusage = usage == TextureUsage::Texture ? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			vulkanusage = usage == TextureUsage::Texture ? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
 		
 		VkImageCreateInfo imageInfo{};
@@ -511,6 +525,8 @@ namespace Hazel {
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.flags = 0;
+
+		m_Layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 		HZ_CORE_ASSERT(vkCreateImage(device, &imageInfo, nullptr, &m_Image) == VK_SUCCESS, "Failed to create vulkan image!");
 
@@ -547,7 +563,7 @@ namespace Hazel {
 
 			Utils::TransitionImageLayout(m_Image,
 				imageFormat,
-				VK_IMAGE_LAYOUT_UNDEFINED,
+				m_Layout,
 				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
 			//depth attachment don't need sampler and descriptorImageInfo
@@ -559,30 +575,31 @@ namespace Hazel {
 			
 			Utils::TransitionImageLayout(m_Image,
 				imageFormat,
-				VK_IMAGE_LAYOUT_UNDEFINED,
+				m_Layout,
 				usage == TextureUsage::Attachment ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
-			);			
-
-			VkSamplerCreateInfo samplerInfo{};
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.maxAnisotropy = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy;
-			samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-			samplerInfo.unnormalizedCoordinates = VK_FALSE;
-			samplerInfo.compareEnable = VK_FALSE;
-			samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerInfo.mipLodBias = 0.0f;
-			samplerInfo.minLod = 0.0f;
-			samplerInfo.maxLod = 0.0f;
-
-			HZ_CORE_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler) == VK_SUCCESS, "Failed to create sampler");
-
+			);					
 			
 			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;									
 		}
 				
+
 		HZ_CORE_ASSERT(vkCreateImageView(device, &viewInfo, nullptr, &m_ImageView) == VK_SUCCESS,
 			"Failed to create image view");
+
+
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.maxAnisotropy = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 0.0f;
+
+		HZ_CORE_ASSERT(vkCreateSampler(device, &samplerInfo, nullptr, &m_Sampler) == VK_SUCCESS, "Failed to create sampler");
 
 		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		m_DescriptorImageInfo.imageView = m_ImageView;
@@ -639,7 +656,7 @@ namespace Hazel {
 
 		Utils::TransitionImageLayout(m_Image, 
 			Utils::GetVulkanFormatFromTextureFormat(m_TextureFormat),
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			m_Layout,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 

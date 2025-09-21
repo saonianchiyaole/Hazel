@@ -230,7 +230,7 @@ namespace Hazel {
 			attributeDescriptions[i].binding = 0;
 			attributeDescriptions[i].location = i;
 			attributeDescriptions[i].location = Utils::GetVulkanFormatFormShaderDataType(m_Layout.GetElements()[i].Type);
-			attributeDescriptions[0].offset = m_Layout.GetElements()[i].Offset;
+			attributeDescriptions[i].offset = m_Layout.GetElements()[i].Offset;
 		}
 
 		return attributeDescriptions;

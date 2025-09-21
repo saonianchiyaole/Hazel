@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #ifdef HZ_PLATFORM_WINDOWS
 #if HZ_DYNAMIC_LINK
@@ -54,5 +55,21 @@ namespace Hazel {
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 	
+
+	// default use static_pointer_cast
+	template<typename DstType, typename SrcType>
+	constexpr std::vector<Ref<DstType>> RefVectorStaticCast(std::vector<SrcType> array) {
+
+		std::vector<Ref<DstType>> dstTypeArray;
+		size_t size = array.size();
+
+		dstTypeArray.reserve(size);
+		for (size_t i = 0; i < size; i++) {
+			dstTypeArray.push_back(std::static_pointer_cast<DstType>(array[i]));
+		}
+
+		return dstTypeArray;
+	}	
+
 
 }

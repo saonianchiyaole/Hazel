@@ -45,6 +45,7 @@ namespace Hazel {
 	{
 		glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 	}
+
 	void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count)
 	{
 
@@ -52,11 +53,6 @@ namespace Hazel {
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
 	}
 
-
-	void OpenGLRendererAPI::DrawIndexed(Ref<CommandBuffer> commandBuffer, uint32_t count)
-	{
-
-	}
 
 	void OpenGLRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material>)
 	{
@@ -99,30 +95,26 @@ namespace Hazel {
 
 	}
 
-
 	void OpenGLRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
 	{
 
 	}
-
-	void OpenGLRendererAPI::BindVertexBuffer(Ref<CommandBuffer> commandBuffer, Ref<VertexBuffer> vertexBuffer)
-	{
-
-	}
-
+	
 	void OpenGLRendererAPI::EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
 	{
 
 	}
 
-	void OpenGLRendererAPI::BindVertexArray(Ref<CommandBuffer> commandBuffer, Ref<VertexArray> vertexArray)
+	void OpenGLRendererAPI::DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray)
 	{
 
 	}
 
-	void OpenGLRendererAPI::BindIndexBuffer(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
+	void OpenGLRendererAPI::DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray, uint32_t count)
 	{
 
 	}
+
+	
 
 }

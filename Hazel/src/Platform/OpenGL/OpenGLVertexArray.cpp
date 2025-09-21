@@ -120,11 +120,6 @@ namespace Hazel {
 		return m_IndexBuffer;
 	}
 
-	OpenGLVertexArray* OpenGLVertexArray::Create()
-	{
-		return nullptr;
-	}
-
 	bool IsIntType(const ShaderDataType type) {
 		if (type == ShaderDataType::Float || type == ShaderDataType::Float2 || type == ShaderDataType::Float3 || type == ShaderDataType::Float4
 			|| type == ShaderDataType::Mat3 || type == ShaderDataType::Mat4)

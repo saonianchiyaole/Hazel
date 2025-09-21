@@ -21,7 +21,7 @@ namespace Hazel {
 
 	private:
 
-		std::vector<Ref<VulkanCommandBuffer>> m_CommandBuffers;		
+		std::vector<Ref<VulkanCommandBuffer>> m_CommandBuffers;				
 
 	};
 

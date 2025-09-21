@@ -386,7 +386,7 @@ namespace Hazel {
 
 
 		m_Path = filePath;
-
+		m_Name = Utils::GetShaderName(filePath);
 
 		int lastSlash = filePath.find_last_of("/\\");
 		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash;
@@ -434,26 +434,7 @@ namespace Hazel {
 	}
 
 	void VulkanShader::Submit(std::unordered_map<std::string, Buffer>& data)
-	{
-
-		for (auto& it : data) {
-
-			switch (m_RelectionDataByName[it.first].type) {
-
-			case DescriptorType::UniformBuffer:
-
-
-				continue;
-			case DescriptorType::StorageBuffer:
-
-				continue;
-
-
-			case DescriptorType::Sampler:
-
-				continue;
-			}
-		}
+	{		
 
 	}
 
@@ -514,12 +495,14 @@ namespace Hazel {
 			if (activeBuffers.size()) {
 
 				const auto& name = resource.name;
-				auto& bufferType = compiler.get_type(resource.base_type_id);
-				int memberCount = bufferType.member_types.size();
+				auto& baseType = compiler.get_type(resource.base_type_id);
+				auto& type = compiler.get_type(resource.type_id);
+				int memberCount = baseType.member_types.size();
 				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 				uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-				uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
-
+				uint32_t size = (uint32_t)compiler.get_declared_struct_size(baseType);
+				uint32_t arraySize = type.array.size() > 0 ? type.array[0] : 1;
+				
 				ShaderReflectionData reflectionData;
 				reflectionData.name = name;
 				reflectionData.binding = binding;
@@ -527,6 +510,7 @@ namespace Hazel {
 				reflectionData.size = size;
 				reflectionData.stage = stage;
 				reflectionData.type = DescriptorType::UniformBuffer;
+				reflectionData.arraySize = arraySize;
 				reflectionData.dimension = 1;
 
 				if (descriptorSet >= m_RelectionData.size()) {
@@ -544,17 +528,21 @@ namespace Hazel {
 		for (const auto& resource : resources.sampled_images) {
 
 			const auto& name = resource.name;
-			auto& type = compiler.get_type(resource.base_type_id);
-			int memberCount = type.member_types.size();
+			auto& baseType = compiler.get_type(resource.base_type_id);
+			auto& type = compiler.get_type(resource.type_id);
+			int memberCount = baseType.member_types.size();
 			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 			uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);						
+			uint32_t arraySize = type.array.size() > 0 ? type.array[0] : 1;
 
 			ShaderReflectionData reflectionData;
 			reflectionData.name = name;
 			reflectionData.binding = binding;
+			reflectionData.size = 8; // For raw pointer			
 			reflectionData.descriptorSet = descriptorSet;			
 			reflectionData.stage = stage;
-			reflectionData.dimension = type.image.dim + 1;
+			reflectionData.dimension = baseType.image.dim + 1;
+			reflectionData.arraySize = arraySize;
 			switch (reflectionData.dimension)
 			{
 			case 1:
@@ -595,7 +583,7 @@ namespace Hazel {
 				const ShaderReflectionData& reflectData = m_RelectionData[set][binding];
 				LayoutBinding.binding = reflectData.binding;
 				LayoutBinding.descriptorType = Utils::GetVulkanDescriptorTypeFromDescriptorType(reflectData.type);
-				LayoutBinding.descriptorCount = 1;
+				LayoutBinding.descriptorCount = reflectData.arraySize;
 				LayoutBinding.stageFlags = Utils::GetVulkanShaderStageFlagBitsFromShaderType(reflectData.stage);
 				LayoutBinding.pImmutableSamplers = nullptr; // Optional, used for sampler bindings
 			}

@@ -17,7 +17,7 @@ namespace Hazel {
 
 
 		void			TransitionImageLayout					(VkImage image, VkFormat format,
-																VkImageLayout oldLayout, VkImageLayout newLayout);
+																VkImageLayout& oldLayout, VkImageLayout newLayout);
 
 		void			CopyBufferToImage						(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 		void			CopyBufferToImage						(VkBuffer buffer, Ref<VulkanTexture2D> image);
@@ -39,11 +39,14 @@ namespace Hazel {
 		VulkanTexture2D(uint32_t width, uint32_t height);
 		VulkanTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureUsage usage = TextureUsage::Texture);
 
-		virtual const uint32_t	GetRendererID() override	{ return 0; }
-		VkImage					GetRawImage()				{ return m_Image; }
-		VkImageView				GetImageView()				{ return m_ImageView; }
-		VkSampler				GetSampler()				{ return m_Sampler; }
-		VkDescriptorImageInfo	GetDescriptorImageInfo()	{ return m_DescriptorImageInfo; }
+		virtual const uint32_t	GetRendererID() override		{ return 0; }
+		VkImage					GetRawImage()					{ return m_Image; }
+		VkImageView				GetImageView()					{ return m_ImageView; }
+		VkSampler				GetSampler()					{ return m_Sampler; }
+		VkDescriptorImageInfo	GetDescriptorImageInfo()		{ return m_DescriptorImageInfo; }
+		VkImageLayout&			GetLayout()						{ return m_Layout; }
+		void					SetLayout(VkImageLayout layout) { m_Layout = layout; }
+
 		virtual void			SetData(const void* data, const uint32_t size) override;
 		virtual void			Bind(uint32_t slot = 0) const override {}		
 
@@ -58,6 +61,7 @@ namespace Hazel {
 		VkDeviceMemory m_Memory;
 		VkSampler m_Sampler;
 		VkDescriptorImageInfo m_DescriptorImageInfo;
+		VkImageLayout m_Layout;
 		void* m_MappedData;		
 	};
 

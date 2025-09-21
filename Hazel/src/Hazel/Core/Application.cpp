@@ -28,8 +28,8 @@ namespace Hazel {
 
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-		//Renderer::Init();
-		//ScriptEngine::Init();
+		Renderer::Init();
+		ScriptEngine::Init();
 
 		m_ImGuiLayer = ImGuiLayer::Create();
 
@@ -41,6 +41,8 @@ namespace Hazel {
 	}
 
 	void Application::Run() {
+
+		static uint32_t frame = 0;
 
 		while (m_Running) {
 
@@ -64,6 +66,7 @@ namespace Hazel {
 
 			m_Window->OnUpdate();
 
+			frame++;
 		}
 	}
 

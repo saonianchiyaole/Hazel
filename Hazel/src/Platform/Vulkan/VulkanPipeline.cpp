@@ -22,10 +22,12 @@ namespace Hazel {
 
 
 
+
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
-		
-		Ref<VulkanShader> shader = std::dynamic_pointer_cast<VulkanShader>(m_Specification.shader);
+		Ref<VulkanFramebuffer> framebuffer = std::static_pointer_cast<VulkanFramebuffer>(m_Specification.targetFramebuffer);
+
+		Ref<VulkanShader> shader = std::static_pointer_cast<VulkanShader>(m_Specification.shader);
 
 
 		VkShaderModule vertexShaderModule = shader->GetShaderModule(ShaderType::VertexShader);
@@ -167,13 +169,22 @@ namespace Hazel {
 		pipelineInfo.pViewportState = &viewportState;
 		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &multisampling;
-		pipelineInfo.pDepthStencilState = nullptr;
+
+		VkPipelineDepthStencilStateCreateInfo depthStencil{};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
+		pipelineInfo.pDepthStencilState = &depthStencil;
+		
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 
 		pipelineInfo.layout = m_Layout;
 
-		pipelineInfo.renderPass = swapchain->GetRenderPass();
+		pipelineInfo.renderPass = framebuffer->GetRawRenderPass();
 		pipelineInfo.subpass = 0;
 
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
