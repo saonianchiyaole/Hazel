@@ -10,6 +10,12 @@ namespace Hazel {
 	class Shader;
 	class Framebuffer;
 
+
+	enum class PrimitiveTopology {
+		None = 0, TriangleList, LineList, PointList
+	};
+
+
 	struct PipelineSpecification {
 
 		Ref<Shader> shader;
@@ -18,6 +24,10 @@ namespace Hazel {
 		
 		Ref<Framebuffer> targetFramebuffer;
 
+		PrimitiveTopology topology = PrimitiveTopology::TriangleList;
+		
+		bool isWireframe = false;
+		float lineWidth = 1.0f;
 	};
 
 	class Pipeline {
@@ -27,7 +37,8 @@ namespace Hazel {
 		virtual ~Pipeline() = default; // Ìí¼ÓÐéÎö¹¹º¯Êý
 
 		static Ref<Pipeline> Create(PipelineSpecification specification);
-		Ref<Framebuffer> GetTargetFramebuffer() { return m_Specification.targetFramebuffer; }
+		Ref<Framebuffer>	GetTargetFramebuffer()	{ return m_Specification.targetFramebuffer; }
+		float				GetLineWidth()			{ return m_Specification.lineWidth; }
 
 	private:
 

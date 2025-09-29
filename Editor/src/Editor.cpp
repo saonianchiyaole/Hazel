@@ -476,10 +476,11 @@ namespace Hazel {
 		default:
 			break;
 		}
+
 		Renderer2D::BeginScene(*camera);
 
 		auto quadGroup = m_ActiveScene->m_Registry.view<TransformComponent, BoxCollider2DComponent>();
-		for (auto entityID : quadGroup) {
+		for (auto entityID : quadGroup) {  
 			const auto& [transformComponent, boxCollider2D] = quadGroup.get<TransformComponent, BoxCollider2DComponent>(entityID);
 			glm::mat4 transform = glm::translate(transformComponent.transform, { boxCollider2D.offset, 0.0f });
 			Renderer2D::DrawRect(transform, { 0.0f, 1.0f, 0.0f, 1.0f }, (int)entityID);

@@ -82,7 +82,7 @@ namespace Hazel {
 
 		VkBuffer m_Buffer;
 		VkDeviceMemory m_Memory;
-
+		void* m_MappedData;
 	};
 
 
@@ -102,6 +102,8 @@ namespace Hazel {
 
 		virtual uint32_t GetCount() const override { return m_Count; }
 		virtual VkBuffer GetRawBuffer() const { return m_Buffer; }
+
+		virtual void SetData(uint32_t* indices, uint32_t count) override;
 
 	private:
 		VkBuffer m_Buffer;

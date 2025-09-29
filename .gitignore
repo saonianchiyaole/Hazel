@@ -13,7 +13,7 @@
 !vendor/assimp/lib/*
 !vendor/mono/lib/
 !vendor/mono/lib/*
-
+bin-int/
 
 # User-specific files
 *.rsuser

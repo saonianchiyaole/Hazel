@@ -103,7 +103,7 @@ namespace Hazel {
 
 	void VulkanRendererAPI::SetLineWidth(float width)
 	{
-
+		//vkCmdSetLineWidth(vulkanCommandBuffer->GetRawCommandBuffer(), width);
 	}
 
 	void VulkanRendererAPI::SetDepthTest(bool value)
@@ -157,9 +157,10 @@ namespace Hazel {
 	
 		vkCmdBeginRenderPass(vulkanCommandBuffer->GetRawCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		VkPipeline pipeline = std::static_pointer_cast<VulkanPipeline>(renderPass->GetPipeline())->GetRawPipeline();
+		Ref<VulkanPipeline> pipeline = std::static_pointer_cast<VulkanPipeline>(renderPass->GetPipeline());
+		VkPipeline rawPipeline = pipeline->GetRawPipeline();
 
-		vkCmdBindPipeline(vulkanCommandBuffer->GetRawCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+		vkCmdBindPipeline(vulkanCommandBuffer->GetRawCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, rawPipeline);
 
 
 		// dynamic part
@@ -177,6 +178,7 @@ namespace Hazel {
 		scissor.extent = swapchain->GetDetails().swapChainExtent;
 		vkCmdSetScissor(vulkanCommandBuffer->GetRawCommandBuffer(), 0, 1, &scissor);
 
+		vkCmdSetLineWidth(vulkanCommandBuffer->GetRawCommandBuffer(), pipeline->GetLineWidth());
 	}
 
 

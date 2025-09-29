@@ -14,6 +14,23 @@ namespace Hazel {
 
 
 
+	namespace Utils {
+
+
+		VkPrimitiveTopology GetVulkanPrimitiveTopology(PrimitiveTopology topology)
+		{
+			switch (topology)
+			{
+			case PrimitiveTopology::TriangleList:    return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			case PrimitiveTopology::LineList:        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+			case PrimitiveTopology::PointList:       return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+			case PrimitiveTopology::None:            HZ_CORE_ASSERT(false, "Unknown PrimitiveTopology!");
+			}
+						
+		}
+
+	}
+
 
 	VulkanPipeline::VulkanPipeline(const PipelineSpecification& specification)
 	{
@@ -63,13 +80,14 @@ namespace Hazel {
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.topology = Utils::GetVulkanPrimitiveTopology(m_Specification.topology);
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		//---------------------------------------------------------------------------------------
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,
-			VK_DYNAMIC_STATE_SCISSOR
+			VK_DYNAMIC_STATE_SCISSOR,
+			VK_DYNAMIC_STATE_LINE_WIDTH
 		};
 
 		VkPipelineDynamicStateCreateInfo dynamicState{};
@@ -102,10 +120,10 @@ namespace Hazel {
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
-		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterizer.lineWidth = 1.0f;
+		rasterizer.polygonMode = m_Specification.isWireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizer.lineWidth = 1.0f;
 
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;
@@ -198,7 +216,4 @@ namespace Hazel {
 
 
 }
-
-
-
 

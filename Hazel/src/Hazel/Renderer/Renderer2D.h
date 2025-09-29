@@ -34,9 +34,6 @@ namespace Hazel {
 
 		static void Flush();
 
-
-
-
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 		static void DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, int entityID = -1);
 		static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, int entityID);

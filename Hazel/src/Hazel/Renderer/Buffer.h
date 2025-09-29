@@ -2,6 +2,17 @@
 
 namespace Hazel {
 
+
+
+	class GPUBuffer {
+
+	protected:
+
+		uint64_t m_Size;
+
+	};
+
+
 	enum class ShaderDataType
 	{
 		None = 0, Float, Float2, Float3, Float4, 
@@ -86,7 +97,7 @@ namespace Hazel {
 		uint32_t m_Stride = 0;
 	};
 
-	class VertexBuffer {
+	class VertexBuffer : public GPUBuffer{
 	public:
 		virtual ~VertexBuffer();
 
@@ -106,11 +117,11 @@ namespace Hazel {
 
 
 	protected:
-
+	 
 		BufferLayout m_Layout;
 	};
 
-	class IndexBuffer {
+	class IndexBuffer : public GPUBuffer {
 	public:
 		virtual ~IndexBuffer();
 
@@ -121,9 +132,11 @@ namespace Hazel {
 
 		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 		static Ref<IndexBuffer> Create(void* indices, uint32_t count);
+
+		virtual void SetData(uint32_t* indices, uint32_t count) = 0;
 	};
 
-	class UniformBuffer {
+	class UniformBuffer : public GPUBuffer {
 	public:
 		virtual ~UniformBuffer() = default;
 		

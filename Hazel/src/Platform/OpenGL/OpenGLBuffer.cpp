@@ -6,12 +6,18 @@ namespace Hazel {
 
 	/*  -------------------------------Vertex Buffer--------------------------------*/
 	OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, uint32_t size) {
+
+		m_Size = size;
+
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 	}
 
-	OpenGLVertexBuffer::OpenGLVertexBuffer(void* vertices, uint32_t size) {
+	OpenGLVertexBuffer::OpenGLVertexBuffer(void* vertices, uint32_t size) {		
+
+		m_Size = size;
+
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
@@ -19,6 +25,8 @@ namespace Hazel {
 
 	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size)
 	{
+		m_Size = size;
+
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
@@ -46,12 +54,14 @@ namespace Hazel {
 	/* ----------------------------Index Buffer-----------------------------------*/
 
 	OpenGLIndexBuffer::~OpenGLIndexBuffer()
-	{
+	{		
 		glDeleteBuffers(1, &m_RendererID);
 	}
 
 	OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count)
 		: m_Count(count){
+
+		m_Size = sizeof(uint32_t) * count;
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
@@ -60,6 +70,7 @@ namespace Hazel {
 	OpenGLIndexBuffer::OpenGLIndexBuffer(void* indices, uint32_t count)
 		:m_Count(count)
 	{
+		m_Size = sizeof(uint32_t) * count;
 		glCreateBuffers(1, &m_RendererID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
@@ -75,6 +86,9 @@ namespace Hazel {
 	/* ----------------------------Uniform Buffer-----------------------------------*/
 
 	OpenGLUniformBuffer::OpenGLUniformBuffer(uint32_t size, uint32_t binding){
+
+		m_Size = size;
+
 		glCreateBuffers(1, &m_RendererID);
 		glNamedBufferData(m_RendererID, size, nullptr, GL_DYNAMIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, binding, m_RendererID);

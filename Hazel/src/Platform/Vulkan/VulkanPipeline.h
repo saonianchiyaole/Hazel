@@ -9,6 +9,12 @@ namespace Hazel {
 
 	class VulkanShader;
 
+	namespace Utils {
+
+		VkPrimitiveTopology GetVulkanPrimitiveTopology(PrimitiveTopology type);		
+	}
+
+
 	class VulkanPipeline : public Pipeline{
 
 

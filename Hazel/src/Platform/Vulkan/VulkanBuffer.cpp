@@ -135,8 +135,10 @@ namespace Hazel {
 
 	}
 
-
 	VulkanVertexBuffer::VulkanVertexBuffer(float* vertices, uint32_t size) {
+
+
+		m_Size = size;
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
@@ -168,6 +170,7 @@ namespace Hazel {
 	VulkanVertexBuffer::VulkanVertexBuffer(void* vertices, uint32_t size)
 	{
 
+		m_Size = size;
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
@@ -198,6 +201,17 @@ namespace Hazel {
 
 	VulkanVertexBuffer::VulkanVertexBuffer(uint32_t size)
 	{
+
+		m_Size = size;
+
+		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
+
+		Utils::CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			m_Buffer, m_Memory);
+		
+		vkMapMemory(device, m_Memory, 0, size, 0, &m_MappedData);
+
 	}
 
 	VulkanVertexBuffer::~VulkanVertexBuffer()
@@ -246,6 +260,10 @@ namespace Hazel {
 
 	void VulkanVertexBuffer::SetData(const void* data, const uint32_t size)
 	{
+		
+		HZ_CORE_ASSERT(m_Size >= size, "Allocated data's size is out of range!");
+		memcpy(m_MappedData, data, size);
+
 	}
 	
 
@@ -264,6 +282,12 @@ namespace Hazel {
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		vkDestroyBuffer(device, m_Buffer, nullptr);
 		vkFreeMemory(device, m_Memory, nullptr);
+	}
+
+	void VulkanIndexBuffer::SetData(uint32_t* indices, uint32_t count)
+	{
+
+
 	}
 
 	VulkanIndexBuffer::VulkanIndexBuffer(void* indices, uint32_t count)
@@ -362,6 +386,7 @@ namespace Hazel {
 
 	void VulkanUniformBuffer::SetData(const void* data, uint32_t size, uint32_t offset)
 	{
+		HZ_CORE_ASSERT(m_Size >= size, "Allocated data's size is out of range!");
 		memcpy(m_MappedData, data, size);
 	}
 

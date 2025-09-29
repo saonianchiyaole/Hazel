@@ -14,6 +14,7 @@
 #include "Hazel/Renderer/Pipeline.h"
 #include "Hazel/Renderer/Swapchain.h"
 #include "Hazel/Renderer/RenderPass.h"
+#include "Hazel/Renderer/CommandBuffer.h"
 
 namespace Hazel {
 
@@ -189,6 +190,7 @@ namespace Hazel {
 			pipelineSpec.bufferLayout = layout;
 			pipelineSpec.shader = s_Data->textureShader;
 			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
+			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->texturePipeline = Pipeline::Create(pipelineSpec);
 			
 			RenderPassSpecification renderPassSpec;
@@ -219,6 +221,7 @@ namespace Hazel {
 			pipelineSpec.bufferLayout = circleLayout;
 			pipelineSpec.shader = s_Data->circleShader;
 			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
+			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->circlePipeline = Pipeline::Create(pipelineSpec);
 
 			RenderPassSpecification renderPassSpec;
@@ -248,6 +251,7 @@ namespace Hazel {
 			pipelineSpec.bufferLayout = lineLayout;
 			pipelineSpec.shader = s_Data->lineShader;
 			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
+			pipelineSpec.topology = PrimitiveTopology::LineList;
 			s_Data->linePipeline = Pipeline::Create(pipelineSpec);
 
 			RenderPassSpecification renderPassSpec;
@@ -354,19 +358,33 @@ namespace Hazel {
 			s_Data->textureSlots[i]->Bind();
 		}
 
-
 		for (uint32_t i = 0; i < s_Data->textureSlotIndex; i++) {
 			s_Data->textureSlots[i]->Bind(i);
 		}
 
 		if (s_Data->QuadIndexCount){
+
 			uint32_t dataSize = s_Data->quadVertexBufferPtr - s_Data->quadVertexBuffeBase;
 			s_Data->quadVertexBuffer->SetData(s_Data->quadVertexBuffeBase, dataSize * sizeof(QuadVertex));
+			
+
+			Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
+
+			
+			commandBuffer->Begin();
+
+			RenderCommand::BeginRenderPass(commandBuffer, s_Data->textureRenderPass);
 
 			s_Data->textureShader->Bind();
 			s_Data->quadVertexArray->Bind();
 			RenderCommand::DrawIndexed(s_Data->quadVertexArray, s_Data->QuadIndexCount);
 			m_RendererState.drawCall += 1;
+
+
+			RenderCommand::EndRenderPass(commandBuffer, s_Data->textureRenderPass);
+			commandBuffer->End();
+			commandBuffer->Submit();			
+
 		}
 
 		if (s_Data->circleIndexCount) {
