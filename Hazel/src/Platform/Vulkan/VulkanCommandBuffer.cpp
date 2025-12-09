@@ -69,6 +69,8 @@ namespace Hazel {
 		VkDevice rawDevice = device->GetRawDevice();
 
 		vkFreeCommandBuffers(rawDevice, commandPool, 1, &m_CommandBuffer);
+		if(m_Fence != nullptr)
+			vkDestroyFence(rawDevice, m_Fence, nullptr);
 
 	}
 
@@ -112,13 +114,9 @@ namespace Hazel {
 	void VulkanCommandBuffer::End()
 	{
 
-
-
 		// todo : hard code
 		
 		HZ_CORE_ASSERT(vkEndCommandBuffer(m_CommandBuffer) == VK_SUCCESS, "Failed to end command buffer");
-
-
 		
 
 	}

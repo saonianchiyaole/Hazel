@@ -19,6 +19,8 @@ namespace Hazel {
 
 		void OnUpdate() override;
 
+		virtual void Swapbuffer() const override;
+
 		inline unsigned int GetWidth() const override { return m_Data.Width; }
 		inline unsigned int GetHeight() const override { return m_Data.Height; }
 
@@ -28,6 +30,9 @@ namespace Hazel {
 		bool IsVSync() const override;
 
 		inline virtual void* GetNativeWindow() const { return m_Window; }
+
+
+		virtual bool IsMinimized() const override { return m_Data.Width == 0 || m_Data.Height == 0; }
 
 		virtual Ref<GraphicsContext> GetGraphicsContext() override { return m_Context; }
 		virtual Ref<Swapchain> GetSwapchain() const override { return m_Swapchain; }

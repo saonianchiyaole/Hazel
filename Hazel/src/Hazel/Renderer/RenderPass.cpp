@@ -4,17 +4,18 @@
 #include "Hazel/Renderer/RendererAPI.h"
 
 #include "Platform/Vulkan/VulkanRenderPass.h"
+#include "Platform/OpenGL/OpenGLRenderPass.h"
 
 namespace Hazel {
-
-
-
-	RenderPass::RenderPass(RenderPassSpecification spec)
-		: m_Specification(spec)
+	
+	
+	RenderPass::RenderPass(const RenderPassSpecification& spec) : m_Specification(spec)
 	{
+		
 	}
 
-	
+
+
 	Ref<RenderPass> RenderPass::Create(const RenderPassSpecification& spec)
 	{
 
@@ -23,7 +24,7 @@ namespace Hazel {
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanRenderPass>(spec);
 		case RendererAPI::API::OpenGL:
-			return MakeRef<RenderPass>(spec);
+			return MakeRef<OpenGLRenderPass>(spec);
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "Invalid Renderer API!");
 		}

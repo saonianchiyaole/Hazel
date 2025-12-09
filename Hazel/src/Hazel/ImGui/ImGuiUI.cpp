@@ -36,6 +36,8 @@ namespace ImGui {
 	}
 	void Image(Ref<VulkanTexture2D> texture, const ImVec2& textureSize, const ImVec2& uv0, const ImVec2& uv1) {
 		
+		Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
 		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		ImGui::Image(descriptorSet, textureSize, uv0, uv1);

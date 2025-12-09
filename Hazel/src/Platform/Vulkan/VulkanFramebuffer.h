@@ -32,8 +32,8 @@ namespace Hazel {
 
 	private:
 
-		VkFramebuffer m_Framebuffer;		
-		VkRenderPass m_RawRenderPass;		
+		VkFramebuffer m_Framebuffer = nullptr;
+		VkRenderPass m_RawRenderPass = nullptr;		
 	};
 
 }

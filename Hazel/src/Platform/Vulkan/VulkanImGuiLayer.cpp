@@ -132,13 +132,13 @@ namespace Hazel {
 
 	void VulkanImGuiLayer::End()
 	{
-		ImGui::Render();
 		
+		ImGui::Render();
+
+
 		VkClearValue clearValues[1];
 		static Ref<VulkanSwapchain> swapchain = std::static_pointer_cast<VulkanSwapchain>(Application::GetInstance().GetWindow().GetSwapchain());
-		Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
-		
-
+		Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();	
 
 		clearValues[0].color = { {1.0f, 0.1f, 0.1f, 1.0f} };
 		//clearValues[1].depthStencil = { 1.0f, 0 };
@@ -148,15 +148,11 @@ namespace Hazel {
 
 		const uint32_t frameIndex = swapchain->GetCurrentFrameIndex();
 
-		
-		
-
 		Ref<VulkanCommandBuffer> cmd = swapchain->GetCurrentCommandBuffer();
 		VkCommandBuffer drawCommandBuffer = swapchain->GetCurrentCommandBuffer()->GetRawCommandBuffer();
 		VkCommandBuffer imGuiCommandBuffer = m_CommandBuffers[frameIndex]->GetRawCommandBuffer();
-		
-		cmd->Begin();
 
+		cmd->Begin();
 
 		VkRenderPassBeginInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -169,71 +165,14 @@ namespace Hazel {
 		vkCmdBeginRenderPass(drawCommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 
 		ImDrawData* main_draw_data = ImGui::GetDrawData();
-		ImGui_ImplVulkan_RenderDrawData(main_draw_data, drawCommandBuffer);		
+		ImGui_ImplVulkan_RenderDrawData(main_draw_data, drawCommandBuffer);
 
 
 		// Submit command buffer
 		vkCmdEndRenderPass(drawCommandBuffer);
-		
-
-		cmd->End();
-
-		//VkRenderPassBeginInfo renderPassBeginInfo = {};
-		//renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		//renderPassBeginInfo.pNext = nullptr;
-		//renderPassBeginInfo.renderPass = swapchain->GetRenderPass();
-		//renderPassBeginInfo.renderArea.offset.x = 0;
-		//renderPassBeginInfo.renderArea.offset.y = 0;
-		//renderPassBeginInfo.renderArea.extent.width = width;
-		//renderPassBeginInfo.renderArea.extent.height = height;
-		//renderPassBeginInfo.clearValueCount = 2; // Color + depth
-		//renderPassBeginInfo.pClearValues = clearValues;
-		//renderPassBeginInfo.framebuffer = swapchain->GetCurrentFramebuffer();
-
-		//vkCmdBeginRenderPass(drawCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
-
-		//VkCommandBufferInheritanceInfo inheritanceInfo = {};
-		//inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-		//inheritanceInfo.renderPass = swapchain->GetRenderPass();
-		//inheritanceInfo.framebuffer = swapchain->GetCurrentFramebuffer();
-
-		//VkCommandBufferBeginInfo cmdBufInfo = {};
-		//cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		//cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-		//cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
-
-		//vkBeginCommandBuffer(imGuiCommandBuffer, &cmdBufInfo);
-
-		//VkViewport viewport = {};
-		//viewport.x = 0.0f;
-		//viewport.y = (float)height;
-		//viewport.height = -(float)height;
-		//viewport.width = (float)width;
-		//viewport.minDepth = 0.0f;
-		//viewport.maxDepth = 1.0f;
-		//vkCmdSetViewport(imGuiCommandBuffer, 0, 1, &viewport);
-
-		//VkRect2D scissor = {};
-		//scissor.extent.width = width;
-		//scissor.extent.height = height;
-		//scissor.offset.x = 0;
-		//scissor.offset.y = 0;
-		//vkCmdSetScissor(imGuiCommandBuffer, 0, 1, &scissor);
 
 
-		//ImDrawData* main_draw_data = ImGui::GetDrawData();
-		//ImGui_ImplVulkan_RenderDrawData(main_draw_data, imGuiCommandBuffer);
-
-		//vkEndCommandBuffer(imGuiCommandBuffer);
-
-		//std::vector<VkCommandBuffer> commandBuffers;
-		//commandBuffers.push_back(imGuiCommandBuffer);
-
-		//vkCmdExecuteCommands(drawCommandBuffer, uint32_t(commandBuffers.size()), commandBuffers.data());
-
-		//vkCmdEndRenderPass(drawCommandBuffer);
-
-		//vkEndCommandBuffer(drawCommandBuffer);
+		cmd->End();		
 						
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		//// Update and Render additional Platform Windows
@@ -245,6 +184,10 @@ namespace Hazel {
 	}
 
 	void VulkanImGuiLayer::OnImGuiRender() {
+
+		
+		
+		
 
 	}
 

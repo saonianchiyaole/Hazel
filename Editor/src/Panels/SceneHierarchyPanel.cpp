@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include "Hazel/ImGui/ImGuiUI.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include "Hazel/Renderer/Camera.h"
@@ -335,10 +336,10 @@ namespace Hazel {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
 				if (component.texture == nullptr) {
-					ImGui::ImageButton("##texture", (ImTextureID)m_EmptyTexture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 });
+					ImGui::ImageButton("##texture", m_EmptyTexture, { 50, 50 }, { 0, 1 }, { 1, 0 });
 				}
 				else {
-					ImGui::ImageButton("##texture", (ImTextureID)component.texture->GetRendererID(), { 50, 50 }, { 0, 1 }, { 1, 0 });
+					ImGui::ImageButton("##texture", component.texture, { 50, 50 }, { 0, 1 }, { 1, 0 });
 				}
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {

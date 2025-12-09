@@ -21,14 +21,14 @@ namespace Hazel {
 		Camera(ProjectionType type, float param1, float param2, float param3, float param4);
 		virtual ~Camera();
 
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; };
-		const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; };
-		const glm::mat4& GetViewProjectionMatrix() const { return m_ViewProjectionMatrix; }
-		const ProjectionType GetProjectionType() { return m_Type; }
+		const glm::mat4& GetViewMatrix()			const	{ return m_ViewMatrix; };
+		const glm::mat4& GetProjectionMatrix()		const	{ return m_ProjectionMatrix; };
+		const glm::mat4& GetViewProjectionMatrix()	const	{ return m_ViewProjectionMatrix; }
+		const ProjectionType GetProjectionType()			{ return m_Type; }
 
 		void SetPosition(const glm::vec3& position) { m_Position = position; RecalculateViewMatrix(); }
-		void SetUp(const glm::vec3& up) { m_Up = up; RecalculateViewMatrix(); }
-		void SetFront(const glm::vec3& front) { m_Front = front;  RecalculateViewMatrix(); }
+		void SetUp(const glm::vec3& up)				{ m_Up = up; RecalculateViewMatrix(); }
+		void SetFront(const glm::vec3& front)		{ m_Front = front;  RecalculateViewMatrix(); }
 		void SetRotation(const glm::vec3& rotation) { m_Rotation = rotation; RecalculateViewMatrix(); }
 		void SetTransform(const glm::vec3& position, const glm::vec3& rotation)
 		{
@@ -52,15 +52,15 @@ namespace Hazel {
 		//For perspective camera: @param1 : fov @param2 : aspectRatio @param3 : nearClip @param4 : farClip
 		virtual void SetProjection(float param1, float param2, float param3, float param4);
 
-		glm::vec3& GetPosition() { return m_Position; }
-		const glm::vec3& GetPosition() const { return m_Position; }
-		inline glm::vec3 GetRotation() { return m_Rotation; }
-		inline float GetFovy() { return m_Fovy;}
-		inline float GetFovx() { return m_Fovx;}
-		inline float GetAspectRatio() { return m_AspectRatio;}
-		inline float GetZoomLevel() { return m_ZoomLevel;}
-		inline float GetNearClip() { return m_NearClip; }
-		inline float GetFarClip() { return m_FarClip;}
+		glm::vec3& GetPosition()				{ return m_Position; }
+		const glm::vec3& GetPosition() const	{ return m_Position; }
+		inline glm::vec3 GetRotation()			{ return m_Rotation; }
+		inline float GetFovy()					{ return m_Fovy;}
+		inline float GetFovx()					{ return m_Fovx;}
+		inline float GetAspectRatio()			{ return m_AspectRatio;}
+		inline float GetZoomLevel()				{ return m_ZoomLevel;}
+		inline float GetNearClip()				{ return m_NearClip; }
+		inline float GetFarClip()				{ return m_FarClip;}
 
 		float GetLeft() {
 			HZ_CORE_ASSERT(this->m_Type == ProjectionType::Orthographic, "Camera's projection type is not orthographic!");

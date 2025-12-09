@@ -35,6 +35,8 @@ namespace Hazel {
 		virtual unsigned int GetWidth() const = 0;
 		virtual unsigned int GetHeight() const = 0;
 
+		virtual void Swapbuffer() const = 0;
+
 		//Window attributes
 
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
@@ -44,6 +46,8 @@ namespace Hazel {
 
 		virtual void* GetNativeWindow() const = 0;
 		virtual Ref<Swapchain> GetSwapchain() const = 0;
+
+		virtual bool IsMinimized() const = 0;
 
 		static Window* Create(const WindowProps& props = WindowProps());
 	};

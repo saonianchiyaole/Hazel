@@ -47,26 +47,42 @@ namespace Hazel {
 		while (m_Running) {
 
 			
-			m_Window->GetSwapchain()->BeginFrame();
+			
 
 			float time = (float)glfwGetTime();
 			Timestep ts = time - m_LastFrameTime;
 			m_LastFrameTime = time;
 			
-			if(!m_Minimized)
+			
+
+			if (!m_Minimized) {
+
+
+				
+				
+				m_Window->GetSwapchain()->BeginFrame();		
+
+				Renderer::BegineFrame();				
+
 				for (Layer* layer : m_LayerStack)
 					layer->OnUpdate(ts);
 
-			m_ImGuiLayer->Begin();
+				m_ImGuiLayer->Begin();
 
-			for (Layer* layer : m_LayerStack)
-				layer->OnImGuiRender();
+				for (Layer* layer : m_LayerStack)
+					layer->OnImGuiRender();
 
-			m_ImGuiLayer->End();
+				m_ImGuiLayer->End();
+
+				
+				frame++;
+
+
+				m_Window->Swapbuffer();
+			}
 
 			m_Window->OnUpdate();
-
-			frame++;
+					
 		}
 	}
 
@@ -86,7 +102,7 @@ namespace Hazel {
 
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
-		//dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{

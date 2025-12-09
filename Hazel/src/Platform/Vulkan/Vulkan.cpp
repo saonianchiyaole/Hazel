@@ -56,7 +56,7 @@ namespace Hazel {
 	}
 
 
-	void VulkanCheckResult(VkResult result, const std::string& fileName, const std::string& line)
+	void VulkanCheckResult(VkResult result, const std::string& fileName, uint32_t line)
 	{
 		if (result != VK_SUCCESS) {
 

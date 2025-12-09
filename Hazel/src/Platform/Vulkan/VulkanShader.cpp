@@ -393,48 +393,66 @@ namespace Hazel {
 		int lastDot = filePath.find_last_of('.');
 		int count = lastDot == std::string::npos ? filePath.size() - lastSlash - 1 : lastDot - lastSlash - 1;
 		m_Name = filePath.substr(lastSlash + 1, count);
-
-
-		std::string shaderSource = Utils::ReadShaderFile(filePath);
-		m_ShaderCodeByShaderType = Utils::PreprocessShaderFile(shaderSource);
-
-
-
-		for (auto it : m_ShaderCodeByShaderType) {
-			m_SPIRVBinaryByShaderType.emplace(it.first, std::vector<uint32_t>());
-			Compile(m_SPIRVBinaryByShaderType.at(it.first), it.first);
-
-		}
-
-
-		CreateShaderModules();
-
-		for (const auto& it : m_SPIRVBinaryByShaderType) {
-
-			if (it.second.size() == 0) {
-				HZ_CORE_ASSERT(false, "SPIRV Binary is empty for shader type {}", Utils::GetShaderCKindFormShaderType(it.first));
-			}
-			Reflect(it.first, it.second);
-		}
-
-		CreateDescriptorSetLayout();
-
-
+		
+		Reload();		
 	}
 
 
 	VkShaderModule VulkanShader::GetShaderModule(ShaderType type) {
 
-		auto it = m_ShaderModuleByShaderType.find(type);
-		if (it != m_ShaderModuleByShaderType.end())
+		auto it = m_ShaderModules.find(type);
+		if (it != m_ShaderModules.end())
 			return it->second;
 
 		HZ_CORE_ASSERT(false, "This Vulkan Shader don't have fit Shader Module!");
 
 	}
 
+	bool VulkanShader::Reload()
+	{
+		m_ShaderCodes.clear();
+
+		std::string shaderSource = Utils::ReadShaderFile(m_Path);
+		m_ShaderCodes = Utils::PreprocessShaderFile(shaderSource);
+
+		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
+
+		for(auto [ShaderType, shaderModule] : m_ShaderModules)
+		{			
+			vkDestroyShaderModule(device, shaderModule, nullptr);
+		}
+
+		m_ShaderModules.clear();
+		m_RelectionData.clear();
+		
+		m_DescriptorSetLayouts.clear();
+		m_SPIRVBinarys.clear();
+
+		for (auto& [shaderType, code] : m_ShaderCodes) {
+			m_SPIRVBinarys.emplace(shaderType, std::vector<uint32_t>());
+			Compile(m_SPIRVBinarys.at(shaderType), shaderType);
+		}
+
+		CreateShaderModules();
+
+		for (const auto& [shaderType, binary] : m_SPIRVBinarys) {
+
+			if (binary.size() == 0) {
+				HZ_CORE_ASSERT(false, "SPIRV Binary is empty for shader type {}", Utils::GetShaderCKindFormShaderType(shaderType));
+			}
+			Reflect(shaderType, binary);
+		}
+
+		CreateDescriptorSetLayout();
+
+		return false;
+		
+	}
+
 	void VulkanShader::Submit(std::unordered_map<std::string, Buffer>& data)
 	{		
+
+		
 
 	}
 
@@ -452,9 +470,9 @@ namespace Hazel {
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
-		for (auto it : m_SPIRVBinaryByShaderType) {
+		for (auto& [shaderType, binary] : m_SPIRVBinarys) {
 
-			m_ShaderModuleByShaderType.emplace(it.first, Utils::CreateShaderModuleFromBinary(it.second, device));
+			m_ShaderModules.emplace(shaderType, Utils::CreateShaderModuleFromBinary(binary, device));
 
 		}
 
@@ -463,7 +481,7 @@ namespace Hazel {
 	bool VulkanShader::Compile(std::vector<uint32_t>& outputBinary, ShaderType type)
 	{
 
-		std::string sourceCode = m_ShaderCodeByShaderType.at(type);
+		std::string sourceCode = m_ShaderCodes.at(type);
 
 		static shaderc::Compiler compiler;
 		shaderc::CompileOptions shaderCOptions;
@@ -512,13 +530,12 @@ namespace Hazel {
 				reflectionData.type = DescriptorType::UniformBuffer;
 				reflectionData.arraySize = arraySize;
 				reflectionData.dimension = 1;
+				
+				if (m_RelectionData.find(descriptorSet) == m_RelectionData.end()) {
+					m_RelectionData[descriptorSet] = std::unordered_map<uint32_t, ShaderReflectionData>();
+				}				
 
-				if (descriptorSet >= m_RelectionData.size()) {
-
-					m_RelectionData.resize(descriptorSet + 1);
-				}
-
-				m_RelectionData[descriptorSet].push_back(reflectionData);
+				m_RelectionData[descriptorSet][binding] = reflectionData;
 				m_RelectionDataByName[name] = reflectionData;
 
 			}
@@ -547,6 +564,7 @@ namespace Hazel {
 			{
 			case 1:
 				reflectionData.type = DescriptorType::Sampler2D;
+				break;
 			case 2:
 				reflectionData.type = DescriptorType::Sampler2D;
 				break;
@@ -555,11 +573,11 @@ namespace Hazel {
 				break;
 			}
 
-			if (descriptorSet >= m_RelectionData.size()) {
-				m_RelectionData.resize(descriptorSet + 1);
+			if (m_RelectionData.find(descriptorSet) == m_RelectionData.end()) {
+				m_RelectionData[descriptorSet] = std::unordered_map<uint32_t, ShaderReflectionData>();
 			}
 
-			m_RelectionData[descriptorSet].push_back(reflectionData);
+			m_RelectionData[descriptorSet][binding] = reflectionData;
 			m_RelectionDataByName[name] = reflectionData;
 
 		}
@@ -579,13 +597,13 @@ namespace Hazel {
 
 			for (uint32_t binding = 0; binding < m_RelectionData[set].size(); binding++) {
 
-				VkDescriptorSetLayoutBinding& LayoutBinding = layoutBindings[binding];
+				VkDescriptorSetLayoutBinding& layoutBinding = layoutBindings[binding];
 				const ShaderReflectionData& reflectData = m_RelectionData[set][binding];
-				LayoutBinding.binding = reflectData.binding;
-				LayoutBinding.descriptorType = Utils::GetVulkanDescriptorTypeFromDescriptorType(reflectData.type);
-				LayoutBinding.descriptorCount = reflectData.arraySize;
-				LayoutBinding.stageFlags = Utils::GetVulkanShaderStageFlagBitsFromShaderType(reflectData.stage);
-				LayoutBinding.pImmutableSamplers = nullptr; // Optional, used for sampler bindings
+				layoutBinding.binding = reflectData.binding;
+				layoutBinding.descriptorType = Utils::GetVulkanDescriptorTypeFromDescriptorType(reflectData.type);
+				layoutBinding.descriptorCount = reflectData.arraySize;
+				layoutBinding.stageFlags = Utils::GetVulkanShaderStageFlagBitsFromShaderType(reflectData.stage);
+				layoutBinding.pImmutableSamplers = nullptr; // Optional, used for sampler bindings
 			}
 
 

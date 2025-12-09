@@ -36,9 +36,11 @@ namespace Hazel {
 
 		virtual ~Pipeline() = default; // Ìí¼ÓÐéÎö¹¹º¯Êý
 
-		static Ref<Pipeline> Create(PipelineSpecification specification);
-		Ref<Framebuffer>	GetTargetFramebuffer()	{ return m_Specification.targetFramebuffer; }
-		float				GetLineWidth()			{ return m_Specification.lineWidth; }
+		static Ref<Pipeline>	Create(PipelineSpecification specification);
+
+		PipelineSpecification&	GetSpecification()		{ return m_Specification; }
+		Ref<Framebuffer>		GetTargetFramebuffer()	{ return m_Specification.targetFramebuffer; }
+		float					GetLineWidth()			{ return m_Specification.lineWidth; }
 
 	private:
 

@@ -83,6 +83,13 @@ namespace Hazel {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
+	void OpenGLIndexBuffer::SetData(uint32_t* data, uint32_t count) {
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint8_t), data, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+
 	/* ----------------------------Uniform Buffer-----------------------------------*/
 
 	OpenGLUniformBuffer::OpenGLUniformBuffer(uint32_t size, uint32_t binding){

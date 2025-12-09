@@ -51,6 +51,10 @@ namespace Hazel {
 
 		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout& oldLayout, VkImageLayout newLayout) {
 
+			if (oldLayout == newLayout) {
+				return;
+			}
+
 			Ref<VulkanCommandBuffer> commandBuffer = MakeRef<VulkanCommandBuffer>();
 			commandBuffer->Begin();
 
@@ -117,6 +121,14 @@ namespace Hazel {
 
 				srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 				dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			}
+			else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+
+				barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+				srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 			}
 			else {
@@ -604,6 +616,15 @@ namespace Hazel {
 		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Sampler;
+	}
+
+	VulkanTexture2D::~VulkanTexture2D()
+	{
+		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
+		vkDestroySampler(device, m_Sampler, nullptr);
+		vkDestroyImageView(device, m_ImageView, nullptr);
+		vkDestroyImage(device, m_Image, nullptr);
+		vkFreeMemory(device, m_Memory, nullptr);
 	}
 
 	void VulkanTexture2D::SetData(const void* data, const uint32_t size)

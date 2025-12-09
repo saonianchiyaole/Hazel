@@ -13,6 +13,13 @@
 !vendor/assimp/lib/*
 !vendor/mono/lib/
 !vendor/mono/lib/*
+!vendor/box2d/bin/*
+!vendor/box2d/bin-int/*
+!vendor/GLFW/bin/*
+!vendor/GLFW/bin-int/*
+!vendor/yaml-cpp/bin/*
+!vendor/yaml-cpp/bin-int/*
+
 bin-int/
 
 # User-specific files

@@ -91,9 +91,7 @@ namespace Hazel {
 		static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
 		static Ref<Shader> Create(const std::string& filepath);
 
-	protected:
-		void AddAssociatedMaterial(Material* material);
-		void RemoveAssociatedMaterial(Material* material);
+	protected:		
 
 		std::string m_Name;
 		std::string m_Path;
@@ -102,8 +100,6 @@ namespace Hazel {
 		ShaderType m_Type;
 
 		std::unordered_map<std::string, ShaderReflectionData> m_RelectionDataByName;
-
-		std::unordered_set<Material*> m_AssociatedMaterials;
 		
 	};
 
@@ -119,10 +115,18 @@ namespace Hazel {
 
 		static bool Exists(const std::string& name);
 		static Ref<Shader> Get(const std::string& name);
+
+		static bool LinkMaterial(const AssetHandle shader, const AssetHandle material);
+		static bool UnlinkMaterial(const AssetHandle material);
+		static bool UnlinkShader(const AssetHandle shader);
 	private:
 
 		friend class Editor;
-		static std::unordered_map<std::string, Ref<Shader>> m_Shaders;
+		static std::unordered_map<std::string, Ref<Shader>> s_Shaders;
+
+		static std::unordered_map<AssetHandle, std::vector<AssetHandle>> s_AssociatedMaterials;
+		//static std::unordered_map<std::string, >
+
 	};
 
 }

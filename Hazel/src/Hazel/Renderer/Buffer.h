@@ -138,10 +138,38 @@ namespace Hazel {
 
 	class UniformBuffer : public GPUBuffer {
 	public:
-		virtual ~UniformBuffer() = default;
-		
-		virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
 		static Ref<UniformBuffer> Create(uint32_t size, uint32_t binding);
+
+		virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
+	
+	protected:
+		virtual ~UniformBuffer() = default;
+	
+	};
+
+	// used for per frame 
+	class UniformBufferSet {
+	public:
+		
+
+		static Ref<UniformBufferSet> Create(uint32_t amount, size_t size);
+		static Ref<UniformBufferSet> Create(size_t size);
+
+		Ref<UniformBuffer> Get();
+
+		Ref<UniformBuffer> Get(uint32_t frameIndex);
+
+		inline uint32_t GetUniformBufferAmount() {
+			return m_UniformBuffers.size();
+		}
+
+	//private:
+
+
+		UniformBufferSet(uint32_t amount, size_t size);
+
+		std::vector<Ref<UniformBuffer>> m_UniformBuffers;
+
 	};
 
 }

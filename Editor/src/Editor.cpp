@@ -71,7 +71,7 @@ namespace Hazel {
 		int textureValue = -1;
 		m_Framebuffer->ClearAttachment(1, (void*)&textureValue);
 
-		Renderer::BegineFrame();
+		
 
 		switch (m_SceneState) {
 		case SceneState::Edit:
@@ -203,7 +203,7 @@ namespace Hazel {
 		ImGui::End();
 
 		ImGui::Begin("Shader");
-		for (const auto& shader : ShaderLibrary::m_Shaders) {
+		for (const auto& shader : ShaderLibrary::s_Shaders) {
 
 
 			ImGui::Text("%s", shader.second->GetName().c_str());
@@ -231,10 +231,10 @@ namespace Hazel {
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
 				m_ActiveScene->SetViewPortSize(m_ViewportSize);
-				//Renderer::SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);				
+				//Renderer2D::SetViewportSize(m_ViewportSize);				
 			}
 			
-			//ImGui::Image(Renderer2D::GetFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+			ImGui::Image(Renderer2D::GetFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
 			
 		}
 
@@ -255,7 +255,7 @@ namespace Hazel {
 
 
 		UI_ToolBar();
-		DrawGuizmo();
+		//DrawGuizmo();
 
 
 		ImGui::End();

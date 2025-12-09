@@ -4,6 +4,7 @@
 
 #include "Hazel/Utils/MaterialSerializer.h"
 #include "Hazel/Renderer/Renderer.h"
+#include "Hazel/Asset/AssetManager.h"
 
 namespace Hazel {
 
@@ -18,8 +19,6 @@ namespace Hazel {
 	Material::~Material()
 	{
 		//FreeMemory();
-
-		m_Shader->RemoveAssociatedMaterial(this);
 	}
 	
 	void Material::FreeMemory()
@@ -103,7 +102,8 @@ namespace Hazel {
 				}
 			}
 
-			shader->AddAssociatedMaterial(this);
+			
+			ShaderLibrary::LinkMaterial(shader->GetHandle(), this->GetHandle());			
 
 			m_Flag = shader->GetFlag();
 		}

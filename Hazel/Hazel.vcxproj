@@ -232,11 +232,13 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLImGuiLayer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRenderPass.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShaderUniform.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Vulkan\DescriptorSetManager.h" />
+    <ClInclude Include="src\Platform\Vulkan\RenderPassDSM.h" />
     <ClInclude Include="src\Platform\Vulkan\Vulkan.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="src\Platform\Vulkan\VulkanCommandBuffer.h" />
@@ -325,11 +327,13 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLImGuiLayer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRenderPass.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShaderUniform.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Vulkan\DescriptorSetManager.cpp" />
+    <ClCompile Include="src\Platform\Vulkan\RenderPassDSM.cpp" />
     <ClCompile Include="src\Platform\Vulkan\Vulkan.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="src\Platform\Vulkan\VulkanCommandBuffer.cpp" />

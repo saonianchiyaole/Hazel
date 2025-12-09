@@ -19,7 +19,7 @@ namespace Hazel
 		}
 
 
-		uint64_t GetSize() {
+		uint64_t GetSize() const {
 			return this->m_Size;
 		}
 

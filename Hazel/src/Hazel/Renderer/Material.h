@@ -9,6 +9,8 @@
 namespace Hazel {
 
 
+	typedef std::unordered_map<std::string, Buffer> MaterialDataMap;
+
 	namespace Utils {
 
 		template<typename T>
@@ -79,39 +81,41 @@ namespace Hazel {
 		}
 
 		template<typename T>
-		inline void SetData(const std::string& name, T data)
+		inline bool SetData(const std::string& name, T data, uint32_t index = 0)
 		{
 			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
-				return;
+				return false;
 
 			m_Data[name].Write(&data, sizeof(T));
+			return true;
 		}
 
 		template<typename T>
-		inline void SetData(const std::string& name, T* data)
+		inline bool SetData(const std::string& name, T* data, uint32_t index = 0)
 		{
 			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
-				return;
+				return false;
 
-			m_Data[name].Write(&data, sizeof(T));
-
+			m_Data[name].Write(data, sizeof(T));
+			return true;
 		}
 
 		template<typename T>
-		inline void SetData(const std::string& name, Ref<T> data)
+		inline bool SetData(const std::string& name, Ref<T> data, uint32_t index = 0)
 		{
 			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
-				return;
+				return false;
 
-			m_Data[name].Write(&data.get(), sizeof(T));
+			m_Data[name].Write(data.get(), sizeof(T));
+			return true;
 
 		}
 
 		
-		virtual void SetData(const std::string& name, Ref<Texture2D> data)
+		virtual bool SetData(const std::string& name, Ref<Texture2D> data, uint32_t index = 0)
 		{
 			if (m_Data.find(name) == m_Data.end() || !Utils::IsDataFormatCorrect<Texture2D>(*m_Shader->GetReflectionDataByName(name)))
-				return;
+				return false;
 
 			if (!m_Data[name] && m_NameToTextureAndSlot.find(name) == m_NameToTextureAndSlot.end()) {
 				static size_t slotIndex = 0;
@@ -124,6 +128,7 @@ namespace Hazel {
 
 			m_Data[name].Write(data.get());
 		
+			return true;
 		}
 
 
@@ -164,7 +169,7 @@ namespace Hazel {
 
 		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
 
-		std::unordered_map<std::string, Buffer> m_Data;
+		MaterialDataMap m_Data;
 
 		friend class MaterialSerializer;
 		bool m_IsFromMesh = false;

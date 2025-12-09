@@ -59,7 +59,7 @@ namespace Hazel {
 		virtual void				Bind			() const override {}
 		virtual void				Unbind			() const override {}
 		virtual const std::string	GetName			() const override { return m_Name; }
-		virtual bool				Reload			() override { return false; }
+		virtual bool				Reload			() override;
 		virtual const void			SetInt			(const std::string& name, const int val) override {}
 		virtual const void			SetFloat		(const std::string& name, const float val) override {}
 		virtual const void			SetFloat2		(const std::string& name, const glm::vec2& val) override {}
@@ -75,7 +75,7 @@ namespace Hazel {
 		inline std::vector<VkDescriptorSetLayout>& GetDescriptorSetLayouts() { return m_DescriptorSetLayouts; };
 
 
-		std::vector<std::vector<ShaderReflectionData>>& GetReflectionData() { return m_RelectionData; }				
+		std::unordered_map<uint32_t, std::unordered_map<uint32_t, ShaderReflectionData>>& GetReflectionData() { return m_RelectionData; }
 
 	private:
 
@@ -86,13 +86,13 @@ namespace Hazel {
 
 	private:
 
-		std::unordered_map<ShaderType, std::string>				m_ShaderCodeByShaderType;
-		std::unordered_map<ShaderType, VkShaderModule>			m_ShaderModuleByShaderType;
-		std::unordered_map<ShaderType, std::string>				m_SPIRVFilePathByShaderType;
-		std::unordered_map<ShaderType, std::vector<uint32_t>>	m_SPIRVBinaryByShaderType;		
+		std::unordered_map<ShaderType, std::string>				m_ShaderCodes;
+		std::unordered_map<ShaderType, VkShaderModule>			m_ShaderModules;
+		std::unordered_map<ShaderType, std::string>				m_SPIRVFilePaths;
+		std::unordered_map<ShaderType, std::vector<uint32_t>>	m_SPIRVBinarys;		
 
 		// [set][binding]
-		std::vector<std::vector<ShaderReflectionData>>			m_RelectionData;
+		std::unordered_map<uint32_t, std::unordered_map<uint32_t, ShaderReflectionData>> m_RelectionData;
 		// [set]
 		std::vector<VkDescriptorSetLayout>						m_DescriptorSetLayouts;
 		

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hazel/Core/UUID.h"
+#include <memory>
 
 namespace Hazel {
 	using AssetHandle = UUID;
@@ -24,8 +25,11 @@ namespace Hazel {
 		Shader
 	};
 
-	class Asset {
+	class Asset : public std::enable_shared_from_this<Asset>{
 	public:
+
+		Asset();
+
 		AssetHandle GetHandle() { return m_Handle; }
 		AssetFlag GetFlag() { return m_Flag; }
 
@@ -42,12 +46,13 @@ namespace Hazel {
 		}
 
 		template<typename T>
-		T As(){
-			return Ref<T>(this);
+		Ref<T> As(){
+
+			return std::dynamic_pointer_cast<T>(shared_from_this());
 		}
 
 	protected:
-		AssetHandle m_Handle = 0;
+		AssetHandle m_Handle = UUID();
 		AssetFlag m_Flag = AssetFlag::Invalid;
 		std::mutex m_Mutex;
 

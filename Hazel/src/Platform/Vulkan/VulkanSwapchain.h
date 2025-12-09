@@ -58,7 +58,7 @@ namespace Hazel {
 		std::vector<VkFence>&		GetInFlightFences()					{ return m_InFlightFences; }
 
 		Ref<VulkanCommandBuffer>	GetCurrentCommandBuffer()			{ return m_CommandBuffers[m_CurrentFrameIndex]; }		
-		VkFramebuffer				GetCurrentFramebuffer()				{ return m_Framebuffers[m_CurrentFrameIndex]; }
+		VkFramebuffer				GetCurrentFramebuffer()				{ return m_Framebuffers[m_CurrentImageIndex]; }
 
 		void						InitializeSurface		(VkInstance instance, GLFWwindow* window);
 		void						Init					(Ref<VulkanDevice> device);
@@ -95,7 +95,7 @@ namespace Hazel {
 		// this renderpass is used to render the final pixel to framebuffer
 		VkRenderPass m_RenderPass = nullptr;
 
-		VkSwapchainKHR m_Swapchain = nullptr;
+		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
 		VkSurfaceKHR m_Surface = nullptr;
 		
 		// Semaphore
@@ -109,6 +109,8 @@ namespace Hazel {
 		//Fence
 
 		std::vector<VkFence> m_InFlightFences;
+
+		
 
 		friend class VulkanRendererAPI;
 	};

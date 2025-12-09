@@ -118,11 +118,11 @@ namespace Hazel {
 		VulkanUniformBuffer(uint32_t size, uint32_t binding);
 		~VulkanUniformBuffer();		
 		
-		virtual void					SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
-		inline VkBuffer					GetRawBuffer()				const { return m_Buffer; }
+		virtual void							SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
+		inline	VkBuffer						GetRawBuffer()				const	{ return m_Buffer; }
 
-		inline void*					GetMappedData()				const { return m_MappedData; };
-		inline VkDescriptorBufferInfo	GetDescriptorBufferInfo()	const { return m_DescriptorBufferInfo; }
+		inline void*							GetMappedData()				const	{ return m_MappedData; };
+		inline			VkDescriptorBufferInfo	GetDescriptorBufferInfo()			{ return m_DescriptorBufferInfo; }
 
 	private:
 

@@ -399,11 +399,7 @@ namespace Hazel {
 
 		glDeleteProgram(m_RendererID);
 		std::string shaderSource = ReadFile(m_Path);
-		Compile(Preprocess(shaderSource));
-
-		for (auto material : m_AssociatedMaterials) {
-			material->ReloadShader();
-		}
+		Compile(Preprocess(shaderSource));		
 
 		return true;
 	}

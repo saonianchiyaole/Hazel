@@ -2,17 +2,24 @@
 
 #include "Hazel/Renderer/RenderCommand.h"
 
-#include "Hazel/Renderer/Shader.h"
+
 #include "Hazel/Renderer/Camera.h"
 
-#include "Hazel/Renderer/Mesh.h"
 #include "Hazel/Renderer/EditorCamera.h"
 
 #include "Hazel/Scene/Component.h"
-#include "Hazel/Renderer/RenderPass.h"
 
 namespace Hazel {
 	
+	class RenderPass;
+	class Framebuffer;
+	class Material;
+	class Shader;
+	class VertexArray;
+	class Mesh;
+	class UniformBufferSet;
+	class UniformBuffer;
+
 	struct TransformComponent;
 
 
@@ -84,7 +91,9 @@ namespace Hazel {
 		static Ref<Texture2D> GetDefaultBlackQuadTexture();
 
 
-		static uint32_t GetFrameInFlight();
+		inline static uint32_t GetFrameInFlight() {
+				return s_FrameInFlight;
+		}
 		static uint32_t GetCurrentFrameIndex();
 
 
@@ -115,7 +124,7 @@ namespace Hazel {
 
 			Ref<Camera> primaryCamera;
 
-			Ref<UniformBuffer> cameraUniformBuffer;
+			Ref<UniformBufferSet> cameraUniformBufferSet;
 			Ref<UniformBuffer> lightUniformBuffer;
 			Ref<VertexArray> skybox;
 			Ref<Environment> environment;

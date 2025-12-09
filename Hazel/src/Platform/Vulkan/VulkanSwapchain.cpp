@@ -63,8 +63,7 @@ namespace Hazel {
 
 			for (const auto& availableFormat : availableFormats) {
 
-				if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB
-					&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+				if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM) {
 					return availableFormat;
 				}
 			}
@@ -109,9 +108,11 @@ namespace Hazel {
 
 	void VulkanSwapchain::Destroy()
 	{
-		vkDeviceWaitIdle(m_Device->GetRawDevice());
+		
 
 		VkDevice device = m_Device->GetRawDevice();
+
+		vkDeviceWaitIdle(device);
 
 		for (auto framebuffer : m_Framebuffers) {
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -119,26 +120,44 @@ namespace Hazel {
 
 		for (auto imageView : m_ImageViews) {
 			vkDestroyImageView(device, imageView, nullptr);
+		}			
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			vkDestroyFence(device, m_InFlightFences[i], nullptr);
+			vkDestroySemaphore(device, m_ImageAvailableSemaphores[i], nullptr);
+			vkDestroySemaphore(device, m_RenderFinishedSemaphores[i], nullptr);
 		}
 
+	
 		vkDestroySwapchainKHR(device, m_Swapchain, nullptr);
-
-		vkDestroyCommandPool(device, m_Device->GetCommandPool(), nullptr);
+		m_Swapchain = VK_NULL_HANDLE;
+		
 	}
 
 	uint32_t VulkanSwapchain::AcquireNextImage()
 	{
+		
 
 		vkWaitForFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex], VK_TRUE, UINT64_MAX);
 
+		
+
 		VkResult result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		if (!Application::GetInstance().GetWindow().IsMinimized() && (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)) {
+			
 			Recreate(Application::GetInstance().GetWindow().GetWidth(), Application::GetInstance().GetWindow().GetHeight(), Application::GetInstance().GetWindow().IsVSync());
+				
+			result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);					
 		}
-		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR && !Application::GetInstance().GetWindow().IsMinimized()) {			
+			
 			throw std::runtime_error("failed to acquire swap chain image");
-		}				
+		}						
+
+		m_IsRebuilt = false;
+
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer(), 0);
 
 		return m_CurrentImageIndex;
 	}
@@ -146,10 +165,9 @@ namespace Hazel {
 	void VulkanSwapchain::BeginFrame()
 	{
 
-		AcquireNextImage();
+		AcquireNextImage();		
+				
 
-		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer(), 0);
-		
 	}
 
 	void VulkanSwapchain::EndFrame()
@@ -158,6 +176,27 @@ namespace Hazel {
 	}
 
 	void VulkanSwapchain::Present() {
+											
+		/*Ref<VulkanCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(m_CommandBuffers[m_CurrentFrameIndex]);
+		VkCommandBuffer vkCommandBuffer = commandBuffer->GetRawCommandBuffer();
+		commandBuffer->Begin();
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_RenderPass;
+		renderPassInfo.framebuffer = m_Framebuffers[m_CurrentImageIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = m_Details.swapChainExtent;
+
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdEndRenderPass(vkCommandBuffer);
+
+		commandBuffer->End();*/
 
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		VkSubmitInfo submitInfo{};
@@ -168,8 +207,8 @@ namespace Hazel {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer();
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrameIndex];
-
+		submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrameIndex];		
+		
 		vkResetFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex]);
 
 		if (vkQueueSubmit(m_Device->GetGraphicQueue(), 1, &submitInfo, m_InFlightFences[m_CurrentFrameIndex]) != VK_SUCCESS) {
@@ -185,10 +224,20 @@ namespace Hazel {
 		presentInfo.pImageIndices = &m_CurrentImageIndex;
 
 		//presentInfo.pResults = nullptr;
-		vkQueuePresentKHR(m_Device->GetPresentQueue(), &presentInfo);
+		VkResult result = vkQueuePresentKHR(m_Device->GetPresentQueue(), &presentInfo);	
 
-		// only when get the next image, we can start new frame
-		m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;		
+		if ((result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) && !Application::GetInstance().GetWindow().IsMinimized()) {			
+			Recreate(Application::GetInstance().GetWindow().GetWidth(), Application::GetInstance().GetWindow().GetHeight(), Application::GetInstance().GetWindow().IsVSync());
+			
+		}
+		else if (result != VK_SUCCESS && !Application::GetInstance().GetWindow().IsMinimized()) {
+			throw std::runtime_error("failed to present swap chain image!");
+		}
+
+		m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+
+		m_IsRebuilt = false;
+
 	}
 
 	void VulkanSwapchain::Create(uint32_t width, uint32_t height, bool isVsync) {
@@ -219,8 +268,8 @@ namespace Hazel {
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		createInfo.surface = m_Surface;
 		createInfo.minImageCount = m_ImageCount;
-		createInfo.imageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-		createInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		createInfo.imageFormat = m_Details.surfaceFormat.format;
+		createInfo.imageColorSpace = m_Details.surfaceFormat.colorSpace;
 		createInfo.imageExtent = swapExtent;
 
 
@@ -241,17 +290,23 @@ namespace Hazel {
 			createInfo.pQueueFamilyIndices = nullptr;
 		}
 
+
+		VkSwapchainKHR oldSwapchain = m_Swapchain;		
+
 		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
-
+		createInfo.clipped = VK_TRUE;		
+		
 		VkResult result = vkCreateSwapchainKHR(m_Device->GetRawDevice(), &createInfo, nullptr, &m_Swapchain);
 		if (result != VK_SUCCESS)
 			throw std::runtime_error("failed to create swap chain!");
 
-
+		
+		if(oldSwapchain)
+			vkDestroySwapchainKHR(m_Device->GetRawDevice(), oldSwapchain, nullptr);
+		
+		m_Images.clear();
 		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &m_ImageCount, nullptr);
 		m_Images.resize(m_ImageCount);
 		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &m_ImageCount, m_Images.data());
@@ -268,10 +323,12 @@ namespace Hazel {
 
 		Destroy();
 
-		Create(width, height, isVsync);
-		CreateImageViews();
-		CreateFramebuffers();
+		Create(width, height, isVsync);		
 
+		vkDeviceWaitIdle(m_Device->GetRawDevice());		
+
+		m_IsRebuilt = true;
+				
 	}
 
 	void VulkanSwapchain::InitializeSurface(VkInstance instance, GLFWwindow* window) {
@@ -305,7 +362,7 @@ namespace Hazel {
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			createInfo.image = m_Images[i];
 			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
+			createInfo.format = m_Details.surfaceFormat.format;
 
 			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -341,8 +398,7 @@ namespace Hazel {
 	}*/
 
 	void VulkanSwapchain::CreateSyncObjects() {
-
-
+		
 		m_RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -381,7 +437,7 @@ namespace Hazel {
 
 
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
+		colorAttachment.format = m_Details.surfaceFormat.format;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

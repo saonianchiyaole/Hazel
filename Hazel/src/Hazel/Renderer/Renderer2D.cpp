@@ -94,7 +94,7 @@ namespace Hazel {
 			//glm::vec4 position;
 		};
 		CameraUniformBuffer cameraBuffer;
-		Ref<UniformBuffer> cameraUniformBuffer;
+		Ref<UniformBufferSet> cameraUniformBufferSet;
 
 
 		Ref<Framebuffer> frameBuffer;
@@ -147,8 +147,8 @@ namespace Hazel {
 			quadIndices[i + 2] = 2 + offset;
 
 			quadIndices[i + 3] = 2 + offset;
-			quadIndices[i + 4] = 3 + offset;
-			quadIndices[i + 5] = 1 + offset;
+			quadIndices[i + 4] = 1 + offset;
+			quadIndices[i + 5] = 3 + offset;
 		}
 
 
@@ -162,6 +162,8 @@ namespace Hazel {
 			s_Data->lineShader = ShaderLibrary::Load("assets/Shaders/2DLineShader.glsl");
 		}
 
+		// uniformbuffer set
+		s_Data->cameraUniformBufferSet = UniformBufferSet::Create(sizeof(Renderer2DStorage::CameraUniformBuffer));
 
 		FramebufferSpecification fbSpec;
 		fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
@@ -197,6 +199,8 @@ namespace Hazel {
 			renderPassSpec.pipeline = s_Data->texturePipeline;			
 			s_Data->textureRenderPass = RenderPass::Create(renderPassSpec);
 
+			s_Data->textureRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
+
 		}
 		//QuadVertex End
 
@@ -229,6 +233,8 @@ namespace Hazel {
 			s_Data->circleRenderPass = RenderPass::Create(renderPassSpec);
 
 
+			s_Data->circleRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
+
 			delete[] quadIndices;
 		}
 		//CircleVertex End
@@ -258,6 +264,8 @@ namespace Hazel {
 			renderPassSpec.pipeline = s_Data->texturePipeline;
 			s_Data->lineRenderPass = RenderPass::Create(renderPassSpec);
 
+			s_Data->lineRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
+
 		}
 		//LineVertex End
 
@@ -278,7 +286,7 @@ namespace Hazel {
 		}
 
 		
-		s_Data->cameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
+		
 
 	}
 	void Renderer2D::Shutdown()
@@ -293,8 +301,11 @@ namespace Hazel {
 
 		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
 		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
-		s_Data->cameraUniformBuffer->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
+
+
+		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+		
+		s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 		
 		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
 		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
@@ -306,10 +317,10 @@ namespace Hazel {
 		// todo 
 		//Renderer::GetCompositePassFramebuffer()->Bind();
 
-		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
-		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
-		s_Data->cameraUniformBuffer->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
+		s_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };		
+		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+		s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
 		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
 		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
@@ -319,11 +330,11 @@ namespace Hazel {
 	void Renderer2D::BeginScene(const Camera& camera)
 	{
 		//Renderer::GetCompositePassFramebuffer()->Bind();
-
-		Renderer2DStorage::CameraUniformBuffer cameraUniformBufferData;
-		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+		
+		s_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
 		//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
-		s_Data->cameraUniformBuffer->SetData((const void*)&cameraUniformBufferData, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
+		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+		s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
 		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
 		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
@@ -332,8 +343,6 @@ namespace Hazel {
 
 	void Renderer2D::EndScene()
 	{
-
-
 		Flush();
 
 		s_Data->QuadIndexCount = 0;
@@ -355,11 +364,14 @@ namespace Hazel {
 
 		for (uint32_t i = s_Data->textureSlotIndex; i < s_Data->maxTextureSlot; i++) {
 			s_Data->textureSlots[i] = s_Data->whiteTexture;
-			s_Data->textureSlots[i]->Bind();
+			s_Data->textureSlots[i]->Bind();			
+			s_Data->textureRenderPass->SetData("u_Textures", s_Data->whiteTexture, i);
+			
 		}
 
 		for (uint32_t i = 0; i < s_Data->textureSlotIndex; i++) {
 			s_Data->textureSlots[i]->Bind(i);
+			s_Data->textureRenderPass->SetData("u_Textures", s_Data->textureSlots[i], i);
 		}
 
 		if (s_Data->QuadIndexCount){
@@ -374,12 +386,9 @@ namespace Hazel {
 			commandBuffer->Begin();
 
 			RenderCommand::BeginRenderPass(commandBuffer, s_Data->textureRenderPass);
-
-			s_Data->textureShader->Bind();
-			s_Data->quadVertexArray->Bind();
-			RenderCommand::DrawIndexed(s_Data->quadVertexArray, s_Data->QuadIndexCount);
+			
+			RenderCommand::DrawIndexed(commandBuffer, s_Data->quadVertexArray, s_Data->QuadIndexCount);
 			m_RendererState.drawCall += 1;
-
 
 			RenderCommand::EndRenderPass(commandBuffer, s_Data->textureRenderPass);
 			commandBuffer->End();
@@ -391,13 +400,34 @@ namespace Hazel {
 			uint32_t dataSize = s_Data->circleVertexBuffePtr - s_Data->circleVertexBuffeBase;
 			s_Data->circleVertexBuffer->SetData(s_Data->circleVertexBuffeBase, dataSize * sizeof(CircleVertex));
 
+
+			Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
+
+
+			commandBuffer->Begin();
+
+			RenderCommand::BeginRenderPass(commandBuffer, s_Data->circleRenderPass);
+
 			s_Data->circleShader->Bind();
 			s_Data->circleVertexArray->Bind();
-			RenderCommand::DrawIndexed(s_Data->circleVertexArray, s_Data->circleIndexCount);
+			RenderCommand::DrawIndexed(commandBuffer, s_Data->circleVertexArray, s_Data->circleIndexCount);
+
+			RenderCommand::EndRenderPass(commandBuffer, s_Data->circleRenderPass);
+			commandBuffer->End();
+			commandBuffer->Submit();
+
 			m_RendererState.drawCall += 1;
 		}
 
 		if (s_Data->lineIndexCount) {
+
+			Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
+
+
+			commandBuffer->Begin();
+
+			RenderCommand::BeginRenderPass(commandBuffer, s_Data->lineRenderPass);
+
 			uint32_t dataSize = s_Data->lineVertexBuffePtr - s_Data->lineVertexBuffeBase;
 			s_Data->lineVertexBuffer->SetData(s_Data->lineVertexBuffeBase, dataSize * sizeof(LineVertex));
 
@@ -405,6 +435,11 @@ namespace Hazel {
 			s_Data->lineVertexArray->Bind();
 			RenderCommand::SetLineWidth(s_Data->lineWidth);
 			RenderCommand::DrawLines(s_Data->lineVertexArray, s_Data->lineIndexCount);
+
+			RenderCommand::EndRenderPass(commandBuffer, s_Data->lineRenderPass);
+			commandBuffer->End();
+			commandBuffer->Submit();
+
 			m_RendererState.drawCall += 1;
 		}
 	}
@@ -676,16 +711,21 @@ namespace Hazel {
 		DrawLine(rectVertex[2], rectVertex[3], color, enitityID);
 
 	}
+
 	Ref<Framebuffer> Renderer2D::GetFramebuffer()
 	{
 		return s_Data->frameBuffer;
+	}
+
+	bool Renderer2D::SetViewportSize(const glm::vec2& size) {
+		s_Data->frameBuffer->Resize(size);
+		return true;
 	}
 
 	const Renderer2D::RendererState* Renderer2D::GetState()
 	{
 		return &m_RendererState;
 	}
-
 
 	void Renderer2D::ResetState() {
 		m_RendererState.quadAmount = 0;

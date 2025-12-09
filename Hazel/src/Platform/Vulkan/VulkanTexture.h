@@ -38,17 +38,18 @@ namespace Hazel {
 		VulkanTexture2D(const std::string& filePath);
 		VulkanTexture2D(uint32_t width, uint32_t height);
 		VulkanTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureUsage usage = TextureUsage::Texture);
+		virtual ~VulkanTexture2D();
 
-		virtual const uint32_t	GetRendererID() override		{ return 0; }
-		VkImage					GetRawImage()					{ return m_Image; }
-		VkImageView				GetImageView()					{ return m_ImageView; }
-		VkSampler				GetSampler()					{ return m_Sampler; }
-		VkDescriptorImageInfo	GetDescriptorImageInfo()		{ return m_DescriptorImageInfo; }
-		VkImageLayout&			GetLayout()						{ return m_Layout; }
-		void					SetLayout(VkImageLayout layout) { m_Layout = layout; }
+		inline virtual const uint32_t			GetRendererID() override		{ return 0; }
+		inline VkImage							GetRawImage()					{ return m_Image; }
+		inline VkImageView						GetImageView()					{ return m_ImageView; }
+		inline VkSampler						GetSampler()					{ return m_Sampler; }
+		inline VkDescriptorImageInfo			GetDescriptorImageInfo()		{ return m_DescriptorImageInfo; }
+		inline VkImageLayout&					GetLayout()  					{ return m_Layout; }
+		void									SetLayout(VkImageLayout layout) { m_Layout = layout; }
 
-		virtual void			SetData(const void* data, const uint32_t size) override;
-		virtual void			Bind(uint32_t slot = 0) const override {}		
+		virtual void					SetData(const void* data, const uint32_t size) override;
+		virtual void					Bind(uint32_t slot = 0) const override {}		
 
 		virtual bool operator ==(Texture& other) const override {
 			return m_Image == ((VulkanTexture2D&)other).m_Image;

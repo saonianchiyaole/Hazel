@@ -182,9 +182,12 @@ namespace Hazel {
 	void WindowsWindow::OnUpdate() {
 
 		glfwPollEvents();
+		
+	}
 
+	void WindowsWindow::Swapbuffer() const
+	{
 		m_Context->Swapbuffers();
-
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) {

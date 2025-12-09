@@ -131,6 +131,7 @@ namespace Hazel {
 
 	}
 
+	// param binding is useless for vulkan api for now
 	Ref<UniformBuffer> UniformBuffer::Create(uint32_t size, uint32_t binding)
 	{
 		switch (Renderer::GetAPI()) {
@@ -145,6 +146,53 @@ namespace Hazel {
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;
 	}
+
+
+	// ----------------------------------------------------- Uniform Buffer Set ----------------------------------------
+
+
+
+
+	Ref<UniformBufferSet> UniformBufferSet::Create(uint32_t amount, size_t size) {
+
+
+		Ref<UniformBufferSet> uniformBufferSet = MakeRef<UniformBufferSet>(amount, size);
+		
+
+		return uniformBufferSet;
+		
+
+	}
+
+	Ref<UniformBufferSet> UniformBufferSet::Create(size_t size) {
+
+		uint32_t frameInFlight = Renderer::GetFrameInFlight();
+		return UniformBufferSet::Create(frameInFlight, size);
+
+	}
+
+	UniformBufferSet::UniformBufferSet(uint32_t amount, size_t size) {
+
+
+		m_UniformBuffers.resize(amount);
+		for (uint32_t i = 0; i < amount; i++) {
+			m_UniformBuffers[i] = UniformBuffer::Create(size, 0);
+		}
+
+	}
+
+
+	Ref<UniformBuffer> UniformBufferSet::Get() {
+		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+		return Get(frameIndex);
+	}
+
+	Ref<UniformBuffer> UniformBufferSet::Get(uint32_t frameIndex) {
+
+		return m_UniformBuffers[frameIndex];
+	}
+
+
 
 }
 

@@ -6,16 +6,17 @@
 
 
 #include "Hazel/Core/Application.h"
-#include "Platform/OpenGL/OpenGLShader.h"
 #include "Hazel/Renderer/OrthographicCamera.h"
 #include "Hazel/Renderer/EditorCamera.h"
 #include "Hazel/Renderer/Texture.h"
-#include "Hazel/Scene/Component.h"
 #include "Hazel/Renderer/VertexArray.h"
 #include "Hazel/Renderer/Environment.h"
 #include "Hazel/Renderer/Framebuffer.h"
 #include "Hazel/Renderer/Swapchain.h"
 #include "Hazel/Renderer/Pipeline.h"
+#include "Hazel/Renderer/RenderPass.h"
+#include "Hazel/Renderer/Mesh.h"
+#include "Hazel/Renderer/Buffer.h"
 
 namespace Hazel {
 
@@ -76,13 +77,13 @@ namespace Hazel {
 	void Renderer::Init() {
 
 		RenderCommand::Init();
-		Renderer2D::Init();
+		
 
 		// only test 2d graphic
 
-		s_SceneData->textureSlotIndex = 0;
+		s_SceneData->textureSlotIndex = 0;		
 
-		/* s_SceneData->cameraUniformBuffer = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
+		/* s_SceneData->cameraUniformBufferSet = UniformBuffer::Create(sizeof(CameraUniformBuffer), 0);
 		s_SceneData->lightUniformBuffer = UniformBuffer::Create(sizeof(LightUniformBuffer), 1);
 
 		ShaderLibrary::Load("assets/Shaders/Standard.glsl");
@@ -149,6 +150,8 @@ namespace Hazel {
 
 		}
 
+		Renderer2D::Init();
+
 
 		//set geometry pass
 		{
@@ -186,6 +189,8 @@ namespace Hazel {
 
 		}*/
 
+
+
 	}
 
 	void Renderer::BegineFrame()
@@ -205,7 +210,7 @@ namespace Hazel {
 		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
 		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
 
-		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
+		s_SceneData->cameraUniformBufferSet->Get()->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
 
 	}
 
@@ -219,7 +224,7 @@ namespace Hazel {
 		cameraUniformBufferData.viewProjectionMatrix = camera.GetViewProjectionMatrix();
 		cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
 
-		s_SceneData->cameraUniformBuffer->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
+		s_SceneData->cameraUniformBufferSet->Get()->SetData(&cameraUniformBufferData, sizeof(CameraUniformBuffer), 0);
 	}
 
 	void Renderer::EndScene()
@@ -234,10 +239,11 @@ namespace Hazel {
 	void Renderer::Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform)
 	{
 
-		std::dynamic_pointer_cast<OpenGLShader>(shader)->Bind();
+		// todo : change to renderpass input
+		/*std::dynamic_pointer_cast<OpenGLShader>(shader)->Bind();
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_View", s_SceneData->ViewMatrix);
 		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_Projection", s_SceneData->ProjectionMatrix);
-		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_Transform", transform);
+		std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_Transform", transform);*/
 
 		vertexArray->Bind();
 		RenderCommand::DrawIndexed(vertexArray);
@@ -499,11 +505,6 @@ namespace Hazel {
 	Ref<Texture2D> Renderer::GetDefaultBlackQuadTexture()
 	{
 		return s_SceneData->blackQuadTexture;
-	}
-
-	uint32_t Renderer::GetFrameInFlight()
-	{
-		return s_FrameInFlight;
 	}
 
 	uint32_t Renderer::GetCurrentFrameIndex() {

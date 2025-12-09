@@ -21,7 +21,7 @@ namespace Hazel {
 		
 		m_Specification = specification;
 		
-		Resize(glm::vec2{m_Specification.width, m_Specification.height});
+		Invalidate();
 
 	}
 
@@ -34,6 +34,21 @@ namespace Hazel {
 		
 		std::vector<VkAttachmentDescription> attachmentDescriptions;
 		std::vector<VkAttachmentReference> colorAttachmentRefs;
+		
+
+		vkDeviceWaitIdle(device);
+
+		
+		if (m_Framebuffer != nullptr) {
+			vkDestroyFramebuffer(device, m_Framebuffer, NULL);
+			m_Framebuffer = nullptr;
+		}
+
+		if (m_RawRenderPass != nullptr) {
+
+			vkDestroyRenderPass(device, m_RawRenderPass, NULL);
+			m_RawRenderPass = nullptr;
+		}
 
 		m_ColorAttachments.clear();
 		m_DepthAttachment = nullptr;
@@ -149,8 +164,13 @@ namespace Hazel {
 
 	void VulkanFramebuffer::Resize(const glm::vec2 size)
 	{
+		if (size.x == m_Specification.width && size.y == m_Specification.height) {
+			return;
+		}
+
 		m_Specification.width = size.x;
 		m_Specification.height = size.y;
+
 		Invalidate();
 
 	}

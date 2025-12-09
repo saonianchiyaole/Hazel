@@ -56,6 +56,7 @@ namespace Hazel {
 		
 		// todo remove this to renderer / sceneRenderer
 		static Ref<Framebuffer> GetFramebuffer();
+		static bool SetViewportSize(const glm::vec2& size);
 
 		const static RendererState* GetState();
 		static void ResetState();

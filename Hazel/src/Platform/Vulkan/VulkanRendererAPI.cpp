@@ -2,6 +2,7 @@
 
 #include "Platform/Vulkan/VulkanRendererAPI.h"
 
+#include "Platform/Vulkan/VulkanDevice.h"
 #include "Platform/Vulkan/VulkanRenderPass.h"
 #include "Platform/Vulkan/VulkanCommandBuffer.h"
 #include "Platform/Vulkan/VulkanRenderPass.h"
@@ -11,6 +12,9 @@
 #include "Platform/Vulkan/VulkanPipeline.h"
 #include "Platform/Vulkan/VulkanVertexArray.h"
 #include "Platform/Vulkan/VulkanMaterial.h"
+#include "Platform/Vulkan/VulkanTexture.h"
+
+#include "Hazel/Renderer/Renderer.h"
 
 #include <imgui.h>
 
@@ -92,6 +96,9 @@ namespace Hazel {
 
 	void VulkanRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count)
 	{
+
+
+
 	}
 	
 	
@@ -135,9 +142,11 @@ namespace Hazel {
 	void VulkanRendererAPI::BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) {
 
 
-		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);		
+		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
 		Ref<VulkanFramebuffer> framebuffer = std::static_pointer_cast<VulkanFramebuffer>(renderPass->GetPipeline()->GetTargetFramebuffer());
+		Ref<VulkanPipeline> pipeline = std::static_pointer_cast<VulkanPipeline>(renderPass->GetPipeline());
+		Ref<VulkanRenderPass> vulkanRenderPass = std::static_pointer_cast<VulkanRenderPass>(renderPass);
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -145,11 +154,11 @@ namespace Hazel {
 		renderPassInfo.framebuffer = framebuffer->GetRawFramebuffer();
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = swapchain->GetDetails().swapChainExtent;
+		renderPassInfo.renderArea.extent = VkExtent2D{framebuffer->GetSpecification().width, framebuffer->GetSpecification().height};
 
 
 		std::array<VkClearValue, 2> clearColor;
-		clearColor[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+		clearColor[0].color = { {0.0f, 0.0f, 0.0f, 0.0f} };
 		clearColor[1].depthStencil = { 1.0f, 0 };
 
 		renderPassInfo.clearValueCount = clearColor.size();
@@ -157,25 +166,47 @@ namespace Hazel {
 	
 		vkCmdBeginRenderPass(vulkanCommandBuffer->GetRawCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		Ref<VulkanPipeline> pipeline = std::static_pointer_cast<VulkanPipeline>(renderPass->GetPipeline());
+		
 		VkPipeline rawPipeline = pipeline->GetRawPipeline();
 
 		vkCmdBindPipeline(vulkanCommandBuffer->GetRawCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, rawPipeline);
 
+		
+
+		renderPass->Submit();
+
+
+		std::vector<VkDescriptorSet> descriptorSets = std::move(DescriptorSetManager::GetSortedDescriptorSets(vulkanRenderPass->GetDescriptorSets()));
+
+		vkCmdBindDescriptorSets(vulkanCommandBuffer->GetRawCommandBuffer(),
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline->GetPipelineLayout(),
+			0,
+			descriptorSets.size(),
+			descriptorSets.data(),
+			0,  // for now we don't use dynamic offsets and we make sure that all UBOs are continuous by set
+			nullptr);
+
+
+		float framebufferWidth = framebuffer->GetSpecification().width;
+		float framebufferHeight = framebuffer->GetSpecification().height;
 
 		// dynamic part
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(swapchain->GetDetails().swapChainExtent.width);
-		viewport.height = static_cast<float>(swapchain->GetDetails().swapChainExtent.height);
+		viewport.width = static_cast<float>(framebufferWidth);
+		viewport.height = static_cast<float>(framebufferHeight);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(vulkanCommandBuffer->GetRawCommandBuffer(), 0, 1, &viewport);
 
+
+
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent = swapchain->GetDetails().swapChainExtent;
+		scissor.extent = { (uint32_t)framebufferWidth,
+							(uint32_t)framebufferHeight };
 		vkCmdSetScissor(vulkanCommandBuffer->GetRawCommandBuffer(), 0, 1, &scissor);
 
 		vkCmdSetLineWidth(vulkanCommandBuffer->GetRawCommandBuffer(), pipeline->GetLineWidth());
@@ -229,14 +260,17 @@ namespace Hazel {
 
 		VkCommandBuffer rawCommandBuffer = vulkanCommandBuffer->GetRawCommandBuffer();
 
+		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(rawCommandBuffer, 0, vertexArray->GetVertexBuffers().size(),
-			vulkanVertexArray->GetRawBuffers().data(), 0);
+			vulkanVertexArray->GetRawBuffers().data(), offsets);
 
 		vkCmdBindIndexBuffer(rawCommandBuffer,
 			std::static_pointer_cast<VulkanIndexBuffer>(vulkanVertexArray->GetIndexBuffer())->GetRawBuffer(),
 			0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(rawCommandBuffer, vertexArray->GetIndexBuffer()->GetCount(), 1, 0, 0, 0);
+		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+
+		vkCmdDrawIndexed(rawCommandBuffer, count, 1, 0, 0, 0);
 	}
 
 	void VulkanRendererAPI::SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
@@ -244,14 +278,21 @@ namespace Hazel {
 		Ref<VulkanPipeline> vulkanPipeline = std::static_pointer_cast<VulkanPipeline>(pipeline);
 		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
 		Ref<VulkanMaterial> vulkanMaterial = std::static_pointer_cast<VulkanMaterial>(material);
-		material->Submit();
+		
+		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+
+		material->Submit();		
+
+		std::vector<VkDescriptorSet> descriptorSets = std::move(DescriptorSetManager::GetSortedDescriptorSets(vulkanMaterial->GetDescriptorSets(frameIndex)));
 
 		vkCmdBindDescriptorSets(vulkanCommandBuffer->GetRawCommandBuffer(), 
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			vulkanPipeline->GetPipelineLayout(),
-			0, vulkanMaterial->GetDescriptorSets()[0].size(),
-			vulkanMaterial->GetDescriptorSets()[0].data(),
-			0, nullptr);
+			0, 
+			descriptorSets.size(),
+			descriptorSets.data(),
+			0,  // for now we don't use dynamic offsets and we make sure that all UBOs are continuous by set
+			nullptr);
 
 	}
 
