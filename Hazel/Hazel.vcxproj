@@ -231,8 +231,8 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLEnvironment.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLFramebuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLImGuiLayer.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRenderPass.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShaderUniform.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h" />
@@ -326,8 +326,8 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLEnvironment.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLFramebuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLImGuiLayer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRenderPass.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShaderUniform.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp" />

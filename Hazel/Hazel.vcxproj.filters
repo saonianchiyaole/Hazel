@@ -291,6 +291,9 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLImGuiLayer.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRenderPass.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -307,6 +310,12 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\DescriptorSetManager.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\RenderPassDSM.h">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\Vulkan.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanBuffer.h">
@@ -368,15 +377,6 @@
     </ClInclude>
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\Vulkan.h">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRenderPass.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\RenderPassDSM.h">
-      <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -566,6 +566,9 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLImGuiLayer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRenderPass.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -582,6 +585,12 @@
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\DescriptorSetManager.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\RenderPassDSM.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\Vulkan.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanBuffer.cpp">
@@ -643,15 +652,6 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\Vulkan.cpp">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRenderPass.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\RenderPassDSM.cpp">
-      <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
