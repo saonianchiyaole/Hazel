@@ -227,14 +227,21 @@ namespace Hazel {
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		if (viewportSize.x != 0 && viewportSize.y != 0) {
 			if (m_ViewportSize != *(glm::vec2*)&viewportSize) {
-				m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
+
+				Renderer::SubmitTask([this, viewportSize]() {
+					m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
+					});
+				
 				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
 				m_ActiveScene->SetViewPortSize(m_ViewportSize);
 				//Renderer2D::SetViewportSize(m_ViewportSize);				
 			}
 			
-			ImGui::Image(Renderer2D::GetFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+			if (Renderer2D::GetFramebuffer()->IsValid()) {
+				ImGui::Image(Renderer2D::GetFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+			}
+			
 			
 		}
 
@@ -566,6 +573,7 @@ namespace Hazel {
 
 	void Editor::SceneSetting()
 	{
+
 		//Scene Setting
 		ImGui::Begin("Scene Setting");
 

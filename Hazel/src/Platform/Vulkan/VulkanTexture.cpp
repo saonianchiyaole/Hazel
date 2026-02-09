@@ -229,6 +229,8 @@ namespace Hazel {
 		m_Path = filePath;
 		HZ_CORE_INFO("Open Texture filePath {0}", filePath);
 
+		m_Flag = AssetFlag::Loading;
+
 		static const std::unordered_set<std::string> supportedExtensions = { ".jpg", ".jpeg", ".png",
 																			".bmp", ".gif", ".hdr", ".tga" };
 		std::filesystem::path checkpath = filePath;
@@ -371,6 +373,8 @@ namespace Hazel {
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Sampler;
 
+		m_Flag = AssetFlag::Valid;
+
 	}
 
 
@@ -379,6 +383,8 @@ namespace Hazel {
 
 		m_Width = width;
 		m_Height = height;
+
+		m_Flag = AssetFlag::Loading;
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
@@ -475,12 +481,16 @@ namespace Hazel {
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Sampler;
 
+		m_Flag = AssetFlag::Valid;
+
 	}
 
 	VulkanTexture2D::VulkanTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureUsage usage) {
 		m_Width = width;
 		m_Height = height;
 		m_IsHDR = false;
+
+		m_Flag = AssetFlag::Loading;
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
@@ -616,10 +626,14 @@ namespace Hazel {
 		m_DescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Sampler;
+
+		m_Flag = AssetFlag::Valid;
 	}
 
 	VulkanTexture2D::~VulkanTexture2D()
 	{
+		m_Flag = AssetFlag::Invalid;
+
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		vkDestroySampler(device, m_Sampler, nullptr);
 		vkDestroyImageView(device, m_ImageView, nullptr);

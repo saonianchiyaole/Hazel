@@ -66,6 +66,10 @@ namespace Hazel {
 		void* m_MappedData;		
 	};
 
+	class VulkanTextureCube : public TextureCube {
+
+
+	};
 
 
 }

@@ -13,23 +13,26 @@ layout(location = 6) in ivec4 a_BoneIndices;
 layout(location = 7) in vec4 a_BoneWeights;
 
 
-layout(std140, binding = 0) uniform CameraUniform
+layout(std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
 	vec3 cameraPosition;
 };
 
-uniform mat4 u_Transform;
-uniform mat4 u_View;
-uniform mat4 u_Projection;
-
 
 const int MAX_BONES = 100;
-uniform mat4 u_BoneTransforms[100];
-uniform bool u_IsAnimation;
+layout(std140, binding = 1) uniform Transform
+{
+
+	mat4 u_Transform;
+	bool u_IsAnimation;
+	mat4 u_BoneTransforms[100];
+	
+};
 
 
-out VertexOutput{
+
+layout(location = 0) out VertexOutput{
 	vec3 WorldPosition;
     vec3 Normal;
 	vec2 TexCoord;
@@ -78,21 +81,8 @@ void main()
 #version 450 core
 
 layout(location = 0) out vec4 color;	
-layout(location = 1) out int IDColor;
 
-
-
-layout(std140, binding = 1) uniform LightUniform
-{
-	struct {	
-		vec4 position;
-		vec4 direction;
-		vec4 color;
-	}light;
-};
-
-
-in VertexOutput{
+layout(location = 0) in VertexOutput{
 	vec3 WorldPosition;
     vec3 Normal;
 	vec2 TexCoord;
@@ -121,29 +111,37 @@ struct PBRParameters{
 
 PBRParameters m_PBRParams;
 
-
-//
-uniform int u_EntityID;
+layout(std140, binding = 2) uniform Light
+{
+	
+	vec4 lightPosition;
+	vec4 lightDirection;
+	vec4 lightColor;
+	
+};
 
 //Environment
-uniform samplerCube u_EnvIrradiance;
-uniform sampler2D u_BRDFLUT;
-uniform samplerCube u_EnvRadiance;
-
-uniform vec4 u_Albedo;
-uniform float u_Roughness;
-uniform float u_Metalness;
+layout(binding = 3) uniform samplerCube u_EnvIrradiance;
+layout(binding = 4) uniform sampler2D u_BRDFLUT;
+layout(binding = 5) uniform samplerCube u_EnvRadiance;
 
 //toggle
-uniform bool u_UseAlbedoTex;
-uniform bool u_UseNormalTex;
-uniform bool u_UseRoughnessTex;
-uniform bool u_UseMetalnessTex;
+layout(binding = 6) uniform MaterialUsage{
+	bool u_UseAlbedoTex;
+	bool u_UseNormalTex;
+	bool u_UseRoughnessTex;
+	bool u_UseMetalnessTex;
 
-uniform sampler2D u_AlbedoTex;
-uniform sampler2D u_NormalTex;
-uniform sampler2D u_RoughnessTex;
-uniform sampler2D u_MetalnessTex;
+	vec4 u_Albedo;
+	float u_Roughness;
+	float u_Metalness;
+
+};
+
+layout(binding = 7) uniform sampler2D u_AlbedoTex;
+layout(binding = 8) uniform sampler2D u_NormalTex;
+layout(binding = 9) uniform sampler2D u_RoughnessTex;
+layout(binding = 10) uniform sampler2D u_MetalnessTex;
 
 
 //Geometry
@@ -183,7 +181,7 @@ vec4 IBL(vec3 F0){
 	
 	vec3 result = vec3(0.0);
 
-	vec3 L = -light.direction.xyz;
+	vec3 L = -lightDirection.xyz;
 	vec3 N = m_PBRParams.normal;
 	vec3 H = normalize(m_PBRParams.view + L);
 
@@ -212,7 +210,7 @@ vec4 IBL(vec3 F0){
 
 vec4 PBRLighting(vec3 F0){
 
-	vec3 L = -light.direction.xyz;
+	vec3 L = -lightDirection.xyz;
 	
 	vec3 N = m_PBRParams.normal;
 	vec3 H = normalize(m_PBRParams.view + L);
@@ -238,7 +236,7 @@ vec4 PBRLighting(vec3 F0){
 	float denominator = 4.0f * NdotV * NdotL + 0.0001;
 	vec3 specular = nominator / denominator;
 
-	vec3 result = (diffuse + specular) * light.color.xyz * NdotL;
+	vec3 result = (diffuse + specular) * lightColor.xyz * NdotL;
 	return vec4(result, 1.0);
 }
 
@@ -268,7 +266,5 @@ void main()
 	vec4 IBLContribution = IBL(F0);
 	//vec4 lightContribution = PhongLighting();
 
-	color = lightContribution + IBLContribution;
-	
-	IDColor = u_EntityID;
+	color = lightContribution + IBLContribution;	
 }

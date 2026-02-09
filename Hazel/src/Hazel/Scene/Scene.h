@@ -94,7 +94,7 @@ namespace Hazel {
 		entt::registry m_Registry;
 		glm::vec2 m_ViewPortSize;
 
-		b2World* m_PhysicsWorld;
+		b2World* m_PhysicsWorld = nullptr;
 
 		Ref<TextureCube> m_Skybox;
 		Ref<Environment> m_Environment;

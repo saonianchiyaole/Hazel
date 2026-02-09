@@ -8,6 +8,7 @@
 #include "Hazel/Scripting/ScriptEngine.h"
 #include "Hazel/Core/Window.h"
 #include "Hazel/Renderer/Swapchain.h"
+#include "Hazel/Async/Thread.h"
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -16,10 +17,11 @@ namespace Hazel {
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application(std::string windowName) {
-		
+
 		HZ_CORE_ASSERT(!s_Instance, "Application already exists");
 		s_Instance = this;
 
+		Utils::SetCurrentThreadName("MainThread");
 
 		WindowProps props;
 		props.Title = windowName;
@@ -34,6 +36,9 @@ namespace Hazel {
 		m_ImGuiLayer = ImGuiLayer::Create();
 
 		PushLayer(m_ImGuiLayer.get());
+
+
+
 	}
 
 	Application::~Application() {
@@ -42,47 +47,51 @@ namespace Hazel {
 
 	void Application::Run() {
 
-		static uint32_t frame = 0;
+		Renderer::StartRenderThread(this);
 
 		while (m_Running) {
 
-			
-			
-
-			float time = (float)glfwGetTime();
-			Timestep ts = time - m_LastFrameTime;
-			m_LastFrameTime = time;
-			
-			
-
+					
 			if (!m_Minimized) {
 
 
-				
-				
-				m_Window->GetSwapchain()->BeginFrame();		
+				if (m_MainThreadFrameCount >= m_RenderThreadFrameCount + Renderer::GetFrameInFlight()) {
 
-				Renderer::BegineFrame();				
+					std::unique_lock<std::mutex> lock(m_FrameMutex);
+					m_Condition.wait(lock, [this]() { return m_MainThreadFrameCount < m_RenderThreadFrameCount + Renderer::GetFrameInFlight(); });
+
+				}
+
+				float time = (float)glfwGetTime();
+				Timestep ts = time - m_LastFrameTime;
+				m_LastFrameTime = time;
+				
+				m_Window->GetSwapchain()->BeginFrame();
+				Renderer::BegineFrame();
 
 				for (Layer* layer : m_LayerStack)
 					layer->OnUpdate(ts);
 
 				m_ImGuiLayer->Begin();
 
-				for (Layer* layer : m_LayerStack)
+				for (Layer* layer : m_LayerStack) {
+
 					layer->OnImGuiRender();
+
+				}
+
 
 				m_ImGuiLayer->End();
 
 				
-				frame++;
-
-
 				m_Window->Swapbuffer();
+				
+
 			}
 
 			m_Window->OnUpdate();
-					
+
+			m_MainThreadFrameCount++;
 		}
 	}
 
@@ -95,6 +104,17 @@ namespace Hazel {
 	void Application::PushOverlay(Layer* layer) {
 		m_LayerStack.PushOverlay(layer);
 		layer->OnAttach();
+	}
+
+	void Application::NextRenderFrame()
+	{
+		m_RenderThreadFrameCount++;
+		Notify();
+	}
+
+	void Application::Notify()
+	{
+		m_Condition.notify_one();
 	}
 
 

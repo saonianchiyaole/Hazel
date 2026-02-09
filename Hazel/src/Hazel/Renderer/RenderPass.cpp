@@ -6,9 +6,24 @@
 #include "Platform/Vulkan/VulkanRenderPass.h"
 #include "Platform/OpenGL/OpenGLRenderPass.h"
 
+#include "Hazel/Renderer/Framebuffer.h"
+
 namespace Hazel {
 	
 	
+	namespace Utils {
+
+		ByteKey GetRenderPassByteKey(const RenderPassSpecification& spec) {
+
+			auto fbSpec = spec.targetFramebuffer->GetSpecification();
+			ByteKey byteKey;
+			byteKey.AddBytes();
+
+		}
+
+	}
+
+
 	RenderPass::RenderPass(const RenderPassSpecification& spec) : m_Specification(spec)
 	{
 		

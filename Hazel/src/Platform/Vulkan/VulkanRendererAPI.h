@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Hazel/Renderer/RendererAPI.h"
+#include "Hazel/Core/ByteKey.h"
 
 #include <vulkan/vulkan.h>
+
 
 
 
@@ -42,17 +44,30 @@ namespace Hazel {
 		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material>) override;
 		
 		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);		
+		static VkDescriptorSet AllocateImGuiDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
+		static void ResetImGuiDescriptorPool();
 
 	private:
 
-
+		
 		struct RendererData {
 
 
-			Ref<VulkanDevice> device;
+			Ref<VulkanDevice> device = nullptr;
 			std::vector<VkDescriptorPool> descriptorPools;
 
+
+			// every thread has its unique render resource
+			VkDescriptorPool imGuiDescriptorPool = nullptr;
+
+
+			ByteKeyMap<VkRenderPass> renderPassCache;
+			
+
 		};
+
+		
+
 
 		static RendererData* s_Data;
 

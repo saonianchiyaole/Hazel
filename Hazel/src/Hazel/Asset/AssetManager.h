@@ -1,8 +1,10 @@
 #pragma once
 #include "Hazel/Asset/Asset.h"
 #include "Hazel/Core/Core.h"
-#include "unordered_map"
+#include <unordered_map>
 #include <memory>
+#include <atomic>
+#include <stack>
 
 namespace Hazel {
 
@@ -14,20 +16,39 @@ namespace Hazel {
 
 	public:
 		//static void GetAssetManager();
-
+		
 		static Ref<Asset> GetAsset(AssetHandle& handle) {
-			return s_Assets[handle];
+			HZ_CORE_ASSERT(HasAsset(handle),
+							"Invalid handle index: {}, generation: {}!", handle.index, handle.generation)
+			return s_Assets[handle.index];
 		}
 		static bool HasAsset(AssetHandle& handle) {
-			return s_Assets[handle] != nullptr;
-		}
+			return !(handle.index >= s_Assets.size() || handle.generation != s_Assets[handle.index]->m_Handle.generation);
+		}		
 
-		static bool HasValidAsset(AssetHandle& handle) {
-			return s_Assets[handle] != nullptr && s_Assets[handle]->GetFlag();
-		}
+		static AssetHandle AddAsset(Ref<Asset> asset) {
+			
+			{
+				std::unique_lock<std::mutex> lock(s_AssetLock);
 
-		static void AddAsset(Ref<Asset> asset) {
-			s_Assets[asset->GetHandle()] = asset;
+				AssetHandle handle;
+
+				if (!s_FreeIndexStack.empty()) {					
+					handle = s_FreeIndexStack.top();
+					s_FreeIndexStack.pop();
+					handle.generation++;
+				}
+				else {					
+					handle.index = s_Assets.size();
+					s_Assets.push_back(nullptr);
+				}
+
+				asset->m_Handle = handle;
+										
+				s_Assets[asset->GetHandle().index] = asset;
+			}			
+
+			return asset->GetHandle();
 		}
 
 		template<typename T, typename ... Args>
@@ -43,8 +64,10 @@ namespace Hazel {
 
 	private:
 		//static Ref<AssetManager> s_AssetManager;
-		static std::unordered_map<uint64_t, Ref<Asset>> s_Assets;
-
+		static std::vector<Ref<Asset>> s_Assets;
+		static std::stack<AssetHandle> s_FreeIndexStack;
+		
+		static std::mutex s_AssetLock;		
 	};
 
 }

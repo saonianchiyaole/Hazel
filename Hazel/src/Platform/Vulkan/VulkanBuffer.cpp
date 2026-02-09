@@ -1,6 +1,7 @@
 #include "hzpch.h"
 
 
+#include "Hazel/Renderer/Renderer.h"
 #include "Platform/Vulkan/VulkanBuffer.h"
 #include "Platform/Vulkan/VulkanContext.h"
 #include "Platform/Vulkan/VulkanDevice.h"
@@ -114,7 +115,7 @@ namespace Hazel {
 		{
 
 			if (device == nullptr) {
-				device = VulkanContext::GetCurrentContext()->GetDevice();				
+				device = VulkanContext::GetCurrentContext()->GetDevice();
 			}
 
 			HZ_CORE_ASSERT(device != nullptr, "No valid vulkan device!");
@@ -129,7 +130,7 @@ namespace Hazel {
 			copyRegion.size = size;
 			vkCmdCopyBuffer(commandBuffer->GetRawCommandBuffer(), src, dst, 1, &copyRegion);
 
-			commandBuffer->End();			
+			commandBuffer->End();
 			commandBuffer->Submit();
 		}
 
@@ -137,33 +138,36 @@ namespace Hazel {
 
 	VulkanVertexBuffer::VulkanVertexBuffer(float* vertices, uint32_t size) {
 
-
 		m_Size = size;
+
+
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
 
 		// staging buffer
 
-		VkDeviceSize bufferSize = size;
+		VkDeviceSize bufferSize = m_Size;
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
 
-		Utils::CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		Utils::CreateBuffer(m_Size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, size, 0, &data);
-		memcpy(data, vertices, size);
+		vkMapMemory(device, stagingBufferMemory, 0, m_Size, 0, &data);
+		memcpy(data, vertices, m_Size);
 		vkUnmapMemory(device, stagingBufferMemory);
 
 		// vertex buffer
 
 
-		Utils::CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_Memory);
-		Utils::CopyBuffer(stagingBuffer, m_Buffer, size);
+		Utils::CreateBuffer(m_Size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_Memory);
+		Utils::CopyBuffer(stagingBuffer, m_Buffer, m_Size);
 
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+
 
 	}
 
@@ -172,32 +176,36 @@ namespace Hazel {
 
 		m_Size = size;
 
+
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
 
 		// staging buffer
 
-		VkDeviceSize bufferSize = size;
+		VkDeviceSize bufferSize = m_Size;
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
 
-		Utils::CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+		Utils::CreateBuffer(m_Size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-			
+
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, size, 0, &vertices);
-		memcpy(data, vertices, size);
+		vkMapMemory(device, stagingBufferMemory, 0, m_Size, 0, &data);
+		memcpy(data, vertices, m_Size);
 		vkUnmapMemory(device, stagingBufferMemory);
 
 		// vertex buffer
 
 
-		Utils::CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		Utils::CreateBuffer(m_Size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_Memory);
-		Utils::CopyBuffer(stagingBuffer, m_Buffer, size);
-		
+		Utils::CopyBuffer(stagingBuffer, m_Buffer, m_Size);
+
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+
+
 
 	}
 
@@ -208,11 +216,12 @@ namespace Hazel {
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
-		Utils::CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		Utils::CreateBuffer(m_Size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			m_Buffer, m_Memory);
-		
-		vkMapMemory(device, m_Memory, 0, size, 0, &m_MappedData);
+
+		vkMapMemory(device, m_Memory, 0, m_Size, 0, &m_MappedData);
+
 
 	}
 
@@ -262,12 +271,12 @@ namespace Hazel {
 
 	void VulkanVertexBuffer::SetData(const void* data, const uint32_t size)
 	{
-		
+
 		HZ_CORE_ASSERT(m_Size >= size, "Allocated data's size is out of range!");
 		memcpy(m_MappedData, data, size);
 
 	}
-	
+
 
 	//---------------------------------------------Vulkan Index Buffer---------------------------------------------
 
@@ -296,50 +305,17 @@ namespace Hazel {
 	{
 		m_Count = count;
 
+
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
 
 
 		// staging buffer
 
-		VkDeviceSize bufferSize = count * sizeof(uint32_t);
+		VkDeviceSize bufferSize = m_Count * sizeof(uint32_t);
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
 
-		void* voidIndicePtr = indices;
-
-		Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &voidIndicePtr);
-		memcpy(data, indices, bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
-
-		// vertex buffer
-
-		Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_Memory);
-		Utils::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
-
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
-	}
-
-	
-	
-	VulkanIndexBuffer::VulkanIndexBuffer(uint32_t* indices, uint32_t count)
-	{
-		m_Count = count;
-
-		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
-		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
-	
-
-		// staging buffer
-
-		VkDeviceSize bufferSize = count * sizeof(uint32_t);
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		
 		Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 		void* data;
@@ -355,6 +331,46 @@ namespace Hazel {
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
 
+
+
+	}
+
+
+
+	VulkanIndexBuffer::VulkanIndexBuffer(uint32_t* indices, uint32_t count)
+	{
+		m_Count = count;
+
+
+
+		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
+		VkPhysicalDevice physicalDevice = VulkanContext::GetCurrentContext()->GetPhysicalDevice()->GetRawPhysicalDevice();
+
+
+		// staging buffer
+
+		VkDeviceSize bufferSize = m_Count * sizeof(uint32_t);
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+
+		Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, indices, bufferSize);
+		vkUnmapMemory(device, stagingBufferMemory);
+
+		// vertex buffer
+
+		Utils::CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_Memory);
+		Utils::CopyBuffer(stagingBuffer, m_Buffer, bufferSize);
+
+		vkDestroyBuffer(device, stagingBuffer, nullptr);
+		vkFreeMemory(device, stagingBufferMemory, nullptr);
+
+
+
+
 	}
 
 	// ------------------------------------------- Uniform Buffer -------------------------------------------
@@ -368,18 +384,20 @@ namespace Hazel {
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
-		VkDeviceSize bufferSize = size;
+		VkDeviceSize bufferSize = m_Size;
 
-		Utils::CreateBuffer(bufferSize, 
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+		Utils::CreateBuffer(bufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			m_Buffer, m_Memory);
 
 		vkMapMemory(device, m_Memory, 0, bufferSize, 0, &m_MappedData);
 
 		m_DescriptorBufferInfo.buffer = m_Buffer;
 		m_DescriptorBufferInfo.offset = 0;
-		m_DescriptorBufferInfo.range = size;
+		m_DescriptorBufferInfo.range = m_Size;
+
+
 	}
 
 	VulkanUniformBuffer::~VulkanUniformBuffer()
@@ -391,8 +409,10 @@ namespace Hazel {
 
 	void VulkanUniformBuffer::SetData(const void* data, uint32_t size, uint32_t offset)
 	{
+
 		HZ_CORE_ASSERT(m_Size >= size, "Allocated data's size is out of range!");
 		memcpy(m_MappedData, data, size);
+
 	}
 
 }

@@ -3,11 +3,14 @@
 
 layout(location = 0) in vec3 a_Position;
 
+layout(std140, binding = 0) uniform Camera
+{
+	uniform mat4 u_View;
+    uniform mat4 u_Projection;
+	vec3 cameraPosition;
+};
 
-uniform mat4 u_View;
-uniform mat4 u_Projection;
-
-out vec3 v_Position;
+layout(location = 0) out vec3 v_Position;
 
 void main() {
 
@@ -20,16 +23,14 @@ void main() {
 #version 450 core
 
 layout(location = 0) out vec4 color;
-layout(location = 1) out int entityID;
 
-uniform samplerCube u_SkyBox;
+layout(binding = 1) uniform samplerCube u_SkyBox;
 
-in vec3 v_Position;
+layout(location = 0) in vec3 v_Position;
 
 void main() {
 
     vec3 position = vec3(v_Position.x, -v_Position.y, v_Position.z);
     color = textureLod(u_SkyBox, position, 0.1);
-    //color = vec4(v_Position, 1.0);
-    entityID = -1;
+    //color = vec4(v_Position, 1.0);    
 }

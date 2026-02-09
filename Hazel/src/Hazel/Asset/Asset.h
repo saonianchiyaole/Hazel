@@ -3,8 +3,28 @@
 #include "Hazel/Core/UUID.h"
 #include <memory>
 
-namespace Hazel {
-	using AssetHandle = UUID;
+namespace Hazel {	
+
+
+	struct AssetHandle{
+
+		uint32_t index;
+		uint32_t generation = 0;
+
+
+		bool operator==(const AssetHandle& other) const {
+			return (index == other.index) && (generation == other.generation);
+		}
+					
+		bool operator!=(const AssetHandle& other) const {
+			return !((*this) == other);
+		}
+
+
+	};
+
+	
+	
 
 	enum AssetFlag {
 		Valid = 1,
@@ -19,7 +39,9 @@ namespace Hazel {
 
 	enum class AssetType {
 		None,
-		Texture,
+		Texture2D,
+		Texture3D,
+		TextireCube,
 		Mesh,
 		Material,
 		Shader
@@ -37,12 +59,15 @@ namespace Hazel {
 			return AssetType::None;
 		}
 
-		bool operator == (const Asset& other) const{
+
+		bool IsValid() { return m_Flag == AssetFlag::Valid; }
+
+		bool operator==(const Asset& other) const{			
 			return this->m_Handle == other.m_Handle;
 		}
 
-		bool operator != (const Asset& other) const {
-			return !(this->m_Handle == other.m_Handle);
+		bool operator!=(const Asset& other) const {
+			return this->m_Handle != other.m_Handle;
 		}
 
 		template<typename T>
@@ -52,10 +77,26 @@ namespace Hazel {
 		}
 
 	protected:
-		AssetHandle m_Handle = UUID();
-		AssetFlag m_Flag = AssetFlag::Invalid;
+		friend class AssetManager;
+		AssetHandle m_Handle;
+		
+		std::atomic<AssetFlag> m_Flag = AssetFlag::Invalid;
+
+
 		std::mutex m_Mutex;
 
 
+	};
+}
+
+namespace std {
+	template<>
+	struct hash<Hazel::AssetHandle> {
+		size_t operator()(const Hazel::AssetHandle& handle) const {
+			auto hashIndex = hash<uint32_t>{}(handle.index);
+			auto hashGen = hash<uint32_t>{}(handle.generation);
+
+			return hashIndex ^ (hashGen + 0x9e3779b9 + (hashIndex << 6) + (hashIndex >> 2));
+		}
 	};
 }

@@ -16,8 +16,12 @@ namespace Hazel {
 		inline uint32_t	GetCurrentImageIndex()	{ return m_CurrentImageIndex; }
 		inline bool		IsRebuilt()				{ return m_IsRebuilt; }
 
+
+
 		virtual uint32_t AcquireNextImage() = 0;
 
+		virtual void WaitFrameFence() = 0;
+		virtual void WaitAndResetFrameFence() = 0;
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 		virtual void Present() = 0;

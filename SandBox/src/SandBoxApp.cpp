@@ -78,7 +78,7 @@ public:
 
 		RenderCommand::Init();
 
-		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		m_CommandBuffers.resize(Renderer::GetFrameInFlight());
 		for (int i = 0; i < m_CommandBuffers.size(); i++) {
 			m_CommandBuffers[i] = CommandBuffer::Create();
 		}

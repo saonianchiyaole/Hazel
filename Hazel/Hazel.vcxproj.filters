@@ -13,6 +13,9 @@
     <Filter Include="src\Hazel\Asset">
       <UniqueIdentifier>{7F20ACB2-EBAB-1977-F4BC-9C6B60C77577}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Hazel\Async">
+      <UniqueIdentifier>{1D3BACB2-89C6-1977-92D7-9C6BFEE17577}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Hazel\Core">
       <UniqueIdentifier>{48D253A8-34A0-47AE-1D34-B8D409A12313}</UniqueIdentifier>
     </Filter>
@@ -93,6 +96,15 @@
     <ClInclude Include="src\Hazel\Asset\AssimpImporter.h">
       <Filter>src\Hazel\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Async\CommandQueue.h">
+      <Filter>src\Hazel\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Async\RenderThread.h">
+      <Filter>src\Hazel\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Async\Thread.h">
+      <Filter>src\Hazel\Async</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Core\Application.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
@@ -127,9 +139,6 @@
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Core\Random.h">
-      <Filter>src\Hazel\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Hazel\Core\Thread.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Core\Timer.h">
@@ -172,6 +181,9 @@
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\CommandBuffer.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\ComputePass.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\EditorCamera.h">
@@ -378,6 +390,10 @@
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Async\Task.h" />
+    <ClInclude Include="src\Hazel\Core\ByteKey.h">
+      <Filter>src\Hazel\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -407,6 +423,15 @@
     <ClCompile Include="src\Hazel\Asset\AssimpImporter.cpp">
       <Filter>src\Hazel\Asset</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\Async\CommandQueue.cpp">
+      <Filter>src\Hazel\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Async\RenderThread.cpp">
+      <Filter>src\Hazel\Async</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Async\Thread.cpp">
+      <Filter>src\Hazel\Async</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Core\Application.cpp">
       <Filter>src\Hazel\Core</Filter>
     </ClCompile>
@@ -423,9 +448,6 @@
       <Filter>src\Hazel\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Core\Random.cpp">
-      <Filter>src\Hazel\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hazel\Core\Thread.cpp">
       <Filter>src\Hazel\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Core\Timer.cpp">
@@ -456,6 +478,9 @@
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\CommandBuffer.cpp">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Renderer\ComputePass.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\EditorCamera.cpp">
@@ -652,6 +677,10 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Async\Task.cpp" />
+    <ClCompile Include="src\Hazel\Core\ByteKey.cpp">
+      <Filter>src\Hazel\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

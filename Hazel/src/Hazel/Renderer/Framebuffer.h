@@ -16,19 +16,15 @@ namespace Hazel {
 
 	}
 
-	
-	struct FramebufferTextureSpecification {
-		FramebufferTextureSpecification() = default;
-		FramebufferTextureSpecification(TextureFormat formatVal) :
-			textureFormat(formatVal) {}
-		TextureFormat textureFormat;
-	};
 
 	struct FramebufferAttachmentSpecification {
-		FramebufferAttachmentSpecification() = default;
-		FramebufferAttachmentSpecification(const std::initializer_list<FramebufferTextureSpecification> attachmentsList)
-			: attachments(attachmentsList){}
-		std::vector<FramebufferTextureSpecification> attachments;
+		
+		
+		TextureFormat format;
+
+
+		FramebufferAttachmentSpecification(TextureFormat _format) : format(_format){}
+
 	};
 
 	struct FramebufferSpecification {
@@ -37,7 +33,7 @@ namespace Hazel {
 		uint32_t height;
 		uint32_t samples = 1;
 		glm::vec4 clearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-		FramebufferAttachmentSpecification attachments;
+		std::vector<FramebufferAttachmentSpecification> attachments;
 
 		bool swapChainTarget = false;
 	};
@@ -46,7 +42,7 @@ namespace Hazel {
 	class Texture2D;
 	class RenderPass;
 
-	class Framebuffer {
+	class Framebuffer : public Asset {
 	public:
 		
 		virtual const			FramebufferSpecification& GetSpecification() { return m_Specification; };
@@ -61,7 +57,7 @@ namespace Hazel {
 		virtual const void		BindTexture(uint32_t index, uint32_t slot = 0) = 0;
 
 		virtual const std::vector<Ref<Texture2D>>	GetColorAttachments()				{ return m_ColorAttachments; }
-		virtual const Ref<Texture2D>				GetColorAttachment(int index = 0)	{ return m_ColorAttachments[index]; }
+		virtual const Ref<Texture2D>				GetColorAttachment(int index = 0)	{ HZ_CORE_ASSERT(index < m_ColorAttachments.size(), "Index out of range");  return m_ColorAttachments[index]; }
 		virtual const Ref<Texture2D>				GetDpethAttachment()				{ return m_DepthAttachment; };
 
 

@@ -12,15 +12,15 @@ namespace Hazel {
 
 	namespace Utils {
 
-		
+
 
 	}
 
 
-	VulkanFramebuffer::VulkanFramebuffer(const FramebufferSpecification& specification){
-		
+	VulkanFramebuffer::VulkanFramebuffer(const FramebufferSpecification& specification) {
+
 		m_Specification = specification;
-		
+
 		Invalidate();
 
 	}
@@ -29,41 +29,37 @@ namespace Hazel {
 
 	void VulkanFramebuffer::Invalidate()
 	{
+		
+		m_Flag = AssetFlag::Loading;
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
-		
+
 		std::vector<VkAttachmentDescription> attachmentDescriptions;
 		std::vector<VkAttachmentReference> colorAttachmentRefs;
-		
+
 
 		vkDeviceWaitIdle(device);
 
-		
+
 		if (m_Framebuffer != nullptr) {
 			vkDestroyFramebuffer(device, m_Framebuffer, NULL);
 			m_Framebuffer = nullptr;
-		}
-
-		if (m_RawRenderPass != nullptr) {
-
-			vkDestroyRenderPass(device, m_RawRenderPass, NULL);
-			m_RawRenderPass = nullptr;
 		}
 
 		m_ColorAttachments.clear();
 		m_DepthAttachment = nullptr;
 
 		uint32_t attachmentIndex = 0;
-		
+
 		VkAttachmentDescription depthAttachment{};
 		VkAttachmentReference depthAttachmentRef{};
 
-		for(auto attachment : m_Specification.attachments.attachments) {
+		for (auto attachment : m_Specification.attachments.attachments) {
 
 			if (Utils::IsDepthFormat(attachment.textureFormat)) {
 
 				m_DepthAttachment = Texture2D::Create(attachment.textureFormat, m_Specification.width, m_Specification.height, TextureUsage::Attachment);
-				
+
 				// force the depth attachment to be the last one :)
 
 				depthAttachment.format = Utils::GetVulkanFormatFromTextureFormat(attachment.textureFormat);
@@ -71,21 +67,21 @@ namespace Hazel {
 				depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;				
+				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				
+
 				depthAttachmentRef.attachment = m_Specification.attachments.attachments.size() - 1;
 				depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 				continue;
 			}
-			
+
 			m_ColorAttachments.emplace_back(Texture2D::Create(attachment.textureFormat, m_Specification.width, m_Specification.height, TextureUsage::Attachment));
 
 			VkAttachmentDescription& attachemnt = attachmentDescriptions.emplace_back();
 			attachemnt.format = Utils::GetVulkanFormatFromTextureFormat(attachment.textureFormat);
-			attachemnt.samples = VK_SAMPLE_COUNT_1_BIT;
+			attachemnt.samples = VkSampleCountFlagBits(m_Specification.samples);
 			attachemnt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			attachemnt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachemnt.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -94,12 +90,10 @@ namespace Hazel {
 			VkAttachmentReference& colorAttachmentRef = colorAttachmentRefs.emplace_back();
 			colorAttachmentRef.attachment = attachmentIndex;
 			colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-						
+
 			attachmentIndex++;
 		}
 
-
-		
 
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -120,7 +114,7 @@ namespace Hazel {
 			attachmentDescriptions.emplace_back(depthAttachment);
 
 		}
-		
+
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = attachmentDescriptions.size();
@@ -129,12 +123,12 @@ namespace Hazel {
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
-		
+
 		HZ_CORE_ASSERT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RawRenderPass) == VK_SUCCESS, "Failed to create render pass for framebuffer");
 
 		// cast		
-		std::vector<Ref<VulkanTexture2D>> vulkanAttachments = RefVectorStaticCast<VulkanTexture2D>(m_ColorAttachments);				
-		
+		std::vector<Ref<VulkanTexture2D>> vulkanAttachments = RefVectorStaticCast<VulkanTexture2D>(m_ColorAttachments);
+
 		std::vector<VkImageView> attachmentImageViews;
 		attachmentImageViews.reserve(vulkanAttachments.size() + (m_DepthAttachment == nullptr ? 0 : 1));
 		for (int i = 0; i < vulkanAttachments.size(); i++) {
@@ -153,9 +147,13 @@ namespace Hazel {
 		framebufferInfo.height = m_Specification.height;
 		framebufferInfo.layers = 1;
 
-		
+
 
 		HZ_CORE_ASSERT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_Framebuffer) == VK_SUCCESS, "Failed to create framebuffer");
+
+
+		m_Flag = AssetFlag::Valid;
+
 	}
 
 	void VulkanFramebuffer::Resize(const FramebufferSpecification& spec)
@@ -172,9 +170,7 @@ namespace Hazel {
 		m_Specification.height = size.y;
 
 		Invalidate();
-
 	}
-
 
 
 }

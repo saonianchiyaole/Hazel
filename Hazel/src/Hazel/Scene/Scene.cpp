@@ -294,13 +294,16 @@ namespace Hazel {
 
 		// 2D part
 		{
+			
 			Renderer2D::BeginScene(camera);
-
+			
+			
 			auto quadGroup = m_Registry.group<TransformComponent>(entt::get<SpriteComponent>);
 			for (auto entityID : quadGroup) {
-				auto& [transform, sprite] = quadGroup.get<TransformComponent, SpriteComponent>(entityID);
 
-				Renderer2D::DrawSprite(transform, sprite, (int)entityID);
+				auto& [transform, sprite] = quadGroup.get<TransformComponent, SpriteComponent>(entityID);
+				Renderer2D::DrawSprite(transform, sprite, (int)entityID);		
+
 			}
 
 			auto circleGroup = m_Registry.view<TransformComponent, CircleRendererComponent>();
@@ -309,7 +312,10 @@ namespace Hazel {
 				Renderer2D::DrawCircle(transform, circle.color, circle.thickness, circle.fade, (int)entityID);
 			}
 
+			
 			Renderer2D::EndScene();
+			
+			
 		}
 
 	}

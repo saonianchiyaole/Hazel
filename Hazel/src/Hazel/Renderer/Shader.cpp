@@ -154,6 +154,7 @@ namespace Hazel {
 			return s_Shaders[name];
 		HZ_CORE_ASSERT(false, "This Shader not exists!");
 	}
+
 	bool ShaderLibrary::LinkMaterial(const AssetHandle shader, const AssetHandle material)
 	{
 		if (s_AssociatedMaterials.find(shader) != s_AssociatedMaterials.end()) {

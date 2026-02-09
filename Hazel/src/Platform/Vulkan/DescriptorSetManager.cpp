@@ -109,7 +109,7 @@ namespace Hazel {
 		for (uint32_t frameIndex = 0; frameIndex < frameInFlight; frameIndex++) {
 
 			m_WriteDescriptors.emplace_back();
-			m_UniformBuffers.emplace_back();			
+			m_UniformBuffers.emplace_back();
 
 			for (auto& [set, bindingMap] : reflectionData) {
 

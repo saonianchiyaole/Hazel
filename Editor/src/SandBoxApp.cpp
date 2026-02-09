@@ -88,7 +88,7 @@ public:
 
 		Hazel::Renderer::BeginScene(*m_Camera.get());
 
-		Hazel::Renderer::Submit(m_VertexArray, m_Shader, transform);
+		Hazel::Renderer::SubmitVertex(m_VertexArray, m_Shader, transform);
 
 		Hazel::Renderer::EndScene();
 	}

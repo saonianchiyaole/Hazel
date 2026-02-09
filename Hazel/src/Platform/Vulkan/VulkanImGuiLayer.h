@@ -2,6 +2,10 @@
 
 #include "Hazel/ImGui/ImGuiLayer.h"
 
+#include "imgui_threaded_rendering.h"
+
+#include <chrono>
+
 namespace Hazel {
 
 	class VulkanCommandBuffer;
@@ -22,6 +26,12 @@ namespace Hazel {
 	private:
 
 		std::vector<Ref<VulkanCommandBuffer>> m_CommandBuffers;				
+
+		ImGui::ImDrawDataSnapshot m_SnapShot;
+
+		std::chrono::steady_clock::time_point m_StartTime;
+
+		std::mutex m_SnapshotMutex;
 
 	};
 

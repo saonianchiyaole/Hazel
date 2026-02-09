@@ -17,15 +17,18 @@ layout(std140, binding = 0) uniform CameraUniform
 	vec3 cameraPosition;
 };
 
-uniform mat4 u_Transform;
-uniform mat4 u_View;
-uniform mat4 u_Projection;
-
 const int MAX_BONES = 100;
-uniform mat4 u_BoneTransforms[100];
-uniform bool u_IsAnimation;
+layout(std140, binding = 1) uniform Transform
+{
 
-out VertexOutput{
+	mat4 u_Transform;
+	bool u_IsAnimation;
+	mat4 u_BoneTransforms[100];
+		
+};
+
+
+layout(location = 0) out VertexOutput{
 	vec3 WorldPosition;
     vec3 Normal;
 	vec2 TexCoord;
@@ -71,11 +74,10 @@ void main()
 
 #version 450 core
 
-layout(location = 0) out vec4 color;	
-layout(location = 1) out int IDColor;
+layout(location = 0) out vec4 color;
 
 
-in VertexOutput{
+layout(location = 0) in VertexOutput{
 	vec3 WorldPosition;
     vec3 Normal;
 	vec2 TexCoord;
@@ -85,23 +87,8 @@ in VertexOutput{
 	flat vec3 cameraPosition;
 }vs_Input;
 
-
-layout(std140, binding = 1) uniform LightUniform
-{
-	struct {	
-		vec4 position;
-		vec4 direction;
-		vec4 color;
-	}light;
-};
-
-uniform int u_EntityID; 
-
-
 void main()
 {
 
-	color = vec4(1.0f);
-
-	IDColor = u_EntityID;
+	color = vec4(1.0f);	
 }

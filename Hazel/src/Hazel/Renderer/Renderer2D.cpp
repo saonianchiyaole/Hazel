@@ -25,7 +25,7 @@ namespace Hazel {
 		glm::vec3 position;
 		glm::vec2 texCrood;
 		glm::vec4 color;
-		int texIndex;		
+		int texIndex;
 	};
 
 	struct CircleVertex {
@@ -33,12 +33,12 @@ namespace Hazel {
 		glm::vec3 localPosition;
 		glm::vec4 color;
 		float thickness;
-		float fade;		
+		float fade;
 	};
 
 	struct LineVertex {
 		glm::vec3 position;
-		glm::vec4 color;		
+		glm::vec4 color;
 	};
 
 	struct Renderer2DStorage {
@@ -59,8 +59,8 @@ namespace Hazel {
 
 		Ref<Shader> textureShader;
 		Ref<Shader> circleShader;
-		Ref<Shader> lineShader;		
-		
+		Ref<Shader> lineShader;
+
 		const uint32_t maxQuad = 10000;
 		const uint32_t maxQuadVetices = maxQuad * 4;
 		const uint32_t maxQuadIndices = maxQuad * 6;
@@ -96,10 +96,8 @@ namespace Hazel {
 		CameraUniformBuffer cameraBuffer;
 		Ref<UniformBufferSet> cameraUniformBufferSet;
 
+		std::vector<Ref<Framebuffer>> framebuffers;
 
-		Ref<Framebuffer> frameBuffer;
-						
-		
 	};
 
 	static Renderer2DStorage* s_Data;
@@ -155,21 +153,34 @@ namespace Hazel {
 		Ref<IndexBuffer> quadIndexBuffer;
 		quadIndexBuffer = IndexBuffer::Create(quadIndices, s_Data->maxQuadIndices);
 
+
+		uint32_t frameInFlight = Renderer::GetFrameInFlight();
+
 		//Shader
 		{
 			s_Data->textureShader = ShaderLibrary::Load("assets/Shaders/2DQuadShader.glsl");
-			s_Data->circleShader = ShaderLibrary::Load("assets/Shaders/2DCircleShader.glsl");			
+			s_Data->circleShader = ShaderLibrary::Load("assets/Shaders/2DCircleShader.glsl");
 			s_Data->lineShader = ShaderLibrary::Load("assets/Shaders/2DLineShader.glsl");
 		}
 
 		// uniformbuffer set
 		s_Data->cameraUniformBufferSet = UniformBufferSet::Create(sizeof(Renderer2DStorage::CameraUniformBuffer));
 
-		FramebufferSpecification fbSpec;
-		fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
-		fbSpec.height = Application::GetInstance().GetWindow().GetHeight();
-		fbSpec.attachments = { TextureFormat::RGBA, TextureFormat::Depth };
-		s_Data->frameBuffer = Framebuffer::Create(fbSpec);
+
+		
+		// framebuffer
+		{
+			FramebufferSpecification fbSpec;
+			fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
+			fbSpec.height = Application::GetInstance().GetWindow().GetHeight();
+			fbSpec.attachments = { TextureFormat::RGBA, TextureFormat::DEPTH24STENCIL8};
+
+			s_Data->framebuffers.reserve(frameInFlight);
+
+			for (uint32_t i = 0; i < frameInFlight; i++) {
+				s_Data->framebuffers.push_back(Framebuffer::Create(fbSpec));
+			}
+		}
 
 
 		//QuadVertex Start
@@ -185,7 +196,7 @@ namespace Hazel {
 				{ ShaderDataType::Int, "a_TexIndex"},
 			};
 			s_Data->quadVertexBuffer->SetLayout(layout);
-			s_Data->quadVertexArray->AddVertexBuffer(s_Data->quadVertexBuffer);		
+			s_Data->quadVertexArray->AddVertexBuffer(s_Data->quadVertexBuffer);
 			s_Data->quadVertexArray->SetIndexBuffer(quadIndexBuffer);
 
 			PipelineSpecification pipelineSpec;
@@ -194,9 +205,9 @@ namespace Hazel {
 			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
 			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->texturePipeline = Pipeline::Create(pipelineSpec);
-			
+
 			RenderPassSpecification renderPassSpec;
-			renderPassSpec.pipeline = s_Data->texturePipeline;			
+			renderPassSpec.pipeline = s_Data->texturePipeline;
 			s_Data->textureRenderPass = RenderPass::Create(renderPassSpec);
 
 			s_Data->textureRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
@@ -215,7 +226,7 @@ namespace Hazel {
 				{ ShaderDataType::Float3, "a_LocalPosition"},
 				{ ShaderDataType::Float4, "a_Color"},
 				{ ShaderDataType::Float, "a_Thickness"},
-				{ ShaderDataType::Float, "a_Fade"},				
+				{ ShaderDataType::Float, "a_Fade"},
 			};
 			s_Data->circleVertexBuffer->SetLayout(circleLayout);
 			s_Data->circleVertexArray->AddVertexBuffer(s_Data->circleVertexBuffer);
@@ -247,7 +258,7 @@ namespace Hazel {
 			s_Data->lineVertexBuffeBase = new LineVertex[s_Data->maxQuadVetices];
 			BufferLayout lineLayout = std::vector<BufferElement>{
 				{ ShaderDataType::Float3, "a_Position"},
-				{ ShaderDataType::Float4, "a_Color"},				
+				{ ShaderDataType::Float4, "a_Color"},
 			};
 			s_Data->lineVertexBuffer->SetLayout(lineLayout);
 			s_Data->lineVertexArray->AddVertexBuffer(s_Data->lineVertexBuffer);
@@ -269,7 +280,7 @@ namespace Hazel {
 		}
 		//LineVertex End
 
-						
+
 		//Default white texture
 		{
 			s_Data->whiteTexture = Texture2D::Create(1, 1);
@@ -285,8 +296,8 @@ namespace Hazel {
 			s_Data->textureShader->SetIntArray("u_Textures", indexArray, s_Data->maxTextureSlot);
 		}
 
-		
-		
+
+
 
 	}
 	void Renderer2D::Shutdown()
@@ -304,9 +315,9 @@ namespace Hazel {
 
 
 		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-		
+
 		s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
-		
+
 		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
 		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
 		s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
@@ -316,211 +327,250 @@ namespace Hazel {
 	{
 		// todo 
 		//Renderer::GetCompositePassFramebuffer()->Bind();
+		Renderer::SubmitTask([=]() {
 
-		s_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };		
-		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-		s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
-		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
-		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
-		s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
+			s_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+			//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };		
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+			s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
+
+			s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
+			s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
+			s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
+
+			});
+
 	}
 
 	void Renderer2D::BeginScene(const Camera& camera)
 	{
-		//Renderer::GetCompositePassFramebuffer()->Bind();
-		
-		s_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
-		//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
-		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-		s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
+		Renderer::SubmitTask([=]() {
+			s_Data->cameraBuffer.viewProjectionMatrix = camera.GetViewProjectionMatrix();
+			//cameraUniformBufferData.position = { camera.GetPosition(), 0.0f };
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+			s_Data->cameraUniformBufferSet->Get(frameIndex)->SetData((const void*)&s_Data->cameraBuffer, sizeof(Renderer2DStorage::CameraUniformBuffer), 0);
 
-		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
-		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
-		s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
+			s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
+			s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
+			s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
+			});
+
+
 	}
 
 	void Renderer2D::EndScene()
 	{
+
 		Flush();
 
-		s_Data->QuadIndexCount = 0;
-		s_Data->circleIndexCount = 0;
-		s_Data->lineIndexCount = 0;
-		s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
-		s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
-		s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
+		Renderer::SubmitTask([=]() {
+			
+			s_Data->QuadIndexCount = 0;
+			s_Data->circleIndexCount = 0;
+			s_Data->lineIndexCount = 0;
+			s_Data->quadVertexBufferPtr = s_Data->quadVertexBuffeBase;
+			s_Data->circleVertexBuffePtr = s_Data->circleVertexBuffeBase;
+			s_Data->lineVertexBuffePtr = s_Data->lineVertexBuffeBase;
 
-		s_Data->textureSlotIndex = 1;
+			s_Data->textureSlotIndex = 1;
 
-		//Renderer::GetCompositePassFramebuffer()->Unbind();
+			});
+
 	}
 
 	void Renderer2D::Flush()
 	{
 
+		Renderer::SubmitTask([]() {
+
+			for (uint32_t i = s_Data->textureSlotIndex; i < s_Data->maxTextureSlot; i++) {
+				s_Data->textureSlots[i] = s_Data->whiteTexture;
+				s_Data->textureSlots[i]->Bind();
+				s_Data->textureRenderPass->SetData("u_Textures", s_Data->whiteTexture, i);
+
+			}
+
+			for (uint32_t i = 0; i < s_Data->textureSlotIndex; i++) {
+				s_Data->textureSlots[i]->Bind(i);
+				s_Data->textureRenderPass->SetData("u_Textures", s_Data->textureSlots[i], i);
+			}
+
+			if (s_Data->QuadIndexCount) {
+
+				uint32_t dataSize = s_Data->quadVertexBufferPtr - s_Data->quadVertexBuffeBase;
+				s_Data->quadVertexBuffer->SetData(s_Data->quadVertexBuffeBase, dataSize * sizeof(QuadVertex));
+
+
+				Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
+
+
+				commandBuffer->Begin();
+
+				RenderCommand::BeginRenderPass(commandBuffer, s_Data->textureRenderPass);
+
+				RenderCommand::DrawIndexed(commandBuffer, s_Data->quadVertexArray, s_Data->QuadIndexCount);
+				m_RendererState.drawCall += 1;
+
+				RenderCommand::EndRenderPass(commandBuffer, s_Data->textureRenderPass);
+				commandBuffer->End();
+				commandBuffer->Submit();
+
+			}
+
+			if (s_Data->circleIndexCount) {
+				uint32_t dataSize = s_Data->circleVertexBuffePtr - s_Data->circleVertexBuffeBase;
+				s_Data->circleVertexBuffer->SetData(s_Data->circleVertexBuffeBase, dataSize * sizeof(CircleVertex));
+
+
+				Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
+
+
+				commandBuffer->Begin();
+
+				RenderCommand::BeginRenderPass(commandBuffer, s_Data->circleRenderPass);
+
+				s_Data->circleShader->Bind();
+				s_Data->circleVertexArray->Bind();
+				RenderCommand::DrawIndexed(commandBuffer, s_Data->circleVertexArray, s_Data->circleIndexCount);
+
+				RenderCommand::EndRenderPass(commandBuffer, s_Data->circleRenderPass);
+				commandBuffer->End();
+				commandBuffer->Submit();
+
+				m_RendererState.drawCall += 1;
+			}
+
+			if (s_Data->lineIndexCount) {
+
+				Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
+
+
+				commandBuffer->Begin();
+
+				RenderCommand::BeginRenderPass(commandBuffer, s_Data->lineRenderPass);
+
+				uint32_t dataSize = s_Data->lineVertexBuffePtr - s_Data->lineVertexBuffeBase;
+				s_Data->lineVertexBuffer->SetData(s_Data->lineVertexBuffeBase, dataSize * sizeof(LineVertex));
+
+				s_Data->lineShader->Bind();
+				s_Data->lineVertexArray->Bind();
+				RenderCommand::SetLineWidth(s_Data->lineWidth);
+				RenderCommand::DrawLines(s_Data->lineVertexArray, s_Data->lineIndexCount);
+
+				RenderCommand::EndRenderPass(commandBuffer, s_Data->lineRenderPass);
+				commandBuffer->End();
+				commandBuffer->Submit();
+
+				m_RendererState.drawCall += 1;
+			}
+
+		});
+
 		
-
-		for (uint32_t i = s_Data->textureSlotIndex; i < s_Data->maxTextureSlot; i++) {
-			s_Data->textureSlots[i] = s_Data->whiteTexture;
-			s_Data->textureSlots[i]->Bind();			
-			s_Data->textureRenderPass->SetData("u_Textures", s_Data->whiteTexture, i);
-			
-		}
-
-		for (uint32_t i = 0; i < s_Data->textureSlotIndex; i++) {
-			s_Data->textureSlots[i]->Bind(i);
-			s_Data->textureRenderPass->SetData("u_Textures", s_Data->textureSlots[i], i);
-		}
-
-		if (s_Data->QuadIndexCount){
-
-			uint32_t dataSize = s_Data->quadVertexBufferPtr - s_Data->quadVertexBuffeBase;
-			s_Data->quadVertexBuffer->SetData(s_Data->quadVertexBuffeBase, dataSize * sizeof(QuadVertex));
-			
-
-			Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
-
-			
-			commandBuffer->Begin();
-
-			RenderCommand::BeginRenderPass(commandBuffer, s_Data->textureRenderPass);
-			
-			RenderCommand::DrawIndexed(commandBuffer, s_Data->quadVertexArray, s_Data->QuadIndexCount);
-			m_RendererState.drawCall += 1;
-
-			RenderCommand::EndRenderPass(commandBuffer, s_Data->textureRenderPass);
-			commandBuffer->End();
-			commandBuffer->Submit();			
-
-		}
-
-		if (s_Data->circleIndexCount) {
-			uint32_t dataSize = s_Data->circleVertexBuffePtr - s_Data->circleVertexBuffeBase;
-			s_Data->circleVertexBuffer->SetData(s_Data->circleVertexBuffeBase, dataSize * sizeof(CircleVertex));
-
-
-			Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
-
-
-			commandBuffer->Begin();
-
-			RenderCommand::BeginRenderPass(commandBuffer, s_Data->circleRenderPass);
-
-			s_Data->circleShader->Bind();
-			s_Data->circleVertexArray->Bind();
-			RenderCommand::DrawIndexed(commandBuffer, s_Data->circleVertexArray, s_Data->circleIndexCount);
-
-			RenderCommand::EndRenderPass(commandBuffer, s_Data->circleRenderPass);
-			commandBuffer->End();
-			commandBuffer->Submit();
-
-			m_RendererState.drawCall += 1;
-		}
-
-		if (s_Data->lineIndexCount) {
-
-			Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
-
-
-			commandBuffer->Begin();
-
-			RenderCommand::BeginRenderPass(commandBuffer, s_Data->lineRenderPass);
-
-			uint32_t dataSize = s_Data->lineVertexBuffePtr - s_Data->lineVertexBuffeBase;
-			s_Data->lineVertexBuffer->SetData(s_Data->lineVertexBuffeBase, dataSize * sizeof(LineVertex));
-
-			s_Data->lineShader->Bind();
-			s_Data->lineVertexArray->Bind();
-			RenderCommand::SetLineWidth(s_Data->lineWidth);
-			RenderCommand::DrawLines(s_Data->lineVertexArray, s_Data->lineIndexCount);
-
-			RenderCommand::EndRenderPass(commandBuffer, s_Data->lineRenderPass);
-			commandBuffer->End();
-			commandBuffer->Submit();
-
-			m_RendererState.drawCall += 1;
-		}
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
 	{
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = 0;			
-			s_Data->quadVertexBufferPtr++;
-		}
 
-		s_Data->QuadIndexCount += 6;
 
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+
+		Renderer::SubmitTask([=]() {
+
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = 0;
+				s_Data->quadVertexBufferPtr++;
+			}
+
+			s_Data->QuadIndexCount += 6;
+
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+			});
+
+
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, int entityID)
 	{
-		int textureSlotIndex = 0;
-		for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
-			if (*texture.get() == *s_Data->textureSlots[i].get())
-			{
-				textureSlotIndex = i;
-				break;
+		Renderer::SubmitTask([=]() {
+
+			int textureSlotIndex = 0;
+			for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
+				if (*texture.get() == *s_Data->textureSlots[i].get())
+				{
+					textureSlotIndex = i;
+					break;
+				}
 			}
-		}
 
-		if (textureSlotIndex == 0) {
-			textureSlotIndex = (int)s_Data->textureSlotIndex;
-			s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
-		}
+			if (textureSlotIndex == 0) {
+				textureSlotIndex = (int)s_Data->textureSlotIndex;
+				s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
+			}
 
-		glm::vec4 color = glm::vec4(1.0f);
+			glm::vec4 color = glm::vec4(1.0f);
 
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;			
-			s_Data->quadVertexBufferPtr++;
-		}
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;
+				s_Data->quadVertexBufferPtr++;
+			}
 
-		s_Data->QuadIndexCount += 6;
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+			s_Data->QuadIndexCount += 6;
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+			});
+
+
 	}
 
 	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, Ref<Texture2D> texture, int entityID)
 	{
-		int textureSlotIndex = 0;
-		for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
-			if (*texture.get() == *s_Data->textureSlots[i].get())
-			{
-				textureSlotIndex = i;
-				break;
+
+		Renderer::SubmitTask([=]() {
+
+
+			int textureSlotIndex = 0;
+			for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
+				if (*texture.get() == *s_Data->textureSlots[i].get())
+				{
+					textureSlotIndex = i;
+					break;
+				}
 			}
-		}
 
-		if (textureSlotIndex == 0) {
-			textureSlotIndex = (int)s_Data->textureSlotIndex;
-			s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
-		}
+			if (textureSlotIndex == 0) {
+				textureSlotIndex = (int)s_Data->textureSlotIndex;
+				s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
+			}
 
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;			
-			s_Data->quadVertexBufferPtr++;
-		}
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;
+				s_Data->quadVertexBufferPtr++;
+			}
 
-		s_Data->QuadIndexCount += 6;
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+			s_Data->QuadIndexCount += 6;
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+
+			});
+
+		
 	}
 
 
@@ -534,22 +584,29 @@ namespace Hazel {
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
 
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-			glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
+		Renderer::SubmitTask([&]() {
 
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = 0;
-			s_Data->quadVertexBufferPtr++;
-		}
 
-		s_Data->QuadIndexCount += 6;
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+				glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
 
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = 0;
+				s_Data->quadVertexBufferPtr++;
+			}
+
+			s_Data->QuadIndexCount += 6;
+
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+			});
+
+		
 	}
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, const glm::vec4& color)
@@ -559,23 +616,32 @@ namespace Hazel {
 
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, const glm::vec4& color)
 	{
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
 
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = 0;
-			s_Data->quadVertexBufferPtr++;
-		}
+		Renderer::SubmitTask([=]() {
 
-		s_Data->QuadIndexCount += 6;
 
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+				glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
+				glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
+
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = 0;
+				s_Data->quadVertexBufferPtr++;
+			}
+
+			s_Data->QuadIndexCount += 6;
+
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+
+			});
+
+		
 	}
 
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, Ref<Texture2D>& texture)
@@ -585,40 +651,48 @@ namespace Hazel {
 
 	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, Ref<Texture2D>& texture)
 	{
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-			glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
 
-		int textureSlotIndex = 0;
-		for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
-			if (*texture.get() == *s_Data->textureSlots[i].get())
-			{
-				textureSlotIndex = i;
-				break;
+		Renderer::SubmitTask([=]() {
+
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+				glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
+
+			int textureSlotIndex = 0;
+			for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
+				if (*texture.get() == *s_Data->textureSlots[i].get())
+				{
+					textureSlotIndex = i;
+					break;
+				}
 			}
-		}
 
-		if (textureSlotIndex == 0) {
-			textureSlotIndex = (int)s_Data->textureSlotIndex;
-			s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
-		}
-
-
-		glm::vec4 color = glm::vec4(1.0f);
+			if (textureSlotIndex == 0) {
+				textureSlotIndex = (int)s_Data->textureSlotIndex;
+				s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
+			}
 
 
+			glm::vec4 color = glm::vec4(1.0f);
 
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;
-			s_Data->quadVertexBufferPtr++;
-		}
 
-		s_Data->QuadIndexCount += 6;
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;
+				s_Data->quadVertexBufferPtr++;
+			}
+
+			s_Data->QuadIndexCount += 6;
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+			});
+
+
+		
 	}
 	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, Ref<Texture2D>& texture)
 	{
@@ -626,39 +700,47 @@ namespace Hazel {
 	}
 	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, Ref<Texture2D>& texture)
 	{
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
+
+		Renderer::SubmitTask([=]() {
 
 
-		glm::vec4 color = glm::vec4(1.0f);
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+				glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
+				glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
 
-		int textureSlotIndex = 0;
-		for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
-			if (*texture.get() == *s_Data->textureSlots[i].get())
-			{
-				textureSlotIndex = i;
-				break;
+
+			glm::vec4 color = glm::vec4(1.0f);
+
+			int textureSlotIndex = 0;
+			for (GLint i = 1; i < s_Data->textureSlotIndex; i++) {
+				if (*texture.get() == *s_Data->textureSlots[i].get())
+				{
+					textureSlotIndex = i;
+					break;
+				}
 			}
-		}
 
-		if (textureSlotIndex == 0) {
-			textureSlotIndex = (int)s_Data->textureSlotIndex;
-			s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
-		}
+			if (textureSlotIndex == 0) {
+				textureSlotIndex = (int)s_Data->textureSlotIndex;
+				s_Data->textureSlots[s_Data->textureSlotIndex++] = texture;
+			}
 
-		for (int i = 0; i < 4; i++) {
-			s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
-			s_Data->quadVertexBufferPtr->color = color;
-			s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
-			s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;
-			s_Data->quadVertexBufferPtr++;
-		}
+			for (int i = 0; i < 4; i++) {
+				s_Data->quadVertexBufferPtr->position = transform * s_Data->QuadVertices[i];
+				s_Data->quadVertexBufferPtr->color = color;
+				s_Data->quadVertexBufferPtr->texCrood = s_Data->QuadTextureCrood[i];
+				s_Data->quadVertexBufferPtr->texIndex = (GLint)textureSlotIndex;
+				s_Data->quadVertexBufferPtr++;
+			}
 
-		s_Data->QuadIndexCount += 6;
-		m_RendererState.quadAmount += 1;
-		m_RendererState.vertexAmount += 4;
-		m_RendererState.indexAmount += 6;
+			s_Data->QuadIndexCount += 6;
+			m_RendererState.quadAmount += 1;
+			m_RendererState.vertexAmount += 4;
+			m_RendererState.indexAmount += 6;
+
+			});
+
+		
 	}
 	void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, const float thickness, const float fade, const int entityID)
 	{
@@ -667,7 +749,7 @@ namespace Hazel {
 			s_Data->circleVertexBuffePtr->localPosition = s_Data->QuadVertices[i] * 2.0f;
 			s_Data->circleVertexBuffePtr->color = color;
 			s_Data->circleVertexBuffePtr->thickness = thickness;
-			s_Data->circleVertexBuffePtr->fade = fade;			
+			s_Data->circleVertexBuffePtr->fade = fade;
 			s_Data->circleVertexBuffePtr++;
 		}
 
@@ -687,11 +769,11 @@ namespace Hazel {
 	void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int enitityID)
 	{
 		s_Data->lineVertexBuffePtr->position = p0;
-		s_Data->lineVertexBuffePtr->color = color;		
+		s_Data->lineVertexBuffePtr->color = color;
 		s_Data->lineVertexBuffePtr++;
 
 		s_Data->lineVertexBuffePtr->position = p1;
-		s_Data->lineVertexBuffePtr->color = color;		
+		s_Data->lineVertexBuffePtr->color = color;
 		s_Data->lineVertexBuffePtr++;
 
 		s_Data->lineIndexCount += 2;
@@ -714,11 +796,12 @@ namespace Hazel {
 
 	Ref<Framebuffer> Renderer2D::GetFramebuffer()
 	{
-		return s_Data->frameBuffer;
+		return s_Data->framebuffers[Renderer::GetCurrentFrameIndex()];
 	}
 
 	bool Renderer2D::SetViewportSize(const glm::vec2& size) {
-		s_Data->frameBuffer->Resize(size);
+
+		s_Data->framebuffers[Renderer::GetCurrentFrameIndex()]->Resize(size);
 		return true;
 	}
 
@@ -728,9 +811,17 @@ namespace Hazel {
 	}
 
 	void Renderer2D::ResetState() {
-		m_RendererState.quadAmount = 0;
-		m_RendererState.vertexAmount = 0;
-		m_RendererState.indexAmount = 0;
-		m_RendererState.drawCall = 0;
+
+		Renderer::SubmitTask([]() {
+
+			m_RendererState.quadAmount = 0;
+			m_RendererState.vertexAmount = 0;
+			m_RendererState.indexAmount = 0;
+			m_RendererState.drawCall = 0;
+
+
+			});
+
+		
 	}
 }

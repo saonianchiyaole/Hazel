@@ -26,7 +26,7 @@ namespace Hazel {
 			case PrimitiveTopology::PointList:       return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 			case PrimitiveTopology::None:            HZ_CORE_ASSERT(false, "Unknown PrimitiveTopology!");
 			}
-						
+
 		}
 
 	}
@@ -36,8 +36,6 @@ namespace Hazel {
 	{
 
 		m_Specification = specification;
-
-
 
 
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
@@ -68,8 +66,8 @@ namespace Hazel {
 		//---------------------------------------------------------------------------------------------
 
 
-		VkVertexInputBindingDescription bindingDescription = Utils::GetBindingDescription(specification.bufferLayout);
-		std::vector<VkVertexInputAttributeDescription>  attributeDescriptions = Utils::GetAttributeDescriptions(specification.bufferLayout);
+		VkVertexInputBindingDescription bindingDescription = Utils::GetBindingDescription(m_Specification.bufferLayout);
+		std::vector<VkVertexInputAttributeDescription>  attributeDescriptions = Utils::GetAttributeDescriptions(m_Specification.bufferLayout);
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -166,15 +164,15 @@ namespace Hazel {
 		//-------------------------------------------------------------------------------------
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = shader->GetDescriptorSetLayouts().size();		
+		pipelineLayoutInfo.setLayoutCount = shader->GetDescriptorSetLayouts().size();
 		pipelineLayoutInfo.pSetLayouts = shader->GetDescriptorSetLayouts().data();
 
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-		
+
 		HZ_CORE_ASSERT(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_Layout) == VK_SUCCESS, "failed to create pipeline layout");
-		
+
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -196,7 +194,7 @@ namespace Hazel {
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
 		pipelineInfo.pDepthStencilState = &depthStencil;
-		
+
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 
@@ -209,7 +207,10 @@ namespace Hazel {
 		pipelineInfo.basePipelineIndex = -1;
 
 
-		HZ_CORE_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) == VK_SUCCESS, "failed to create pipeline layout");			
+		HZ_CORE_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) == VK_SUCCESS, "failed to create pipeline layout");
+
+
+
 
 	}
 

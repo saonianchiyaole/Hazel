@@ -61,15 +61,17 @@ namespace Hazel {
 		VkFramebuffer				GetCurrentFramebuffer()				{ return m_Framebuffers[m_CurrentImageIndex]; }
 
 		void						InitializeSurface		(VkInstance instance, GLFWwindow* window);
-		void						Init					(Ref<VulkanDevice> device);
+		void						Init					(Ref<VulkanContext> context);
 		void						Create					(uint32_t width, uint32_t height, bool isVsync);
 		void						Recreate				(uint32_t width, uint32_t height, bool isVsync);
 		void						Destroy					();
 		
 
-		virtual void BeginFrame()	override;
-		virtual void EndFrame()		override;
-		virtual void Present()		override;
+		virtual void WaitFrameFence()			override;
+		virtual void WaitAndResetFrameFence()	override;
+		virtual void BeginFrame()				override;
+		virtual void EndFrame()					override;
+		virtual void Present()					override;
 
 	private:
 
@@ -110,7 +112,7 @@ namespace Hazel {
 
 		std::vector<VkFence> m_InFlightFences;
 
-		
+		std::unordered_set<uint32_t> m_VisibleQueueFamily;
 
 		friend class VulkanRendererAPI;
 	};

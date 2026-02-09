@@ -7,6 +7,8 @@
 
 #include "Platform/Vulkan/VulkanCommandBuffer.h"
 
+#include "Hazel/Renderer/Renderer.h"
+
 #include <set>
 
 namespace Hazel {
@@ -14,6 +16,8 @@ namespace Hazel {
 	std::vector<const char*> VulkanPhysicalDevice::s_DeviceExtensions = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
+
+	static const int MAX_UNIVERSAL_QUEUE_COUNT = 4;
 
 
 	namespace Utils {
@@ -112,20 +116,15 @@ namespace Hazel {
 
 			for (uint32_t i = 0; i < queueFamilyCount; i++) {
 				vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-				if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-					indices.graphicsFamily = i;				
-				}
+				indices.familys[queueFamilies[i].queueFlags] = {i, queueFamilies[i].queueCount};
 
-				if (presentSupport)
+				if (!indices.presentFamily.has_value() && presentSupport)
 					indices.presentFamily = i;
-
-				if (indices.IsComplete()) {
-					break;
-				}
+				
 			}
 
 			return indices;
-		}
+		}		
 
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
 			QueueFamilyIndices indices;
@@ -135,23 +134,37 @@ namespace Hazel {
 
 			std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 			vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-		
+
+			VkBool32 presentSupport = false;
 
 			for (uint32_t i = 0; i < queueFamilyCount; i++) {
 				
-				if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-					indices.graphicsFamily = i;
-					indices.presentFamily = i;
-					indices.transferFamily = i;
-				}
+				indices.familys[queueFamilies[i].queueFlags] = { i, queueFamilies[i].queueCount };
 				
+			}
+									
+			
+			return indices;
+		}
 
-				if (indices.IsComplete()) {
-					break;
+		bool PickPresentFamilyIndex(QueueFamilyIndices& indices, VkPhysicalDevice device, VkSurfaceKHR surface) {
+
+			VkBool32 presentSupport = false;
+
+			for (auto& [flagBit, pair] : indices.familys) {
+
+				auto& [familyIndex, count] = pair;
+				vkGetPhysicalDeviceSurfaceSupportKHR(device, familyIndex, surface, &presentSupport);			
+
+				if (!indices.presentFamily.has_value() && presentSupport){
+					indices.presentFamily = familyIndex;
+					return true;
 				}
+
 			}
 
-			return indices;
+			return false;
+
 		}
 
 
@@ -202,32 +215,38 @@ namespace Hazel {
 	VulkanPhysicalDevice::~VulkanPhysicalDevice()
 	{
 	}
-
+	
 
 	//-----------------------------------------------Vulkan Device---------------------------------------------------------
 	
 	
 	VulkanDevice::VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice) : m_PhysicalDevice(physicalDevice){
 
-
+		
 			
-		QueueFamilyIndices indices = physicalDevice->GetQueueFamilyIndices();
+		QueueFamilyIndices& indices = physicalDevice->GetQueueFamilyIndices();
 
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;		
 
+		// todo make it more flexible		
+		
+		SelectQueue(indices);
+		
+		
 		float queuePriority = 1.0f;
-		for (auto queuefamily : uniqueQueueFamilies) {
+		
+		std::set<uint32_t> queueFamily = { indices.computeFamily.value(), indices.transferFamily.value(), indices.graphicsFamily.value()};
 
+		for (auto queueFamilyIndex : queueFamily) {
+			
 			VkDeviceQueueCreateInfo queueCreateInfo = {};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queuefamily;
+			queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
 			queueCreateInfo.queueCount = 1;
 			queueCreateInfo.pQueuePriorities = &queuePriority;
 
 			queueCreateInfos.push_back(queueCreateInfo);
-
-		}
+		}								
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		VkDeviceCreateInfo createInfo{};
@@ -256,15 +275,17 @@ namespace Hazel {
 			throw std::runtime_error("failed to create logical device!");
 		}
 
+	
 		vkGetDeviceQueue(m_Device, indices.graphicsFamily.value(), 0, &m_GraphicQueue);
-		vkGetDeviceQueue(m_Device, indices.presentFamily.value(), 0, &m_PresentQueue);
-		
+		vkGetDeviceQueue(m_Device, indices.transferFamily.value(), 0, &m_TransferQueue);
+		vkGetDeviceQueue(m_Device, indices.computeFamily.value(), 0, &m_ComputeQueue);				
+			
 		CreateCommandPool();
 	}
 
 	void VulkanDevice::CreateCommandPool() {
 		
-		QueueFamilyIndices queueFamilyIndices = m_PhysicalDevice->GetQueueFamilyIndices();
+		const QueueFamilyIndices& queueFamilyIndices = m_PhysicalDevice->GetQueueFamilyIndices();
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -279,16 +300,18 @@ namespace Hazel {
 
 	void VulkanDevice::CreateDescriptorPool()
 	{
+		uint32_t frameInFlight = Renderer::GetFrameInFlight();
+
 		VkDescriptorPoolSize poolSize{};
 		poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolSize.descriptorCount = static_cast<uint32_t>(frameInFlight);
 		
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = 1;
 		poolInfo.pPoolSizes = &poolSize;
 
-		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolInfo.maxSets = static_cast<uint32_t>(frameInFlight);
 
 		HZ_CORE_ASSERT(vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) == VK_SUCCESS, "Failed to create descriptor pool!");
 
@@ -304,6 +327,63 @@ namespace Hazel {
 
 		Ref<VulkanCommandBuffer> commandBuffer = MakeRef<VulkanCommandBuffer>(m_CommandPool, false);
 		return commandBuffer;
+	}
+
+	void VulkanDevice::SelectQueue(QueueFamilyIndices& indices)
+	{
+
+
+		bool hasUniversalQueueFamily = false;
+		uint32_t universalQueueFamilyIndex = 0;
+
+		m_SupportAsyncCompute = false;
+		m_SupportAsyncTransfer = false;
+
+		bool hasUniqueGraphicQueueFamily = false;
+
+		for (auto& [flagBit, pair] : indices.familys) {
+
+			auto [familyIndex, count] = pair;
+
+			if (!hasUniversalQueueFamily && flagBit & (QueueFlagBits::QUEUE_GRAPHICS_BIT | QueueFlagBits::QUEUE_GRAPHICS_BIT | QueueFlagBits::QUEUE_TRANSFER_BIT)) {
+				hasUniversalQueueFamily = true;
+				universalQueueFamilyIndex = familyIndex;
+			}
+
+			if (!m_SupportAsyncCompute && flagBit & QueueFlagBits::QUEUE_COMPUTE_BIT && flagBit & QueueFlagBits::QUEUE_TRANSFER_BIT && (flagBit & QueueFlagBits::QUEUE_GRAPHICS_BIT) == 0) {
+				m_SupportAsyncCompute = true;
+				indices.computeFamily = familyIndex;
+			}
+
+			if (!m_SupportAsyncTransfer && flagBit & QueueFlagBits::QUEUE_TRANSFER_BIT && (flagBit & (QueueFlagBits::QUEUE_COMPUTE_BIT | QueueFlagBits::QUEUE_GRAPHICS_BIT)) == 0) {
+				m_SupportAsyncTransfer = true;
+				indices.transferFamily = familyIndex;
+			}
+
+			if (!hasUniqueGraphicQueueFamily && flagBit & (QueueFlagBits::QUEUE_GRAPHICS_BIT) && flagBit & QueueFlagBits::QUEUE_TRANSFER_BIT && (flagBit & QueueFlagBits::QUEUE_COMPUTE_BIT) == 0) {
+				indices.graphicsFamily = familyIndex;
+			}			
+		}
+
+
+		if (hasUniversalQueueFamily && !indices.graphicsFamily.has_value()) {
+			indices.graphicsFamily = universalQueueFamilyIndex;
+		}
+
+		if (hasUniversalQueueFamily && !indices.transferFamily.has_value()) {
+			indices.transferFamily = universalQueueFamilyIndex;
+		}
+
+		if (hasUniversalQueueFamily && !indices.computeFamily.has_value()) {
+			indices.computeFamily = universalQueueFamilyIndex;
+		}
+	
+	}
+
+	void VulkanDevice::CreatePresentQueue(const QueueFamilyIndices& indices){
+
+		vkGetDeviceQueue(m_Device, indices.presentFamily.value(), 0, &m_PresentQueue);
+
 	}
 
 }

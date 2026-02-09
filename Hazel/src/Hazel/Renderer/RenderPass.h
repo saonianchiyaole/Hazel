@@ -1,9 +1,7 @@
 #pragma once
 
 #include "Hazel/Core/Core.h"
-
-
-
+#include "Hazel/Core/ByteKey.h"
 
 namespace Hazel {
 
@@ -14,15 +12,28 @@ namespace Hazel {
 	class Framebuffer;
 
 	struct RenderPassSpecification {
-		
+
 		// todo : shoudn't be used, should be move to pipeline
+
+
+		bool isClearColor;
+
+		glm::vec4 clearColor;
+
 		Ref<Framebuffer> targetFramebuffer;
 
 		Ref<Pipeline> pipeline = nullptr;
 
 	};
 
+	namespace Utils {
 
+
+		ByteKey GetRenderPassByteKey(const RenderPassSpecification& spec);
+
+	}
+
+	
 	class RenderPass {
 	public:		
 		RenderPass() = default;

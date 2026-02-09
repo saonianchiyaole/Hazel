@@ -3136,7 +3136,7 @@ static int stbi__process_marker(stbi__jpeg *z, int m)
                sizes[i] = stbi__get8(z->s);
                n += sizes[i];
             }
-            if(n > 256) return stbi__err("bad DHT header","Corrupt JPEG"); // Loop over i < n would write past end of values!
+            if(n > 256) return stbi__err("bad DHT header","Corrupt JPEG"); // Run over i < n would write past end of values!
             L -= 17;
             if (tc == 0) {
                if (!stbi__build_huffman(z->huff_dc+th, sizes)) return 0;
@@ -6212,7 +6212,7 @@ static void *stbi__psd_load(stbi__context *s, int *x, int *y, int *comp, int req
    // Finally, the image data.
    if (compression) {
       // RLE as used by .PSD and .TIFF
-      // Loop until you get the number of unpacked bytes you are expecting:
+      // Run until you get the number of unpacked bytes you are expecting:
       //     Read the next source byte into n.
       //     If n is between 0 and 127 inclusive, copy the next n+1 bytes literally.
       //     Else if n is between -127 and -1 inclusive, copy the next byte -n+1 times.

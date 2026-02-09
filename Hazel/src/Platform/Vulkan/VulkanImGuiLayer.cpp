@@ -13,8 +13,11 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 
+
 #include "Hazel/Core/Application.h"
+#include "Hazel/Renderer/Renderer.h"
 #include "Platform/Windows/WindowsWindow.h"
+
 
 #include "ImGuizmo.h"
 
@@ -23,12 +26,19 @@ namespace Hazel {
 
 	void VulkanImGuiLayer::OnAttach()
 	{
-		m_CommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-	
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		uint32_t frameInFlight = Renderer::GetFrameInFlight();
+
+		m_CommandBuffers.resize(frameInFlight);
+
+		for (int i = 0; i < frameInFlight; i++) {
 			m_CommandBuffers[i] = VulkanContext::GetCurrentContext()->GetDevice()->CreateSecondaryCommandBuffer();
 		}
-		
+
+
+		m_StartTime = std::chrono::steady_clock::now();
+
+		m_SnapShot.Cache.Reserve(3);
+
 		//// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -87,7 +97,7 @@ namespace Hazel {
 		poolInfo.pPoolSizes = poolSizes;
 
 		HZ_CORE_ASSERT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) == VK_SUCCESS, "Failed to create descriptor pool!");
-		
+
 
 		//// Setup Platform/Renderer backends
 		ImGui_ImplGlfw_InitForVulkan(window, true);
@@ -100,23 +110,23 @@ namespace Hazel {
 		init_info.PipelineCache = nullptr;
 		init_info.DescriptorPool = descriptorPool;
 		init_info.Subpass = 0;
-		init_info.MinImageCount = 2;		
+		init_info.MinImageCount = 2;
 		init_info.ImageCount = swapchain->GetImageCount();
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		init_info.Allocator = nullptr;
 		init_info.CheckVkResultFn = nullptr;
-		init_info.RenderPass = swapchain->GetRenderPass();		
+		init_info.RenderPass = swapchain->GetRenderPass();
 		ImGui_ImplVulkan_Init(&init_info);
-		
+
 		ImGui_ImplVulkan_CreateFontsTexture();
 
 	}
 
 	void VulkanImGuiLayer::OnDetach()
-	{		
+	{
 		// Cleanup
 		VkResult result = vkDeviceWaitIdle(VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice());
-		
+
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
@@ -124,56 +134,37 @@ namespace Hazel {
 
 	void VulkanImGuiLayer::Begin()
 	{
+		//Renderer::SubmitTask([]() {
+
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
+		//VulkanRendererAPI::ResetImGuiDescriptorPool();
+		//	});
+
 		//ImGuizmo::BeginFrame();
 	}
 
 	void VulkanImGuiLayer::End()
 	{
-		
+
+
 		ImGui::Render();
 
-
-		VkClearValue clearValues[1];
-		static Ref<VulkanSwapchain> swapchain = std::static_pointer_cast<VulkanSwapchain>(Application::GetInstance().GetWindow().GetSwapchain());
-		Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();	
-
-		clearValues[0].color = { {1.0f, 0.1f, 0.1f, 1.0f} };
-		//clearValues[1].depthStencil = { 1.0f, 0 };
-
-		uint32_t width = swapchain->GetDetails().swapChainExtent.width;
-		uint32_t height = swapchain->GetDetails().swapChainExtent.height;
-
-		const uint32_t frameIndex = swapchain->GetCurrentFrameIndex();
-
-		Ref<VulkanCommandBuffer> cmd = swapchain->GetCurrentCommandBuffer();
-		VkCommandBuffer drawCommandBuffer = swapchain->GetCurrentCommandBuffer()->GetRawCommandBuffer();
-		VkCommandBuffer imGuiCommandBuffer = m_CommandBuffers[frameIndex]->GetRawCommandBuffer();
-
-		cmd->Begin();
-
-		VkRenderPassBeginInfo info = {};
-		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		info.renderPass = swapchain->GetRenderPass();
-		info.framebuffer = swapchain->GetCurrentFramebuffer();
-		info.renderArea.extent.width = width;
-		info.renderArea.extent.height = height;
-		info.clearValueCount = 1;
-		info.pClearValues = clearValues;
-		vkCmdBeginRenderPass(drawCommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
-
 		ImDrawData* main_draw_data = ImGui::GetDrawData();
-		ImGui_ImplVulkan_RenderDrawData(main_draw_data, drawCommandBuffer);
+
+		std::chrono::steady_clock::time_point now = std::chrono::high_resolution_clock::now();
+
+		float seconds = std::chrono::duration_cast<std::chrono::duration<float>>(now - m_StartTime).count();
+
+		{
+			std::unique_lock<std::mutex> lock(m_SnapshotMutex);
+			m_SnapShot.SnapUsingSwap(main_draw_data, seconds);
+		}
+		
 
 
-		// Submit command buffer
-		vkCmdEndRenderPass(drawCommandBuffer);
-
-
-		cmd->End();		
-						
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		//// Update and Render additional Platform Windows
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -181,13 +172,61 @@ namespace Hazel {
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 		}
+
+
+		Renderer::SubmitTask([this]() {
+
+			VkClearValue clearValues[1];
+			static Ref<VulkanSwapchain> swapchain = std::static_pointer_cast<VulkanSwapchain>(Application::GetInstance().GetWindow().GetSwapchain());
+			Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
+
+			clearValues[0].color = { {1.0f, 0.1f, 0.1f, 1.0f} };
+			//clearValues[1].depthStencil = { 1.0f, 0 };
+
+			uint32_t width = swapchain->GetDetails().swapChainExtent.width;
+			uint32_t height = swapchain->GetDetails().swapChainExtent.height;
+
+			const uint32_t frameIndex = swapchain->GetCurrentFrameIndex();
+
+			Ref<VulkanCommandBuffer> cmd = swapchain->GetCurrentCommandBuffer();
+			VkCommandBuffer drawCommandBuffer = swapchain->GetCurrentCommandBuffer()->GetRawCommandBuffer();			
+
+			cmd->Begin();
+
+			VkRenderPassBeginInfo info = {};
+			info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			info.renderPass = swapchain->GetRenderPass();
+			info.framebuffer = swapchain->GetCurrentFramebuffer();
+			info.renderArea.extent.width = width;
+			info.renderArea.extent.height = height;
+			info.clearValueCount = 1;
+			info.pClearValues = clearValues;
+			vkCmdBeginRenderPass(drawCommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+
+			{
+				std::unique_lock<std::mutex> lock(m_SnapshotMutex);
+				ImGui_ImplVulkan_RenderDrawData(&m_SnapShot.DrawData, drawCommandBuffer);
+			}
+			
+
+
+			// Submit command buffer
+			vkCmdEndRenderPass(drawCommandBuffer);
+
+
+			cmd->End();
+
+			
+
+			});
+
 	}
 
 	void VulkanImGuiLayer::OnImGuiRender() {
 
-		
-		
-		
+
+
+
 
 	}
 

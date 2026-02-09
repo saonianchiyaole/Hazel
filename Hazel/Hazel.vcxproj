@@ -165,8 +165,13 @@
     <ClInclude Include="src\Hazel\Asset\Asset.h" />
     <ClInclude Include="src\Hazel\Asset\AssetManager.h" />
     <ClInclude Include="src\Hazel\Asset\AssimpImporter.h" />
+    <ClInclude Include="src\Hazel\Async\CommandQueue.h" />
+    <ClInclude Include="src\Hazel\Async\RenderThread.h" />
+    <ClInclude Include="src\Hazel\Async\Task.h" />
+    <ClInclude Include="src\Hazel\Async\Thread.h" />
     <ClInclude Include="src\Hazel\Core\Application.h" />
     <ClInclude Include="src\Hazel\Core\Buffer.h" />
+    <ClInclude Include="src\Hazel\Core\ByteKey.h" />
     <ClInclude Include="src\Hazel\Core\Core.h" />
     <ClInclude Include="src\Hazel\Core\EntryPoint.h" />
     <ClInclude Include="src\Hazel\Core\Input.h" />
@@ -177,7 +182,6 @@
     <ClInclude Include="src\Hazel\Core\MouseButtonCodes.h" />
     <ClInclude Include="src\Hazel\Core\Process.h" />
     <ClInclude Include="src\Hazel\Core\Random.h" />
-    <ClInclude Include="src\Hazel\Core\Thread.h" />
     <ClInclude Include="src\Hazel\Core\Timer.h" />
     <ClInclude Include="src\Hazel\Core\Timestep.h" />
     <ClInclude Include="src\Hazel\Core\UUID.h" />
@@ -192,6 +196,7 @@
     <ClInclude Include="src\Hazel\Renderer\Buffer.h" />
     <ClInclude Include="src\Hazel\Renderer\Camera.h" />
     <ClInclude Include="src\Hazel\Renderer\CommandBuffer.h" />
+    <ClInclude Include="src\Hazel\Renderer\ComputePass.h" />
     <ClInclude Include="src\Hazel\Renderer\EditorCamera.h" />
     <ClInclude Include="src\Hazel\Renderer\Environment.h" />
     <ClInclude Include="src\Hazel\Renderer\Framebuffer.h" />
@@ -273,13 +278,17 @@
     <ClCompile Include="src\Hazel\Asset\Asset.cpp" />
     <ClCompile Include="src\Hazel\Asset\AssetManager.cpp" />
     <ClCompile Include="src\Hazel\Asset\AssimpImporter.cpp" />
+    <ClCompile Include="src\Hazel\Async\CommandQueue.cpp" />
+    <ClCompile Include="src\Hazel\Async\RenderThread.cpp" />
+    <ClCompile Include="src\Hazel\Async\Task.cpp" />
+    <ClCompile Include="src\Hazel\Async\Thread.cpp" />
     <ClCompile Include="src\Hazel\Core\Application.cpp" />
+    <ClCompile Include="src\Hazel\Core\ByteKey.cpp" />
     <ClCompile Include="src\Hazel\Core\Layer.cpp" />
     <ClCompile Include="src\Hazel\Core\LayerStack.cpp" />
     <ClCompile Include="src\Hazel\Core\Log.cpp" />
     <ClCompile Include="src\Hazel\Core\Process.cpp" />
     <ClCompile Include="src\Hazel\Core\Random.cpp" />
-    <ClCompile Include="src\Hazel\Core\Thread.cpp" />
     <ClCompile Include="src\Hazel\Core\Timer.cpp" />
     <ClCompile Include="src\Hazel\Core\Timestep.cpp" />
     <ClCompile Include="src\Hazel\Core\UUID.cpp" />
@@ -290,6 +299,7 @@
     <ClCompile Include="src\Hazel\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Camera.cpp" />
     <ClCompile Include="src\Hazel\Renderer\CommandBuffer.cpp" />
+    <ClCompile Include="src\Hazel\Renderer\ComputePass.cpp" />
     <ClCompile Include="src\Hazel\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Environment.cpp" />
     <ClCompile Include="src\Hazel\Renderer\Framebuffer.cpp" />

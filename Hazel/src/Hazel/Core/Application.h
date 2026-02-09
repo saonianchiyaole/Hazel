@@ -8,6 +8,8 @@
 #include "Hazel/ImGui/ImGuiLayer.h"
 #include "Hazel/Core/Timestep.h"
 
+#include "Hazel/Async/RenderThread.h"
+
 namespace Hazel {
 
 	class HAZEL_API Application
@@ -28,17 +30,24 @@ namespace Hazel {
 		void PushOverlay(Layer* layer);
 
 
+		void NextRenderFrame();	
+		void Notify();
+
 		static inline Application& GetInstance() {
 			if (s_Instance == nullptr)
 				s_Instance = new Application;
 			return *s_Instance;
 		}
 
+		inline bool IsRunning() const { return m_Running; }
+
 		inline Window& GetWindow() { return *m_Window; };
+
 	private:
+
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
-	
+			
 	private:
 		
 		Scope<Window> m_Window;
@@ -46,7 +55,7 @@ namespace Hazel {
 		Ref<ImGuiLayer> m_ImGuiLayer;
 		bool m_Running = true;
 		
-		static Application* s_Instance;
+		static Application* s_Instance;		
 
 		Timestep m_Timestep;
 		float m_LastFrameTime = 0.0f;
@@ -54,6 +63,17 @@ namespace Hazel {
 		LayerStack m_LayerStack;
 
 		bool m_Minimized = false;
+
+
+		std::array<int8_t, 3> m_FrameSlot;
+			 
+		uint64_t m_MainThreadFrameCount = 0;
+		uint64_t m_RenderThreadFrameCount = 0;
+
+		std::mutex m_FrameMutex;
+		std::condition_variable m_Condition;
+
+		friend class Renderer;
 	};
 	// To be define in Client
 	Application* CreateApplication();

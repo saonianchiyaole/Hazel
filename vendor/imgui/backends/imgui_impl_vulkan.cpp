@@ -1221,12 +1221,18 @@ void ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_count)
     bd->VulkanInitInfo.MinImageCount = min_image_count;
 }
 
+static std::unordered_map<VkImageView, VkDescriptorSet> g_ImGuiTextureCache;
+
 // Register a texture
 // FIXME: This is experimental in the sense that we are unsure how to best design/tackle this problem, please post to https://github.com/ocornut/imgui/pull/914 if you have suggestions.
 VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
 {
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+
+    if (g_ImGuiTextureCache.find(image_view) != g_ImGuiTextureCache.end()) {
+        return g_ImGuiTextureCache.at(image_view);
+    }
 
     // Create Descriptor Set:
     VkDescriptorSet descriptor_set;
@@ -1236,8 +1242,9 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
         alloc_info.descriptorSetCount = 1;
         alloc_info.pSetLayouts = &bd->DescriptorSetLayout;
 
-        descriptor_set = Hazel::VulkanRendererAPI::AllocateDescriptorSet(alloc_info);
+        descriptor_set = Hazel::VulkanRendererAPI::AllocateImGuiDescriptorSet(alloc_info);
     }
+    
 
     // Update the Descriptor Set:
     {
@@ -1253,6 +1260,9 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
         write_desc[0].pImageInfo = desc_image;
         vkUpdateDescriptorSets(v->Device, 1, write_desc, 0, nullptr);
     }
+
+    g_ImGuiTextureCache[image_view] = descriptor_set;
+
     return descriptor_set;
 }
 

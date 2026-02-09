@@ -21,7 +21,7 @@
 
 
 namespace Hazel {
-	
+
 
 	VulkanRendererAPI::RendererData* VulkanRendererAPI::s_Data = nullptr;
 
@@ -39,8 +39,11 @@ namespace Hazel {
 	}
 
 	void VulkanRendererAPI::Init()
-	{		
-		VulkanContext::GetCurrentContext()->GetDevice()->CreateCommandPool();			
+	{
+		VulkanContext::GetCurrentContext()->GetDevice()->CreateCommandPool();
+
+
+		uint32_t frameInFlight = Renderer::GetFrameInFlight();
 
 		// todo shouldn't be here
 		Ref<VulkanSwapchain> swapchain = std::static_pointer_cast<VulkanSwapchain>(Application::GetInstance().GetWindow().GetSwapchain());
@@ -55,7 +58,7 @@ namespace Hazel {
 
 		// ------------------------------------  Create Descriptor Pool ------------------------------------  
 
-		
+
 		VkDescriptorPoolSize poolSizes[] =
 		{
 			{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
@@ -78,15 +81,17 @@ namespace Hazel {
 		poolInfo.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);;
 		poolInfo.pPoolSizes = poolSizes;
 
-
-		s_Data->descriptorPools.resize(MAX_FRAMES_IN_FLIGHT);
-		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {			
+		s_Data->descriptorPools.resize(frameInFlight);
+		for (uint32_t i = 0; i < frameInFlight; i++) {
 			HZ_CORE_ASSERT(
 				vkCreateDescriptorPool(device->GetRawDevice(), &poolInfo, nullptr, &s_Data->descriptorPools[i]) == VK_SUCCESS,
 				"Failed to create descriptor pool!"
 			);
 		}
-				
+
+		VK_CHECK(vkCreateDescriptorPool(device->GetRawDevice(), &poolInfo, nullptr, &s_Data->imGuiDescriptorPool));
+
+
 	}
 
 	void VulkanRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray)
@@ -100,8 +105,8 @@ namespace Hazel {
 
 
 	}
-	
-	
+
+
 
 	void VulkanRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
 	{
@@ -123,8 +128,15 @@ namespace Hazel {
 
 	void VulkanRendererAPI::BeginFrame() {
 
-		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();		
-		vkResetDescriptorPool(s_Data->device->GetRawDevice(), s_Data->descriptorPools[frameIndex], 0);
+
+		Renderer::SubmitTask([]() {
+
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+			vkResetDescriptorPool(s_Data->device->GetRawDevice(), s_Data->descriptorPools[frameIndex], 0);
+
+			});
+
+
 	}
 
 
@@ -154,7 +166,7 @@ namespace Hazel {
 		renderPassInfo.framebuffer = framebuffer->GetRawFramebuffer();
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = VkExtent2D{framebuffer->GetSpecification().width, framebuffer->GetSpecification().height};
+		renderPassInfo.renderArea.extent = VkExtent2D{ framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
 
 
 		std::array<VkClearValue, 2> clearColor;
@@ -163,15 +175,15 @@ namespace Hazel {
 
 		renderPassInfo.clearValueCount = clearColor.size();
 		renderPassInfo.pClearValues = clearColor.data();
-	
+
 		vkCmdBeginRenderPass(vulkanCommandBuffer->GetRawCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		
+
 		VkPipeline rawPipeline = pipeline->GetRawPipeline();
 
 		vkCmdBindPipeline(vulkanCommandBuffer->GetRawCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, rawPipeline);
 
-		
+
 
 		renderPass->Submit();
 
@@ -216,8 +228,8 @@ namespace Hazel {
 	void VulkanRendererAPI::EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) {
 
 		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
-		
-			
+
+
 		vkCmdEndRenderPass(vulkanCommandBuffer->GetRawCommandBuffer());
 
 		Ref<Framebuffer> framebuffer = renderPass->GetPipeline()->GetTargetFramebuffer();
@@ -240,10 +252,10 @@ namespace Hazel {
 		VkCommandBuffer rawCommandBuffer = vulkanCommandBuffer->GetRawCommandBuffer();
 
 		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(rawCommandBuffer, 0, vertexArray->GetVertexBuffers().size(), 
+		vkCmdBindVertexBuffers(rawCommandBuffer, 0, vertexArray->GetVertexBuffers().size(),
 			vulkanVertexArray->GetRawBuffers().data(), offsets);
 
-		vkCmdBindIndexBuffer(rawCommandBuffer, 
+		vkCmdBindIndexBuffer(rawCommandBuffer,
 			std::static_pointer_cast<VulkanIndexBuffer>(vulkanVertexArray->GetIndexBuffer())->GetRawBuffer(),
 			0, VK_INDEX_TYPE_UINT32);
 
@@ -251,7 +263,7 @@ namespace Hazel {
 
 	}
 
-	
+
 	void VulkanRendererAPI::DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray, uint32_t count)
 	{
 		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
@@ -278,17 +290,17 @@ namespace Hazel {
 		Ref<VulkanPipeline> vulkanPipeline = std::static_pointer_cast<VulkanPipeline>(pipeline);
 		Ref<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(commandBuffer);
 		Ref<VulkanMaterial> vulkanMaterial = std::static_pointer_cast<VulkanMaterial>(material);
-		
+
 		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
 
-		material->Submit();		
+		material->Submit();
 
 		std::vector<VkDescriptorSet> descriptorSets = std::move(DescriptorSetManager::GetSortedDescriptorSets(vulkanMaterial->GetDescriptorSets(frameIndex)));
 
-		vkCmdBindDescriptorSets(vulkanCommandBuffer->GetRawCommandBuffer(), 
+		vkCmdBindDescriptorSets(vulkanCommandBuffer->GetRawCommandBuffer(),
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			vulkanPipeline->GetPipelineLayout(),
-			0, 
+			0,
 			descriptorSets.size(),
 			descriptorSets.data(),
 			0,  // for now we don't use dynamic offsets and we make sure that all UBOs are continuous by set
@@ -299,12 +311,27 @@ namespace Hazel {
 	VkDescriptorSet VulkanRendererAPI::AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
 	{
 		uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-		VkDescriptorSet descriptorSet;	
-		allocInfo.descriptorPool = s_Data->descriptorPools[frameIndex];
+		VkDescriptorSet descriptorSet;
+		allocInfo.descriptorPool = s_Data->descriptorPools[frameIndex];		
 		vkAllocateDescriptorSets(s_Data->device->GetRawDevice(), &allocInfo, &descriptorSet);
 		return descriptorSet;
-	}	
-	
+	}
+
+	VkDescriptorSet VulkanRendererAPI::AllocateImGuiDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
+	{		
+		VkDescriptorSet descriptorSet;
+		allocInfo.descriptorPool = s_Data->imGuiDescriptorPool;
+		std::thread::id currentThreadId = std::this_thread::get_id();
+		vkAllocateDescriptorSets(s_Data->device->GetRawDevice(), &allocInfo, &descriptorSet);
+		return descriptorSet;
+	}
+
+	void VulkanRendererAPI::ResetImGuiDescriptorPool()
+	{
+		vkResetDescriptorPool(s_Data->device->GetRawDevice(), s_Data->imGuiDescriptorPool, 0);
+	}
+
+
 }
 
 

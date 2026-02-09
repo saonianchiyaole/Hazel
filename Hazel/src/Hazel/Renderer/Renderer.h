@@ -8,6 +8,7 @@
 #include "Hazel/Renderer/EditorCamera.h"
 
 #include "Hazel/Scene/Component.h"
+#include "Hazel/Async/RenderThread.h"
 
 namespace Hazel {
 	
@@ -19,6 +20,7 @@ namespace Hazel {
 	class Mesh;
 	class UniformBufferSet;
 	class UniformBuffer;
+	class RenderThread;
 
 	struct TransformComponent;
 
@@ -47,12 +49,21 @@ namespace Hazel {
 	class Renderer {
 	public:
 
+		static void StartRenderThread(Application* app);
+
 		static void BeginScene(const Camera& camera);
 		static void BeginScene(const EditorCamera& camera);
 
 		static void EndScene();
 
-		static void Submit(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
+		static void SubmitVertex(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
+
+		template<typename FuncT, typename ...Args>
+		inline static void SubmitTask(FuncT&& func, Args&&... args) {
+
+			s_RenderThread->Submit(std::forward<FuncT>(func), std::forward<Args>(args)...);
+
+		}
 
 		static void Init();
 		static void BegineFrame();
@@ -125,7 +136,7 @@ namespace Hazel {
 			Ref<Camera> primaryCamera;
 
 			Ref<UniformBufferSet> cameraUniformBufferSet;
-			Ref<UniformBuffer> lightUniformBuffer;
+			Ref<UniformBufferSet> lightUniformBufferSet;
 			Ref<VertexArray> skybox;
 			Ref<Environment> environment;
 
@@ -149,8 +160,7 @@ namespace Hazel {
 
 		static SceneData* s_SceneData;
 
-		
-
+		static RenderThread* s_RenderThread;
 		static uint32_t s_FrameInFlight;
 
 	};

@@ -1,8 +1,11 @@
 #pragma once
 
 
+#include "Hazel/Asset/Asset.h"
+
 namespace Hazel {
 
+	
 
 	namespace Utils {
 		uint32_t CalculateMipmapCount(uint32_t width, uint32_t height);
@@ -36,7 +39,7 @@ namespace Hazel {
 	};
 
 
-	class Texture {
+	class Texture : public Asset{
 	public:
 		Texture() = default;
 		~Texture() = default;
@@ -112,7 +115,7 @@ namespace Hazel {
 	};
 
 
-	class TextureCube{
+	class TextureCube : public Asset{
 	public:
 		friend class Environment;
 		friend class OpenGLEnvironment;

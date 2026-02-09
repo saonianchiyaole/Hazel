@@ -12,6 +12,7 @@
 
 #include "Platform/Vulkan/VulkanSwapchain.h"
 #include "Platform/Vulkan/VulkanContext.h"
+#include "Platform/Vulkan/VulkanDevice.h"
 
 #include "Platform/OpenGL/OpenGLContext.h"
 
@@ -65,14 +66,15 @@ namespace Hazel {
 
 		m_Context = GraphicsContext::Create(m_Window);	
 		Ref<VulkanContext> vulkanContext = std::dynamic_pointer_cast<VulkanContext>(m_Context);
-		vulkanContext->Init();
+		
 
 		m_Swapchain = Swapchain::Create();
-
+		
 		if (vulkanContext) {
-			Ref<VulkanSwapchain> vulkanSwapchain = std::dynamic_pointer_cast<VulkanSwapchain>(m_Swapchain);
-			vulkanSwapchain->InitializeSurface(VulkanContext::GetVulkanInstance(), m_Window);
-			vulkanSwapchain->Init(vulkanContext->GetDevice());
+			vulkanContext->Init();
+			Ref<VulkanSwapchain> vulkanSwapchain = std::dynamic_pointer_cast<VulkanSwapchain>(m_Swapchain);		
+			vulkanSwapchain->InitializeSurface(VulkanContext::GetVulkanInstance(), m_Window);			
+			vulkanSwapchain->Init(vulkanContext);
 			vulkanSwapchain->Create(m_Data.Width, m_Data.Height, m_Data.VSync);
 			vulkanContext->SetSwapchain(vulkanSwapchain);			
 		}

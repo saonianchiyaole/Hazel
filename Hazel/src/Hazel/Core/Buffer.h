@@ -19,44 +19,50 @@ namespace Hazel
 		}
 
 
-		uint64_t GetSize() const {
+		inline uint64_t GetSize() const {
 			return this->m_Size;
 		}
 
-		void CopyFrom(void* srcData, uint64_t size) {
+		inline void CopyFrom(void* srcData, uint64_t size) {
+
+			HZ_CORE_ASSERT(m_Size >= size, "Data out of range! my Size: {} byte, copy Size: {} byte\n", m_Size, size);
+
 			memcpy(m_Data, srcData, size);
 		}
 
 
-		void Allocate(uint64_t size) {
+		inline void Allocate(uint64_t size) {
 
-			if (m_Size != 0) {
-				Free();
+			if (m_Size == size) {
+				return;
 			}
-			m_Size = size;
-			if (m_Size != 0)
-				m_Data = (void*)malloc(m_Size);
-			
-		}
 
-		void Free() {
+			Free();
+
+			m_Size = size;
+		
+
+			m_Data = m_Size ? (void*)malloc(m_Size) : nullptr;
+		}		
+
+		inline void Free() {
 			if (m_Size != 0 && m_Data)
 				free(m_Data);
 			m_Size = 0;
 		}
 
 		template<typename T>
-		T* Read(uint64_t offset = 0) {
+		inline T* Read(uint64_t offset = 0) {
 			return (T*)((char*)m_Data + offset);
 		}
 
-		void Write(const void* data, uint64_t size, uint64_t offset = 0) {
+		inline void Write(const void* data, uint64_t size, uint64_t offset = 0) {
 			HZ_CORE_ASSERT(offset + size <= m_Size, "Buffer overflow!");
 			memcpy((char*)this->m_Data + offset, data, m_Size);
 		}
 
 		// directly copy the input pointer's value to buffer's, don't suggest to use this
-		void Write(void* ptr) {
+		inline void Write(void* ptr) {
 			HZ_CORE_ASSERT(m_Size >= 8, "Buffer overflow");
 			m_Data = ptr;
 		}

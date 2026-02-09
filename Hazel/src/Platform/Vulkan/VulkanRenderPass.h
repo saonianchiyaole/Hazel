@@ -9,7 +9,6 @@
 
 namespace Hazel {
 
-	
 
 	class VulkanRenderPass : public RenderPass {
 

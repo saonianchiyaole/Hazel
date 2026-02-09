@@ -256,8 +256,9 @@ namespace Hazel {
 				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			case DescriptorType::StorageBuffer:
 				return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			case DescriptorType::SamplerCube:
 			case DescriptorType::Sampler2D:
-				return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;			
 			}
 		}
 
@@ -570,6 +571,9 @@ namespace Hazel {
 				break;
 			case 3:
 				reflectionData.type = DescriptorType::Sampler3D;
+				break;
+			case 4:				
+				reflectionData.type = DescriptorType::SamplerCube;
 				break;
 			}
 

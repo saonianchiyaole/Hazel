@@ -4,6 +4,8 @@
 
 #include "backends/imgui_impl_vulkan.cpp"
 #include <imgui_internal.h>
+#include "Hazel/Renderer/Renderer.h"
+
 
 namespace ImGui {
 
@@ -11,7 +13,7 @@ namespace ImGui {
 
 	void Image(Ref<Texture2D> texture, const ImVec2& textureSize, const ImVec2& uv0, const ImVec2& uv1)
 	{
-		
+				
 		switch (RendererAPI::GetAPI()) {
 		case RendererAPI::API::OpenGL: 
 		{
@@ -35,8 +37,11 @@ namespace ImGui {
 		ImGui::Image((void*)texture->GetRendererID(), {(float)textureSize.x, (float)textureSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
 	}
 	void Image(Ref<VulkanTexture2D> texture, const ImVec2& textureSize, const ImVec2& uv0, const ImVec2& uv1) {
+
+		Renderer::SubmitTask([texture] {
+			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			});
 		
-		Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -67,12 +72,19 @@ namespace ImGui {
 	bool ImageButton(const char* str_id, Ref<OpenGLTexture2D> texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int framePadding, const ImVec4& bgCol, const ImVec4& tintCol)
 	{
 		ImGuiID id = ImGui::GetID(str_id);
+
+
+
 		return ImGui::ImageButtonEx(id, (ImTextureID)texture->GetRendererID(), size, uv0, uv1, bgCol, tintCol);
 	}
 
 	bool ImageButton(const char* str_id, Ref<VulkanTexture2D> texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int framePadding, const ImVec4& bgCol, const ImVec4& tintCol)
 	{
 		ImGuiID id = ImGui::GetID(str_id);
+		
+		Renderer::SubmitTask([texture] {
+			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			});
 
 		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		return ImGui::ImageButtonEx(id, (ImTextureID)descriptorSet, size, uv0, uv1, bgCol, tintCol);
