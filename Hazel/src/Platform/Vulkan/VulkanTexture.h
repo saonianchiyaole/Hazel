@@ -26,7 +26,7 @@ namespace Hazel {
 																VkImageTiling tiling, 
 																VkFormatFeatureFlags features);
 
-		bool			IsStencilFormatIncludedByVulkanFormat	(VkFormat format);
+		bool			IsStencilFormatIncludedByVulkanFormat	(VkFormat format);		
 	}
 
 

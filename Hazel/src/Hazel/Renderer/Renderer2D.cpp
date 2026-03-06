@@ -41,7 +41,7 @@ namespace Hazel {
 		glm::vec4 color;
 	};
 
-	struct Renderer2DStorage {
+	struct Renderer2DStorage {	
 		Ref<VertexArray> quadVertexArray;
 		Ref<VertexBuffer> quadVertexBuffer;
 		Ref<Pipeline> texturePipeline;
@@ -96,8 +96,11 @@ namespace Hazel {
 		CameraUniformBuffer cameraBuffer;
 		Ref<UniformBufferSet> cameraUniformBufferSet;
 
-		std::vector<Ref<Framebuffer>> framebuffers;
+		Ref<Framebuffer> framebuffer;
+		std::atomic<bool> rebuildFrameBuffer = false;
+		glm::vec2 viewportSize = { 0, 0 };
 
+		std::atomic<uint32_t> criticalTaskCount; // when this is not 0, every out put of renderer could be invalid;
 	};
 
 	static Renderer2DStorage* s_Data;
@@ -173,13 +176,9 @@ namespace Hazel {
 			FramebufferSpecification fbSpec;
 			fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
 			fbSpec.height = Application::GetInstance().GetWindow().GetHeight();
-			fbSpec.attachments = { TextureFormat::RGBA, TextureFormat::DEPTH24STENCIL8};
-
-			s_Data->framebuffers.reserve(frameInFlight);
-
-			for (uint32_t i = 0; i < frameInFlight; i++) {
-				s_Data->framebuffers.push_back(Framebuffer::Create(fbSpec));
-			}
+			fbSpec.attachments = { TextureFormat::RGBA, TextureFormat::DEPTH24STENCIL8};		
+			s_Data->framebuffer = Framebuffer::Create(fbSpec);
+			
 		}
 
 
@@ -201,13 +200,13 @@ namespace Hazel {
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.bufferLayout = layout;
-			pipelineSpec.shader = s_Data->textureShader;
-			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
+			pipelineSpec.shader = s_Data->textureShader;			
 			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->texturePipeline = Pipeline::Create(pipelineSpec);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.pipeline = s_Data->texturePipeline;
+			renderPassSpec.attachmentSpecs = s_Data->framebuffer->GetSpecification().attachments;
 			s_Data->textureRenderPass = RenderPass::Create(renderPassSpec);
 
 			s_Data->textureRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
@@ -234,13 +233,13 @@ namespace Hazel {
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.bufferLayout = circleLayout;
-			pipelineSpec.shader = s_Data->circleShader;
-			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
+			pipelineSpec.shader = s_Data->circleShader;			
 			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->circlePipeline = Pipeline::Create(pipelineSpec);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.pipeline = s_Data->texturePipeline;
+			renderPassSpec.attachmentSpecs = s_Data->framebuffer->GetSpecification().attachments;
 			s_Data->circleRenderPass = RenderPass::Create(renderPassSpec);
 
 
@@ -266,13 +265,13 @@ namespace Hazel {
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.bufferLayout = lineLayout;
-			pipelineSpec.shader = s_Data->lineShader;
-			pipelineSpec.targetFramebuffer = s_Data->frameBuffer;
+			pipelineSpec.shader = s_Data->lineShader;			
 			pipelineSpec.topology = PrimitiveTopology::LineList;
 			s_Data->linePipeline = Pipeline::Create(pipelineSpec);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.pipeline = s_Data->texturePipeline;
+			renderPassSpec.attachmentSpecs = s_Data->framebuffer->GetSpecification().attachments;
 			s_Data->lineRenderPass = RenderPass::Create(renderPassSpec);
 
 			s_Data->lineRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
@@ -303,6 +302,37 @@ namespace Hazel {
 	void Renderer2D::Shutdown()
 	{
 		delete s_Data;
+	}
+
+	void Renderer2D::Resize(glm::vec2 size)
+	{		
+		
+		Renderer::SubmitTask([=]() {
+			if (s_Data->viewportSize != size) {
+				s_Data->criticalTaskCount++;
+				s_Data->viewportSize = size;
+				s_Data->rebuildFrameBuffer = true;
+			}			
+		});
+		
+	}
+
+	void Renderer2D::BeginFrame(){
+							
+		Renderer::SubmitTask([=]() {
+			
+			if (s_Data->rebuildFrameBuffer) {
+				s_Data->framebuffer->Resize(s_Data->viewportSize);
+				s_Data->rebuildFrameBuffer = false;
+				s_Data->criticalTaskCount--;
+			}
+			
+			
+			s_Data->framebuffer->ClearAllAttachments();				
+			s_Data->textureRenderPass->SetFramebuffer(s_Data->framebuffer);
+
+			});
+		
 	}
 
 	void Renderer2D::BeginScene(const OrthographicCamera& camera)
@@ -403,18 +433,13 @@ namespace Hazel {
 
 
 				Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
-
-
-				commandBuffer->Begin();
-
+				
 				RenderCommand::BeginRenderPass(commandBuffer, s_Data->textureRenderPass);
 
 				RenderCommand::DrawIndexed(commandBuffer, s_Data->quadVertexArray, s_Data->QuadIndexCount);
 				m_RendererState.drawCall += 1;
 
-				RenderCommand::EndRenderPass(commandBuffer, s_Data->textureRenderPass);
-				commandBuffer->End();
-				commandBuffer->Submit();
+				RenderCommand::EndRenderPass(commandBuffer, s_Data->textureRenderPass);				
 
 			}
 
@@ -424,19 +449,14 @@ namespace Hazel {
 
 
 				Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
-
-
-				commandBuffer->Begin();
-
+				
 				RenderCommand::BeginRenderPass(commandBuffer, s_Data->circleRenderPass);
 
 				s_Data->circleShader->Bind();
 				s_Data->circleVertexArray->Bind();
 				RenderCommand::DrawIndexed(commandBuffer, s_Data->circleVertexArray, s_Data->circleIndexCount);
 
-				RenderCommand::EndRenderPass(commandBuffer, s_Data->circleRenderPass);
-				commandBuffer->End();
-				commandBuffer->Submit();
+				RenderCommand::EndRenderPass(commandBuffer, s_Data->circleRenderPass);				
 
 				m_RendererState.drawCall += 1;
 			}
@@ -794,14 +814,19 @@ namespace Hazel {
 
 	}
 
-	Ref<Framebuffer> Renderer2D::GetFramebuffer()
+	bool Renderer2D::IsInCriticalSection()
 	{
-		return s_Data->framebuffers[Renderer::GetCurrentFrameIndex()];
+		return s_Data != 0;
+	}
+
+	Ref<Framebuffer> Renderer2D::GetFramebuffer()
+	{		
+		return s_Data->framebuffer;
 	}
 
 	bool Renderer2D::SetViewportSize(const glm::vec2& size) {
 
-		s_Data->framebuffers[Renderer::GetCurrentFrameIndex()]->Resize(size);
+		s_Data->framebuffer->Resize(size);
 		return true;
 	}
 

@@ -5,8 +5,8 @@
 
 #include <vulkan/vulkan.h>
 
-
-
+#include "Hazel/Renderer/RenderPass.h"
+#include "Hazel/Renderer/Pipeline.h"
 
 namespace Hazel {
 
@@ -18,17 +18,16 @@ namespace Hazel {
 	public:
 		VulkanRendererAPI() = default;
 
-		virtual void SetClearColor(const glm::vec4& color) override;														
+		virtual void SetClearColor	(const glm::vec4& color) override;														
 		virtual void Clear() override;
-		virtual void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
+		virtual void SetViewPort	(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 		virtual void Init() override;
+		virtual void Shutdown() override;
  
-		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray) override;
-		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count) override;
-		
-
-		virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
-		virtual void SetLineWidth(float width) override;
+		virtual void DrawIndexed	(const Ref<VertexArray>& vertexArray) override;
+		virtual void DrawIndexed	(const Ref<VertexArray>& vertexArray, uint32_t count) override;
+		virtual void DrawLines		(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
+		virtual void SetLineWidth	(float width) override;
 
 		virtual void SetDepthTest(bool value) override;
 		virtual void SetDepthMask(bool value) override;
@@ -36,16 +35,23 @@ namespace Hazel {
 		virtual void BeginFrame() override;
 		virtual void EndFrame() override;
 		virtual void DrawFrame() override;
-		virtual void BeginRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) override;	
-		virtual void EndRenderPass(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) override;		
-		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray) override;
-		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray, uint32_t count) override;
 
-		virtual void SubmitMaterial(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material>) override;
+		virtual void BeginRenderPass	(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) override;	
+		virtual void EndRenderPass		(Ref<CommandBuffer> commandBuffer, Ref<RenderPass> renderPass) override;		
+		virtual void DrawIndexed		(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray) override;
+		virtual void DrawIndexed		(Ref<CommandBuffer> commandBuffer, const Ref<VertexArray>& vertexArray, uint32_t count) override;
+
+		virtual void SubmitMaterial		(Ref<CommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material>) override;
 		
-		static VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);		
-		static VkDescriptorSet AllocateImGuiDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
-		static void ResetImGuiDescriptorPool();
+		static VkDescriptorSet	AllocateDescriptorSet		(VkDescriptorSetAllocateInfo& allocInfo);		
+		static VkDescriptorSet	AllocateImGuiDescriptorSet	(VkDescriptorSetAllocateInfo& allocInfo);
+		static void				ResetImGuiDescriptorPool();		
+
+
+		// cache related
+		static VkRenderPass		GetRawRenderPass		(const RenderPassSpecification& spec);
+		static Ref<Pipeline>	GetRenderPipeline		(const PipelineSpecification& spec, VkRenderPass renderPass);
+		static void				RegisterRenderPipeline	(Ref<Pipeline> pipeline, VkRenderPass renderPass);
 
 	private:
 
@@ -62,6 +68,7 @@ namespace Hazel {
 
 
 			ByteKeyMap<VkRenderPass> renderPassCache;
+			ByteKeyMap<Ref<Pipeline>> renderPipelineCache;
 			
 
 		};

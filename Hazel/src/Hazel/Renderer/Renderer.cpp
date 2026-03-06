@@ -199,11 +199,19 @@ namespace Hazel {
 	{
 		s_SceneData->frameIndex = Application::GetInstance().GetWindow().GetSwapchain()->GetCurrentFrameIndex();
 		RenderCommand::BeginFrame();
+		Renderer2D::BeginFrame();
 	}
 
 	void Renderer::StartRenderThread(Application* app)
 	{
 		s_RenderThread->Start(app);
+	}
+
+
+	void Renderer::Shutdown() {
+
+		RenderCommand::Shutdown();
+
 	}
 
 	void Renderer::BeginScene(const Camera& camera)
@@ -335,19 +343,14 @@ namespace Hazel {
 	void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
 	{
 		s_SceneData->activePass = renderPass;
-		s_SceneData->activePass->GetSpecification().targetFramebuffer->Bind();
+		s_SceneData->activePass->SetFramebuffer(s_SceneData->framebuffers[GetCurrentFrameIndex()]);
 
-		if (clear)
-		{
-			const glm::vec4& clearColor = s_SceneData->activePass->GetSpecification().targetFramebuffer->GetSpecification().clearColor;
-			RenderCommand::SetClearColor(clearColor);
-			RenderCommand::Clear();
-		}
+		
 	}
 
 	void Renderer::EndRenderPass()
 	{
-		s_SceneData->activePass->GetSpecification().targetFramebuffer->Unbind();
+		s_SceneData->activePass->SetFramebuffer(nullptr);
 		s_SceneData->activePass = nullptr;
 	}
 
@@ -357,7 +360,7 @@ namespace Hazel {
 		Renderer::BeginRenderPass(s_SceneData->geometryPass, true);
 
 		int textureValue = -1;
-		s_SceneData->geometryPass->GetSpecification().targetFramebuffer->ClearAttachment(1, (void*)&textureValue);
+		//s_SceneData->geometryPass->GetSpecification().targetFramebuffer->ClearAttachment(1, (void*)&textureValue);
 
 
 		if (s_SceneData->environment)
@@ -457,9 +460,9 @@ namespace Hazel {
 		Renderer::BeginRenderPass(s_SceneData->compositePass);
 
 		int textureValue = -1;
-		s_SceneData->compositePass->GetSpecification().targetFramebuffer->ClearAttachment(1, (void*)&textureValue);
+		//s_SceneData->compositePass->GetSpecification().targetFramebuffer->ClearAttachment(1, (void*)&textureValue);
 
-		s_SceneData->geometryPass->GetSpecification().targetFramebuffer->BindTexture(0);
+		//s_SceneData->geometryPass->GetSpecification().targetFramebuffer->BindTexture(0);
 		s_SceneData->compositeShader->Bind();
 		s_SceneData->compositeShader->SetInt("u_Texture", 0);
 		s_SceneData->fullScreenQuad->Bind();
@@ -480,12 +483,14 @@ namespace Hazel {
 
 	Ref<Framebuffer> Renderer::GetGeometryPassFramebuffer()
 	{
-		return s_SceneData->geometryPass->GetSpecification().targetFramebuffer;
+		// todo
+		return nullptr;
 	}
 
 	Ref<Framebuffer> Renderer::GetCompositePassFramebuffer()
 	{
-		return s_SceneData->compositePass->GetSpecification().targetFramebuffer;
+		// todo
+		return nullptr;
 	}
 	
 
@@ -497,8 +502,15 @@ namespace Hazel {
 
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
 	{
-		RenderCommand::SetViewPort(0, 0, width, height);
+		
+		SubmitTask([width, height]() {
+			RenderCommand::SetViewPort(0, 0, width, height);			
+			});
+
+		Renderer2D::Resize(glm::vec2(width, height));
+		
 	}
+
 	Ref<Material> Renderer::GetDefaultPBRMaterial()
 	{
 		return s_SceneData->defaultPBRMaterial;

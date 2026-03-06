@@ -52,8 +52,9 @@ namespace Hazel {
 
 		Asset();
 
-		AssetHandle GetHandle() { return m_Handle; }
-		AssetFlag GetFlag() { return m_Flag; }
+		AssetHandle GetHandle	()					{ return m_Handle; }
+		AssetFlag	GetFlag		()					{ return m_Flag; }
+		void		SetFlag		(AssetFlag flag)	{ m_Flag = flag; }
 
 		virtual AssetType GetAssetType(){
 			return AssetType::None;
@@ -81,7 +82,7 @@ namespace Hazel {
 		AssetHandle m_Handle;
 		
 		std::atomic<AssetFlag> m_Flag = AssetFlag::Invalid;
-
+		std::atomic<uint32_t> m_Generation = 0;
 
 		std::mutex m_Mutex;
 

@@ -51,6 +51,8 @@ namespace Hazel {
 
 		static void StartRenderThread(Application* app);
 
+		static void Shutdown();
+
 		static void BeginScene(const Camera& camera);
 		static void BeginScene(const EditorCamera& camera);
 
@@ -59,7 +61,7 @@ namespace Hazel {
 		static void SubmitVertex(const Ref<VertexArray>& vertexArray, Ref<Shader>& shader, const glm::mat4& transform = glm::mat4(1.0f));
 
 		template<typename FuncT, typename ...Args>
-		inline static void SubmitTask(FuncT&& func, Args&&... args) {
+		inline static void SubmitTask(FuncT&& func, Args&&... arg) {
 
 			s_RenderThread->Submit(std::forward<FuncT>(func), std::forward<Args>(args)...);
 
@@ -117,7 +119,7 @@ namespace Hazel {
 			glm::mat4 ProjectionMatrix;
 			glm::mat4 ViewProjectionMatrix;
 
-			uint32_t frameIndex = 0;
+			std::atomic<uint32_t> frameIndex = 0;
 
 
 			Ref<Shader> defaultShader;
@@ -149,6 +151,8 @@ namespace Hazel {
 			Ref<RenderPass> geometryPass;
 			Ref<RenderPass> compositePass;
 			
+			std::vector<Ref<Framebuffer>> framebuffers;
+
 			Ref<Texture2D> blackQuadTexture;
 
 			Ref<RenderPass> activePass;

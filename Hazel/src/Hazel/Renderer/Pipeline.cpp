@@ -14,7 +14,7 @@ namespace Hazel {
 
 
 
-	Ref<Pipeline> Pipeline::Create(PipelineSpecification specification)
+	Ref<Pipeline> Pipeline::Create(const PipelineSpecification& specification)
 	{
 		
 		switch (RendererAPI::GetAPI()) {
@@ -23,7 +23,7 @@ namespace Hazel {
 		case RendererAPI::API::Vulkan:
 			return MakeRef<VulkanPipeline>(specification);			
 		case RendererAPI::API::OpenGL:
-			return nullptr; // OpenGL implementation not provided in this example
+			return MakeRef<Pipeline>(specification); // OpenGL implementation not provided in this example
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "Invalid Renderer API!");
 

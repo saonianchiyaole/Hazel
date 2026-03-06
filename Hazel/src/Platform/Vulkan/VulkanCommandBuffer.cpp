@@ -101,7 +101,7 @@ namespace Hazel {
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffer;
+		submitInfo.pCommandBuffers = &m_CommandBuffer;		
 
 		VkQueue graphicsQueue = VulkanContext::GetCurrentContext()->GetDevice()->GetGraphicQueue();
 

@@ -27,8 +27,8 @@ namespace Hazel {
 
 		std::vector<Ref<VulkanCommandBuffer>> m_CommandBuffers;				
 
-		ImGui::ImDrawDataSnapshot m_SnapShot;
-
+		std::queue<ImGui::ImDrawDataSnapshot> m_SnapShots;
+		
 		std::chrono::steady_clock::time_point m_StartTime;
 
 		std::mutex m_SnapshotMutex;

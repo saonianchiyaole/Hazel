@@ -7,12 +7,6 @@ namespace Hazel {
 
 
 
-
-
-
-	uint32_t ByteKey::Hash() const
-	{
-		
-	}
+	
 
 }

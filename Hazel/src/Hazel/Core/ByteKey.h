@@ -13,6 +13,11 @@ namespace Hazel {
 
 		ByteKey() = default;
 
+
+		ByteKey(const ByteKey& other) {
+			m_Bytes = other.m_Bytes;
+		}
+
 		ByteKey(ByteKey&& other) {
 			this->m_Bytes = std::move(other.m_Bytes);
 		}
@@ -35,6 +40,9 @@ namespace Hazel {
 
 		}
 
+		bool operator==(const ByteKey& other) const {
+			return Hash() == other.Hash();
+		}
 
 	private:
 

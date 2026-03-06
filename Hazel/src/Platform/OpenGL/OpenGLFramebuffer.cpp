@@ -120,12 +120,12 @@ namespace Hazel {
 
 	OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferSpecification& spec){
 		
-		for (auto spec : m_Specification.attachments.attachments) {
-			if (!Utils::IsDepthFormat(spec.textureFormat)) {
-				m_ColorAttachmentFormats.emplace_back(spec.textureFormat);
+		for (auto attachment : m_Specification.attachments) {
+			if (!Utils::IsDepthFormat(attachment.format)) {
+				m_ColorAttachmentFormats.emplace_back(attachment.format);
 			}
 			else {
-				m_DepthAttachmentFormat = spec.textureFormat;
+				m_DepthAttachmentFormat = attachment.format;
 				m_DepthAttachment = Texture2D::PreCreate();
 			}
 		}
@@ -238,6 +238,11 @@ namespace Hazel {
 		Invalidate();
 	}
 
+	void OpenGLFramebuffer::WaitRenderFinished()
+	{
+		glFinish();
+	}
+
 	int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
 	{
 		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "Index is out of range");
@@ -252,6 +257,24 @@ namespace Hazel {
 		HZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "Index is out of range");
 
 		glClearTexImage(m_ColorAttachmentIDs[attachmentIndex], 0, Utils::GetFormat(m_ColorAttachmentFormats[attachmentIndex]), GL_INT, value);
+	}
+
+	void OpenGLFramebuffer::ClearAllAttachments()
+	{
+
+		for (uint32_t i = 0; i < m_ColorAttachmentIDs.size(); i++) {
+
+			glClearTexImage(m_ColorAttachmentIDs[i], 0,
+							Utils::GetFormat(m_ColorAttachmentFormats[i]),
+							GL_INT, &m_Specification.attachments[i].clearValue.color);
+
+		}
+
+		if(m_DepthAttachment)
+			glClearTexImage(m_DepthAttachmentID, 0,
+							Utils::GetFormat(m_Specification.attachments.back().format),
+							GL_FLOAT, &m_Specification.attachments.back().clearValue.depthStencil.depth);
+
 	}
 	
 	const void OpenGLFramebuffer::BindTexture(uint32_t index, uint32_t slot)

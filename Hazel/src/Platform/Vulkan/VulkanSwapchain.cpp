@@ -476,8 +476,7 @@ namespace Hazel {
 	}
 
 	void VulkanSwapchain::Present() {
-
-
+				
 		Renderer::SubmitTask([this]() {
 
 			VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -519,6 +518,7 @@ namespace Hazel {
 			Application::GetInstance().NextRenderFrame();
 
 			m_IsRebuilt = false;
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();			
 
 			});
 

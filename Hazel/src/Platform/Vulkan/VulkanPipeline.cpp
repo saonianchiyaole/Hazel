@@ -29,21 +29,46 @@ namespace Hazel {
 
 		}
 
+		ByteKey GetRenderPipelineByteKey(const PipelineSpecification& spec, VkRenderPass renderPass) {
+
+			ByteKey key;
+
+			key.AddBytes(spec.shader.get());
+			
+			const auto& elements = spec.bufferLayout.GetElements();
+			for (auto& element : elements) {				
+				key.AddBytes(element.Normalized);
+				key.AddBytes(element.Offset);
+				key.AddBytes(element.Size);
+				key.AddBytes(element.Type);
+			}
+			
+			key.AddBytes(spec.topology);
+			key.AddBytes(spec.multiSampleCount);
+			key.AddBytes(spec.isWireframe);
+			key.AddBytes(spec.lineWidth);
+			
+			key.AddBytes(renderPass);
+
+			return key;
+						
+		}
+
+
 	}
 
 
-	VulkanPipeline::VulkanPipeline(const PipelineSpecification& specification)
-	{
+	VulkanPipeline::VulkanPipeline(const PipelineSpecification& specification) : Pipeline(specification)
+	{		
+	}
 
-		m_Specification = specification;
-
+	bool VulkanPipeline::Init(VkRenderPass renderPass)
+	{		
 
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
-		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
-		Ref<VulkanFramebuffer> framebuffer = std::static_pointer_cast<VulkanFramebuffer>(m_Specification.targetFramebuffer);
+		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();		
 
 		Ref<VulkanShader> shader = std::static_pointer_cast<VulkanShader>(m_Specification.shader);
-
 
 		VkShaderModule vertexShaderModule = shader->GetShaderModule(ShaderType::VertexShader);
 		VkShaderModule fragmentShaderModule = shader->GetShaderModule(ShaderType::FragmentShader);
@@ -121,7 +146,7 @@ namespace Hazel {
 		rasterizer.polygonMode = m_Specification.isWireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		rasterizer.lineWidth = 1.0f;
+		rasterizer.lineWidth = m_Specification.lineWidth;
 
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;
@@ -200,7 +225,7 @@ namespace Hazel {
 
 		pipelineInfo.layout = m_Layout;
 
-		pipelineInfo.renderPass = framebuffer->GetRawRenderPass();
+		pipelineInfo.renderPass = renderPass;
 		pipelineInfo.subpass = 0;
 
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -209,10 +234,21 @@ namespace Hazel {
 
 		HZ_CORE_ASSERT(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) == VK_SUCCESS, "failed to create pipeline layout");
 
+		return true;
+	}
 
 
+	Ref<VulkanPipeline> VulkanPipeline::CreateVulkanPipeline(const PipelineSpecification& spec, const VkRenderPass renderPass)
+	{
+	
+		Ref<VulkanPipeline> vulkanPipeline = MakeRef<VulkanPipeline>(spec);
+
+		vulkanPipeline->Init(renderPass);
+
+		return vulkanPipeline;
 
 	}
+	
 
 
 

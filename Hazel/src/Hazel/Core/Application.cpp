@@ -93,6 +93,9 @@ namespace Hazel {
 
 			m_MainThreadFrameCount++;
 		}
+
+
+		Renderer::Shutdown();
 	}
 
 

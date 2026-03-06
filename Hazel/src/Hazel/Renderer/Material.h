@@ -118,9 +118,7 @@ namespace Hazel {
 				return false;
 
 			if (!m_Data[name] && m_NameToTextureAndSlot.find(name) == m_NameToTextureAndSlot.end()) {
-				static size_t slotIndex = 0;
-				m_NameToTextureAndSlot[name] = { data, slotIndex };
-				slotIndex++;
+				m_NameToTextureAndSlot[name] = { data, index };
 			}
 			else {
 				m_NameToTextureAndSlot[name] = { data, m_NameToTextureAndSlot[name].second };
@@ -134,19 +132,19 @@ namespace Hazel {
 
 		virtual void Submit();
 
-		Ref<Shader> GetShader();
-		std::string GetName();
-		uint32_t GetSampleUniformAmount();
+		Ref<Shader>		GetShader();
+		std::string		GetName();
+		uint32_t		GetSampleUniformAmount();
 
-		void ReloadShader();
+		void			ReloadShader();
 
-		virtual void SetShader(Ref<Shader> shader);
-		void SetName(const std::string& name);
-		void SetPath(const std::string& path);
+		virtual void	SetShader	(Ref<Shader> shader);
+		void			SetName		(const std::string& name);
+		void			SetPath		(const std::string& path);
 
-		void SetTexturesSlot();
+		void			SetTexturesSlot();
 
-		bool IsFormMesh() { return m_IsFromMesh; }
+		bool			IsFormMesh() { return m_IsFromMesh; }
 
 		static Ref<Material> Create(std::filesystem::path filepath);
 		static Ref<Material> Create();

@@ -28,6 +28,11 @@ namespace Hazel {
 			s_RendererAPI->Init();
 		}
 
+
+		inline static void Shutdown() {
+			s_RendererAPI->Shutdown();
+		}
+
 		inline static void BeginFrame() {
 			s_RendererAPI->BeginFrame();
 		}

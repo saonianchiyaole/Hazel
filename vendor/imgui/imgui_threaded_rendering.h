@@ -24,6 +24,7 @@
 // FIXME: Could store an ID in ImDrawList to make this easier for user.
 #pragma once
 #include "imgui_internal.h" // ImPool<>, ImHashData
+#include <queue>
 
 //-----------------------------------------------------------------------------
 // ImDrawDataSnapshot - HEADERS
@@ -36,15 +37,17 @@ namespace ImGui {
     {
         ImDrawList* SrcCopy = NULL;     // Drawlist owned by main context
         ImDrawList* OurCopy = NULL;     // Our copy
-        double          LastUsedTime = 0.0;
+        double      LastUsedTime = 0.0;
     };
 
     struct ImDrawDataSnapshot
     {
         // Members
         ImDrawData                      DrawData;
-        ImPool<ImDrawDataSnapshotEntry> Cache;
+        ImPool<ImDrawDataSnapshotEntry> Cache;        
         float                           MemoryCompactTimer = 20.0f; // Discard unused data after 20 seconds
+
+        std::queue<ImDrawData>          DrawDataList;
 
         // Functions
         ~ImDrawDataSnapshot() { Clear(); }
@@ -52,9 +55,12 @@ namespace ImGui {
         void                            SnapUsingSwap(ImDrawData* src, double current_time); // Efficient snapshot by swapping data, meaning "src" is unusable.
         //void                          SnapUsingCopy(ImDrawData* src, double current_time); // Deep-copy snapshop. Probably not needed.
 
+        ImDrawData                      Front();
+        ImDrawData                      PopSnapShot();
+
         // Internals
         ImGuiID                         GetDrawListID(ImDrawList* src_list) { return ImHashData(&src_list, sizeof(src_list)); }     // Hash pointer
-        ImDrawDataSnapshotEntry* GetOrAddEntry(ImDrawList* src_list) { return Cache.GetOrAddByKey(GetDrawListID(src_list)); }
+        ImDrawDataSnapshotEntry*        GetOrAddEntry(ImDrawList* src_list) { return Cache.GetOrAddByKey(GetDrawListID(src_list)); }
     };
 
     //-----------------------------------------------------------------------------
@@ -67,11 +73,12 @@ namespace ImGui {
             if (ImDrawDataSnapshotEntry* entry = Cache.TryGetMapData(n))
                 IM_DELETE(entry->OurCopy);
         Cache.Clear();
+             
         DrawData.Clear();
     }
 
     inline void ImDrawDataSnapshot::SnapUsingSwap(ImDrawData* src, double current_time)
-    {
+    {        
         ImDrawData* dst = &DrawData;
         IM_ASSERT(src != dst && src->Valid);
 
@@ -102,6 +109,8 @@ namespace ImGui {
             dst->CmdLists.push_back(entry->OurCopy);
         }
 
+        DrawDataList.push(*dst);
+
         // Cleanup unused data
         const double gc_threshold = current_time - MemoryCompactTimer;
         for (int n = 0; n < Cache.GetMapSize(); n++)
@@ -113,6 +122,25 @@ namespace ImGui {
                 Cache.Remove(GetDrawListID(entry->SrcCopy), entry);
             }
     };
+
+
+    inline ImDrawData ImDrawDataSnapshot::Front() {
+        
+        ImDrawData dst = DrawDataList.front();        
+        return dst;
+
+    }
+
+    inline ImDrawData ImDrawDataSnapshot::PopSnapShot() {
+
+
+        if (DrawDataList.empty())
+            return ImDrawData(); // Invalid/empty data
+        ImDrawData dst = DrawDataList.front();
+        DrawDataList.pop();
+        return dst;
+        
+    }
 
 }
 

@@ -57,8 +57,7 @@ namespace Hazel {
 
 			Ref<VulkanCommandBuffer> commandBuffer = MakeRef<VulkanCommandBuffer>();
 			commandBuffer->Begin();
-
-			VK_IMAGE_ASPECT_DEPTH_BIT;
+			
 			VkImageAspectFlags aspectFlag = Utils::IsDepthFormatByVulkanFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 			if (Utils::IsStencilFormatIncludedByVulkanFormat(format))
 				aspectFlag |= VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -130,6 +129,13 @@ namespace Hazel {
 				srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 				dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
+			}
+			else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+				barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT  | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+				srcStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 			}
 			else {
 				HZ_CORE_ASSERT(false, "Unsupport image layout transition!");

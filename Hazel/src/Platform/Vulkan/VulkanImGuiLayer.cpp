@@ -29,6 +29,7 @@ namespace Hazel {
 		uint32_t frameInFlight = Renderer::GetFrameInFlight();
 
 		m_CommandBuffers.resize(frameInFlight);
+		
 
 		for (int i = 0; i < frameInFlight; i++) {
 			m_CommandBuffers[i] = VulkanContext::GetCurrentContext()->GetDevice()->CreateSecondaryCommandBuffer();
@@ -36,9 +37,7 @@ namespace Hazel {
 
 
 		m_StartTime = std::chrono::steady_clock::now();
-
-		m_SnapShot.Cache.Reserve(3);
-
+		
 		//// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -133,17 +132,12 @@ namespace Hazel {
 	}
 
 	void VulkanImGuiLayer::Begin()
-	{
-		//Renderer::SubmitTask([]() {
+	{		
 
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		//VulkanRendererAPI::ResetImGuiDescriptorPool();
-		//	});
-
-		//ImGuizmo::BeginFrame();
+	
 	}
 
 	void VulkanImGuiLayer::End()
@@ -160,7 +154,9 @@ namespace Hazel {
 
 		{
 			std::unique_lock<std::mutex> lock(m_SnapshotMutex);
-			m_SnapShot.SnapUsingSwap(main_draw_data, seconds);
+
+			m_SnapShots.push({});
+			m_SnapShots.back().SnapUsingSwap(main_draw_data, seconds);
 		}
 		
 
@@ -203,12 +199,13 @@ namespace Hazel {
 			info.pClearValues = clearValues;
 			vkCmdBeginRenderPass(drawCommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
 
+			ImDrawData drawData;			
 			{
-				std::unique_lock<std::mutex> lock(m_SnapshotMutex);
-				ImGui_ImplVulkan_RenderDrawData(&m_SnapShot.DrawData, drawCommandBuffer);
-			}
-			
-
+				std::unique_lock<std::mutex> lock(m_SnapshotMutex);				
+				drawData = m_SnapShots.front().DrawData;				
+				ImGui_ImplVulkan_RenderDrawData(&drawData, drawCommandBuffer);
+				m_SnapShots.pop();
+			}						
 
 			// Submit command buffer
 			vkCmdEndRenderPass(drawCommandBuffer);

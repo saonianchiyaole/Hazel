@@ -38,13 +38,12 @@ namespace ImGui {
 	}
 	void Image(Ref<VulkanTexture2D> texture, const ImVec2& textureSize, const ImVec2& uv0, const ImVec2& uv1) {
 
+		
+		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);				
 		Renderer::SubmitTask([texture] {
-			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);					
 			});
 		
-
-		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
 		ImGui::Image(descriptorSet, textureSize, uv0, uv1);
 	}
 
@@ -82,11 +81,12 @@ namespace ImGui {
 	{
 		ImGuiID id = ImGui::GetID(str_id);
 		
+		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		Renderer::SubmitTask([texture] {
 			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 			});
 
-		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
 		return ImGui::ImageButtonEx(id, (ImTextureID)descriptorSet, size, uv0, uv1, bgCol, tintCol);
 	}
 

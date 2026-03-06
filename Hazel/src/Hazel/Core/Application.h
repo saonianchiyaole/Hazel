@@ -32,6 +32,15 @@ namespace Hazel {
 
 		void NextRenderFrame();	
 		void Notify();
+		
+
+		uint64_t GetMainThreadFrameCount() const {
+			return m_MainThreadFrameCount;
+		}
+		uint64_t GetRenderThreadFrameCount() const {
+			return m_RenderThreadFrameCount;
+		}
+
 
 		static inline Application& GetInstance() {
 			if (s_Instance == nullptr)

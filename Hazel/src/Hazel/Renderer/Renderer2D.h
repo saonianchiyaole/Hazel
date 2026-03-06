@@ -27,6 +27,9 @@ namespace Hazel {
 		static void Init();
 		static void Shutdown();
 
+		static void Resize(glm::vec2 size);
+
+		static void BeginFrame();
 		static void BeginScene(const OrthographicCamera& camera);
 		static void BeginScene(const EditorCamera& camera);
 		static void BeginScene(const Camera& camera);
@@ -54,6 +57,8 @@ namespace Hazel {
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, int enitityID = -1);
 		static void DrawRect(const glm::mat4 transform, const glm::vec4& color, int enitityID = -1);
 		
+		static bool IsInCriticalSection();
+
 		// todo remove this to renderer / sceneRenderer
 		static Ref<Framebuffer> GetFramebuffer();
 		static bool SetViewportSize(const glm::vec2& size);

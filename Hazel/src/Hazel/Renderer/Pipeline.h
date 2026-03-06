@@ -20,13 +20,14 @@ namespace Hazel {
 
 		Ref<Shader> shader;
 
-		BufferLayout bufferLayout;				
+		BufferLayout bufferLayout;
 		
-		Ref<Framebuffer> targetFramebuffer;
-
 		PrimitiveTopology topology = PrimitiveTopology::TriangleList;
 		
+		uint32_t multiSampleCount;
+
 		bool isWireframe = false;
+
 		float lineWidth = 1.0f;
 	};
 
@@ -34,12 +35,15 @@ namespace Hazel {
 
 	public:
 
+		Pipeline() = default;
+
+		Pipeline(const PipelineSpecification& specification) : m_Specification(specification){}
+
 		virtual ~Pipeline() = default; // Ìí¼ÓÐéÎö¹¹º¯Êý
 
-		static Ref<Pipeline>	Create(PipelineSpecification specification);
+		static Ref<Pipeline>	Create(const PipelineSpecification& specification);
 
 		PipelineSpecification&	GetSpecification()		{ return m_Specification; }
-		Ref<Framebuffer>		GetTargetFramebuffer()	{ return m_Specification.targetFramebuffer; }
 		float					GetLineWidth()			{ return m_Specification.lineWidth; }
 
 	private:

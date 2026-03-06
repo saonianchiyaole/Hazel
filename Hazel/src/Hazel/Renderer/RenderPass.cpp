@@ -11,19 +11,6 @@
 namespace Hazel {
 	
 	
-	namespace Utils {
-
-		ByteKey GetRenderPassByteKey(const RenderPassSpecification& spec) {
-
-			auto fbSpec = spec.targetFramebuffer->GetSpecification();
-			ByteKey byteKey;
-			byteKey.AddBytes();
-
-		}
-
-	}
-
-
 	RenderPass::RenderPass(const RenderPassSpecification& spec) : m_Specification(spec)
 	{
 		

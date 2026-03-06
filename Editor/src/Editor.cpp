@@ -26,9 +26,7 @@ namespace Hazel {
 	{
 
 		m_PlayButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PlayButton.png");
-		m_PauseButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PauseButton.png");
-
-		m_Framebuffer = Renderer2D::GetFramebuffer();
+		m_PauseButtonTexture = Texture2D::Create("assets/ContentBrowserIcon/PauseButton.png");		
 
 		m_EditorScene.reset(new Scene);
 
@@ -68,10 +66,7 @@ namespace Hazel {
 		//Hazel::RenderCommand::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		//Hazel::RenderCommand::Clear();
 
-		int textureValue = -1;
-		m_Framebuffer->ClearAttachment(1, (void*)&textureValue);
-
-		
+		int textureValue = -1;	
 
 		switch (m_SceneState) {
 		case SceneState::Edit:
@@ -228,18 +223,16 @@ namespace Hazel {
 		if (viewportSize.x != 0 && viewportSize.y != 0) {
 			if (m_ViewportSize != *(glm::vec2*)&viewportSize) {
 
-				Renderer::SubmitTask([this, viewportSize]() {
-					m_Framebuffer->Resize(glm::vec2{ viewportSize.x, viewportSize.y });
-					});
-				
-				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
+				Renderer::OnWindowResize(viewportSize.x, viewportSize.y);									
 				m_ViewportSize = { viewportSize.x, viewportSize.y };
+				m_EditorCamera.SetViewportSize(viewportSize.x, viewportSize.y);
 				m_ActiveScene->SetViewPortSize(m_ViewportSize);
-				//Renderer2D::SetViewportSize(m_ViewportSize);				
+				//Renderer2D::SetViewportSize(m_ViewportSize);
 			}
-			
-			if (Renderer2D::GetFramebuffer()->IsValid()) {
-				ImGui::Image(Renderer2D::GetFramebuffer()->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
+												
+			if (!Renderer2D::IsInCriticalSection()) {
+				auto targetFramebuffer = Renderer2D::GetFramebuffer();
+				ImGui::Image(targetFramebuffer->GetColorAttachment(0), {(float)m_ViewportSize.x, (float)m_ViewportSize.y}, ImVec2{0, 1}, ImVec2{1, 0});
 			}
 			
 			
