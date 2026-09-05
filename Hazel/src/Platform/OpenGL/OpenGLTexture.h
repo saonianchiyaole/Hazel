@@ -14,12 +14,13 @@ namespace Hazel {
 		~OpenGLTexture2D();
 		OpenGLTexture2D();
 		OpenGLTexture2D(const std::string& path);
+		OpenGLTexture2D(TextureInfo textureInfo, std::vector<uint8_t> data = {});
 		OpenGLTexture2D(const uint32_t width, const uint32_t height);
 		OpenGLTexture2D(TextureFormat format, const uint32_t width, const uint32_t height);
 
 		virtual void SetData(const void* data, const uint32_t size) override;
 
-		virtual void Bind(uint32_t slot = 0) const override;
+		virtual void Bind(uint32_t slot = 0) const;
 
 		virtual const uint32_t GetRendererID() override;	
 	

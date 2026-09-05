@@ -249,6 +249,7 @@ namespace Hazel {
 	{
 
 		m_Name = name;
+		m_Type = type;
 	}
 
 	

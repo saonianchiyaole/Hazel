@@ -13,32 +13,32 @@ namespace Hazel {
 
 	namespace Utils {
 		
-		GLenum GetInternalFormat(TextureFormat format) {
+		GLenum GetInternalFormat(PixelFormat format) {
 			switch (format)
 			{
-			case Hazel::TextureFormat::None:
+			case Hazel::PixelFormat::None:
 				break;
-			case Hazel::TextureFormat::RGBA:
+			case Hazel::PixelFormat::RGBA:
 				return GL_RGBA8;
-			case Hazel::TextureFormat::DEPTH24STENCIL8:
+			case Hazel::PixelFormat::DEPTH24STENCIL8:
 				return GL_DEPTH24_STENCIL8;
-			case Hazel::TextureFormat::R:
+			case Hazel::PixelFormat::R:
 				return GL_R32I;
 			default:
 				break;
 			}
 		}
 		
-		GLenum GetFormat(TextureFormat format) {
+		GLenum GetFormat(PixelFormat format) {
 			switch (format)
 			{
-			case Hazel::TextureFormat::None:
+			case Hazel::PixelFormat::None:
 				break;
-			case Hazel::TextureFormat::RGBA:
+			case Hazel::PixelFormat::RGBA:
 				return GL_RGBA;
-			case Hazel::TextureFormat::DEPTH24STENCIL8:
+			case Hazel::PixelFormat::DEPTH24STENCIL8:
 				return GL_DEPTH_STENCIL;
-			case Hazel::TextureFormat::R:
+			case Hazel::PixelFormat::R:
 				return GL_RED_INTEGER;
 			default:
 				break;
@@ -46,18 +46,18 @@ namespace Hazel {
 		}
 		
 
-		GLenum GetAttachmentType(TextureFormat format) {
+		GLenum GetAttachmentType(PixelFormat format) {
 			switch (format)
 			{
-			case Hazel::TextureFormat::DEPTH24STENCIL8:
+			case Hazel::PixelFormat::DEPTH24STENCIL8:
 				return GL_DEPTH_STENCIL_ATTACHMENT;
 			}
 		}
 
-		GLenum GetType(TextureFormat format) {
+		GLenum GetType(PixelFormat format) {
 			switch (format)
 			{
-			case Hazel::TextureFormat::R:
+			case Hazel::PixelFormat::R:
 				return GL_INT;
 			}
 		}
@@ -118,24 +118,9 @@ namespace Hazel {
 
 
 
-	OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferSpecification& spec){
+	OpenGLFramebuffer::OpenGLFramebuffer(const FramebufferInfo& spec){
 		
-		for (auto attachment : m_Specification.attachments) {
-			if (!Utils::IsDepthFormat(attachment.format)) {
-				m_ColorAttachmentFormats.emplace_back(attachment.format);
-			}
-			else {
-				m_DepthAttachmentFormat = attachment.format;
-				m_DepthAttachment = Texture2D::PreCreate();
-			}
-		}
-
-		// Just used for recored the attachemntID;
-		m_ColorAttachments.reserve(m_ColorAttachmentFormats.size());
-		for (uint32_t i = 0; i < m_ColorAttachmentFormats.size(); i++) {
-			m_ColorAttachments.push_back(Texture2D::PreCreate());
-		}
-
+		
 		Invalidate();
 	}
 
@@ -145,19 +130,14 @@ namespace Hazel {
 		glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachmentIDs.data());
 		glDeleteTextures(1, &m_DepthAttachmentID);
 	}
-
-	const FramebufferSpecification& OpenGLFramebuffer::GetSpecification()
-	{
-		return m_Specification;
-	}
-
+	
 	void OpenGLFramebuffer::Invalidate() {
 
 		glCreateFramebuffers(1, &m_RendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
 
 
-		bool isMultisampled = m_Specification.samples > 1 ? true : false;		
+		bool isMultisampled = m_Info.samples > 1 ? true : false;		
 
 		
 
@@ -174,7 +154,7 @@ namespace Hazel {
 			}
 
 			for (size_t i = 0; i < m_ColorAttachments.size(); i++) {
-				Utils::BindColorTexture(m_Specification.samples, m_Specification.width, m_Specification.height,
+				Utils::BindColorTexture(m_Info.samples, m_Info.width, m_Info.height,
 									Utils::GetInternalFormat(m_ColorAttachmentFormats[i]), Utils::GetFormat(m_ColorAttachmentFormats[i]), m_ColorAttachmentIDs[i], i);
 
 			}
@@ -184,10 +164,10 @@ namespace Hazel {
 
 		// ------------------------------------------------------- Depth Attachment ------------------------------------------------------- 
 		
-		if (m_DepthAttachmentFormat != TextureFormat::None) {
+		if (m_DepthAttachmentFormat != PixelFormat::None) {
 			
 			Utils::CreateTexture(isMultisampled, &m_DepthAttachmentID, 1);
-			Utils::BindDepthTexture(m_Specification.samples, m_Specification.width, m_Specification.height,
+			Utils::BindDepthTexture(m_Info.samples, m_Info.width, m_Info.height,
 				Utils::GetInternalFormat(m_DepthAttachmentFormat), Utils::GetAttachmentType(m_DepthAttachmentFormat), m_DepthAttachmentID);
 
 			Ref<OpenGLTexture2D> openGLDepthTexture = std::static_pointer_cast<OpenGLTexture2D>(m_DepthAttachment);
@@ -209,17 +189,17 @@ namespace Hazel {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void OpenGLFramebuffer::Resize(const FramebufferSpecification& spec)
+	void OpenGLFramebuffer::Resize(const FramebufferInfo& spec)
 	{
 		glDeleteFramebuffers(1, &m_RendererID);
 		glDeleteTextures(m_ColorAttachmentIDs.size(), m_ColorAttachmentIDs.data());
 		glDeleteTextures(1, &m_DepthAttachmentID);
 		
-		m_Specification = spec;
+		m_Info = spec;
 		m_ColorAttachmentIDs.clear();
 		m_DepthAttachment = 0;
 
-		RenderCommand::SetViewPort(0, 0, m_Specification.width, m_Specification.height);
+		RenderCommand::SetViewPort(0, 0, m_Info.width, m_Info.height);
 		Invalidate();
 	}
 
@@ -232,9 +212,9 @@ namespace Hazel {
 		m_ColorAttachmentIDs.clear();
 		m_DepthAttachment = 0;
 
-		m_Specification.width = size.x;
-		m_Specification.height = size.y;
-		RenderCommand::SetViewPort(0, 0, m_Specification.width, m_Specification.height);
+		m_Info.width = size.x;
+		m_Info.height = size.y;
+		RenderCommand::SetViewPort(0, 0, m_Info.width, m_Info.height);
 		Invalidate();
 	}
 
@@ -266,14 +246,14 @@ namespace Hazel {
 
 			glClearTexImage(m_ColorAttachmentIDs[i], 0,
 							Utils::GetFormat(m_ColorAttachmentFormats[i]),
-							GL_INT, &m_Specification.attachments[i].clearValue.color);
+							GL_INT, &m_Info.attachments[i].clearValue.color);
 
 		}
 
 		if(m_DepthAttachment)
 			glClearTexImage(m_DepthAttachmentID, 0,
-							Utils::GetFormat(m_Specification.attachments.back().format),
-							GL_FLOAT, &m_Specification.attachments.back().clearValue.depthStencil.depth);
+							Utils::GetFormat(m_Info.attachments.back().format),
+							GL_FLOAT, &m_Info.attachments.back().clearValue.depthStencil.depth);
 
 	}
 	

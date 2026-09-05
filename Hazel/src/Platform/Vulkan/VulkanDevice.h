@@ -4,8 +4,21 @@
 
 #include "vulkan/vulkan.h"
 
+#include "Hazel/Renderer/RenderDevice.h"
+#include "Hazel/Renderer/DeviceResourceTable.h"
+#include "Hazel/Renderer/RenderPass.h"
+#include "Hazel/Renderer/Pipeline.h"
+#include "Hazel/Renderer/Framebuffer.h"
+#include "Hazel/Renderer/Texture.h"
+
 #include "Platform/Vulkan/VulkanSwapChain.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
 #include "Platform/Vulkan/VulkanCommandBuffer.h"
+#include "Platform/Vulkan/VulkanFramebuffer.h"
+#include "Platform/Vulkan/VulkanShader.h"
+#include "Platform/Vulkan/VulkanTexture.h"
+#include "Platform/Vulkan/VulkanVertexArray.h"
+#include "Platform/Vulkan/VulkanPipeline.h"
 #include <optional>
 
 
@@ -121,37 +134,149 @@ namespace Hazel {
 
 
 	//Logical Device
-	class VulkanDevice {
-
-
+	class VulkanDevice : public RenderDevice{
 	public:
 
-		VulkanDevice() = default;
+		VulkanDevice();
 		VulkanDevice(Ref<VulkanPhysicalDevice> physicalDevice);
+		virtual ~VulkanDevice() = default;
+		
+		inline  bool Init() override {};
+		inline  bool Init(Ref<VulkanPhysicalDevice> physicalDevice);
 
-		//Get
+		inline	void Shutdown();
+
+
 		inline	VkDevice								GetRawDevice()			{ return m_Device; }
 		inline	VkCommandPool							GetCommandPool()		{ return m_CommandPool; }		
 		inline	VkQueue&								GetGraphicQueue()		{ return m_GraphicQueue; }
 		inline	VkQueue&								GetPresentQueue()		{ return m_PresentQueue; }
 		inline	Ref<VulkanPhysicalDevice>				GetPhysicalDevice()		{ return m_PhysicalDevice; }
 
-
+		
 		//Set
 		inline	void SetPhysicalDevice(Ref<VulkanPhysicalDevice> physicalDevice) { m_PhysicalDevice = physicalDevice; }
 
-		void CreateCommandPool();
-		Ref<VulkanCommandBuffer> CreateCommandBuffer();
-		void CreateDescriptorPool();
-		Ref<VulkanCommandBuffer> CreateSecondaryCommandBuffer();
+		void						CreateCommandPool();
+		Ref<VulkanCommandBuffer>	CreateCommandBufferRef();
+		Ref<VulkanCommandBuffer>	CreateSecondaryCommandBufferRef();		
+		
 
-		//void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		// ------------------------------------------------------------------------------------- Proxy ---------------------------------------------------------------------------------------
+
+
+		
+		void						CreateVertexBuffer(Handle<VertexBuffer> handle, size_t size, std::vector<uint8_t> data = {}) override;
+		
+		void						CreateIndexBuffer(Handle<IndexBuffer> handle, size_t size, std::vector<uint8_t> data = {}) override;
+		
+		void						CreateUniformBuffer(Handle<UniformBuffer> handle, const std::string name) override;
+
+		
+		void						CreateUniformBufferSet(Handle<UniformBufferSet> handle, uint32_t amount, size_t size) override { RenderDevice::CreateUniformBufferSet(handle, amount, size); }
+		void						CreateUniformBufferSet(Handle<UniformBufferSet> handle, size_t size) override { RenderDevice::CreateUniformBufferSet(handle, size); }		
+		void						CreateVertexArray(Handle<VertexArray> handle) override { CreateProxy(handle); }		
+		void						CreateCommandBuffer(Handle<CommandBuffer> handle) override { CreateProxy(handle); }
+		
+		void						CreateTexture2D(Handle<Texture2D> handle, TextureInfo textureInfo, std::vector<uint8_t> data = {}) override;
+		
+		/*void						CreateTextureCube(Handle<TextureCube> handle, std::vector<Ref<Texture2D>> textures) override { RenderDevice::CreateTextureCube(handle, textures); }
+		void						CreateTextureCube(Handle<TextureCube> handle, const std::string& path) override { RenderDevice::CreateTextureCube(handle, path); }
+		void						CreateTextureCube(Handle<TextureCube> handle, TextureFormat format, uint32_t width, uint32_t height) override { RenderDevice::CreateTextureCube(handle, format, width, height); }
+		void						CreateTextureCube(Handle<TextureCube> handle) override { RenderDevice::CreateTextureCube(handle); }*/
+		
+		void						CreateShader(Handle<Shader> handle, const std::string& vertexSrc, const std::string& fragmentSrc) override;
+		void						CreateShader(Handle<Shader> handle, const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc) override;
+		void						CreateShader(Handle<Shader> handle, const std::string& filepath) override;
+				
+		void						CreateFramebuffer(Handle<Framebuffer> handle, const FramebufferInfo info, std::vector<Handle<Texture2D>> attachments = {}) override {  CreateProxy(handle, info); }		
+				
+		void						CreateEnvironment(Handle<Environment> handle, const std::string& filepath) override { RenderDevice::CreateEnvironment(handle, filepath); }
+
+		// Create Proxy
+		void						CreateProxy(Handle<Texture2D> handle, TextureInfo textureInfo, std::vector<uint8_t> data = {});
+		void						CreateProxy(Handle<VertexBuffer> handle, size_t size, std::vector<uint8_t> data = {});		
+		void						CreateProxy(Handle<IndexBuffer> handle, size_t size, std::vector<uint8_t> data = {});		
+		void						CreateProxy(Handle<UniformBuffer> handle, size_t size, std::vector<uint8_t> data = {});
+		void						CreateProxy(Handle<VertexArray> handle);
+		void						CreateProxy(Handle<CommandBuffer> handle, bool primary = true);
+		void						CreateProxy(Handle<Framebuffer> handle, const FramebufferInfo info);
+		void						CreateProxy(Handle<Shader> handle, Ref<const ShaderSnapshot> shaderSnapshot);
+
+		// Register Proxy
+		void						RegisterProxy(Handle<Texture2D> handle,		Ref<VulkanTexture2D> proxy);
+		void						RegisterProxy(Handle<VertexBuffer> handle,	Ref<VulkanVertexBuffer> proxy);
+		void						RegisterProxy(Handle<IndexBuffer> handle,	Ref<VulkanIndexBuffer> proxy);
+		void						RegisterProxy(Handle<UniformBuffer> handle,	Ref<VulkanUniformBuffer> proxy);
+		void						RegisterProxy(Handle<VertexArray> handle,	Ref<VulkanVertexArray> proxy);
+		void						RegisterProxy(Handle<CommandBuffer> handle,	Ref<VulkanCommandBuffer> proxy);
+		void						RegisterProxy(Handle<Framebuffer> handle,	Ref<VulkanFramebuffer> proxy);
+		void						RegisterProxy(Handle<Shader> handle,		Ref<VulkanShader> proxy);
+
+		// Get Proxy
+		Ref<VulkanTexture2D>		GetProxy(Handle<Texture2D> handle);
+		Ref<VulkanVertexBuffer>		GetProxy(Handle<VertexBuffer> handle);
+		Ref<VulkanIndexBuffer>		GetProxy(Handle<IndexBuffer> handle);
+		Ref<VulkanUniformBuffer>	GetProxy(Handle<UniformBuffer> handle);
+		Ref<VulkanVertexArray>		GetProxy(Handle<VertexArray> handle);
+		Ref<VulkanCommandBuffer>	GetProxy(Handle<CommandBuffer> handle);
+		Ref<VulkanFramebuffer>		GetProxy(Handle<Framebuffer> handle);
+		Ref<VulkanShader>			GetProxy(Handle<Shader> handle);
+
+		// Has Proxy
+		bool						HasProxy(Handle<Texture2D> handle) const;
+		bool						HasProxy(Handle<VertexBuffer> handle) const;
+		bool						HasProxy(Handle<IndexBuffer> handle) const;
+		bool						HasProxy(Handle<UniformBuffer> handle) const;
+		bool						HasProxy(Handle<VertexArray> handle) const;
+		bool						HasProxy(Handle<CommandBuffer> handle) const;
+		bool						HasProxy(Handle<Framebuffer> handle) const;
+		bool						HasProxy(Handle<Shader> handle) const;
+
+		// Destroy Proxy
+		void						DestroyProxy(Handle<Texture2D> handle);
+		void						DestroyProxy(Handle<VertexBuffer> handle);
+		void						DestroyProxy(Handle<IndexBuffer> handle);
+		void						DestroyProxy(Handle<UniformBuffer> handle);
+		void						DestroyProxy(Handle<VertexArray> handle);
+		void						DestroyProxy(Handle<CommandBuffer> handle);
+		void						DestroyProxy(Handle<Framebuffer> handle);
+		void						DestroyProxy(Handle<Shader> handle);
+
+		// ------------------------------------------------------------------------------------- Draw ---------------------------------------------------------------------------------------
+
+		// cache related
+		Ref<VulkanRenderPass>		GetRenderPass(const RenderPassInfo renderPassInfo);
+		Ref<VulkanPipeline>			GetRenderPipeline(const PipelineInfo spec, VkRenderPass renderPass);		
+
+
+		void SetViewport(const glm::vec4 viewport) override;
+
+		void BeginFrame() override;
+
+		void EndFrame() override;
+
+		void BindPipeline(Handle<Pipeline> pipeline) override;
+
+		void BeginRenderPass(Handle<RenderPass> renderPass) override;
+
+		void EndRenderPass() override;
+
+		void Draw(Handle<Mesh> mesh, Handle<Material> material) override;
+
+		void DrawIndexed(const Handle<VertexArray>& vertexArray, uint32_t count) override;
 
 		operator VkDevice() {
 			return m_Device;
 		}
 
+		// ------------------------------------------------------------------------------------ Uniform ----------------------------------------------------------
+
+		VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetAllocateInfo& layout);
+
 	private:
+
+		void CheckRenderState();
 
 		void SelectQueue(QueueFamilyIndices& indices);
 
@@ -159,12 +284,12 @@ namespace Hazel {
 
 	private:
 
-		Ref<VulkanPhysicalDevice>	m_PhysicalDevice;
-		VkDevice					m_Device;
+		Ref<VulkanPhysicalDevice>		m_PhysicalDevice;
+		VkDevice						m_Device;
 
-		VkCommandPool							m_CommandPool;
+		VkCommandPool					m_CommandPool;
 
-		VkDescriptorPool m_DescriptorPool;
+		std::vector<VkDescriptorPool>	m_DescriptorPools;
 
 
 
@@ -179,6 +304,46 @@ namespace Hazel {
 		VkQueue m_ComputeQueue;
 		VkQueue m_TransferQueue;
 		VkQueue m_PresentQueue;
+
+		DeviceResourceTable<Handle<Texture2D>,		Ref<VulkanTexture2D>>		m_Texture2DProxies;
+		DeviceResourceTable<Handle<VertexBuffer>,	Ref<VulkanVertexBuffer>>	m_VertexBufferProxies;
+		DeviceResourceTable<Handle<IndexBuffer>,	Ref<VulkanIndexBuffer>>		m_IndexBufferProxies;
+		DeviceResourceTable<Handle<VertexArray>,	Ref<VulkanVertexArray>>		m_VertexArrayProxies;
+		DeviceResourceTable<Handle<CommandBuffer>,	Ref<VulkanCommandBuffer>>	m_CommandBufferProxies;
+		DeviceResourceTable<Handle<Framebuffer>,	Ref<VulkanFramebuffer>>		m_FramebufferProxies;
+		DeviceResourceTable<Handle<Shader>,			Ref<VulkanShader>>			m_ShaderProxies;
+
+		DeviceResourceTable<Handle<UniformBuffer>,	Ref<VulkanUniformBuffer>>	m_UniformBufferProxies;
+
+		// todo change this
+		struct RenderState {
+
+
+
+
+			Ref<VulkanPipeline>		pipeline = nullptr;
+			Ref<VulkanRenderPass>	renderPass = nullptr;
+			Ref<VulkanFramebuffer>	renderTarget = nullptr;
+
+			 
+			// { offset.x, offset.y, width, height}
+			glm::vec4 renderArea;
+			glm::vec4 viewport;
+
+ 
+		};	
+
+		RenderState m_CurrentRenderState;
+				
+		// [frameIndex]
+		std::vector<Scope<DescriptorSetManager>> m_DescriptorSetManagers;
+
+		// every thread has its unique render resource
+		VkDescriptorPool m_ImGuiDescriptorPool = nullptr;
+
+
+		ByteKeyMap<Ref<VulkanRenderPass>>	m_RenderPassCache;
+		ByteKeyMap<Ref<VulkanPipeline>>		m_RenderPipelineCache;		
 
 		friend class VulkanSwapchain;
 						

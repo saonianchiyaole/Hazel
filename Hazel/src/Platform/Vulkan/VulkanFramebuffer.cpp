@@ -17,28 +17,35 @@ namespace Hazel {
 	}
 
 
-	VulkanFramebuffer::VulkanFramebuffer(const FramebufferSpecification& specification) {
+	VulkanFramebuffer::VulkanFramebuffer(const FramebufferInfo& info, const Ref<VulkanRenderPass> renderPass) : m_Info(info)
+	{		
+	}
 
-		m_Specification = specification;
+	VulkanFramebuffer::VulkanFramebuffer(const FramebufferInfo& info, const Ref<VulkanRenderPass> renderPass, std::vector<Ref<VulkanTexture2D>> attacments) {
 
-		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
-
-		VkFenceCreateInfo fenceInfo{};
-		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-		VK_CHECK(vkCreateFence(device, &fenceInfo, nullptr, &mRenderFinishedFence));
-
-		Invalidate();
+								
+		Update(info, renderPass, std::move(attacments));
 
 	}
 
 
 
-	void VulkanFramebuffer::Invalidate()
+	void VulkanFramebuffer::Update(const FramebufferInfo& info, const Ref<VulkanRenderPass> renderPass, std::vector<Ref<VulkanTexture2D>> attacments)
 	{
 		
-		m_Flag = AssetFlag::Loading;
+		if (info.width == m_Info.width && info.height == m_Info.height) {
+			return;
+		}
+
+		
+		for (auto attachment : attacments) {
+
+			const auto& attachmentInfo = attachment->GetInfo();
+
+			HZ_CORE_ASSERT(attachmentInfo.height == info.height && attachmentInfo.width == info.width,
+				"Attachments's width or height should equal framebuffer's")
+
+		}
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
@@ -52,26 +59,29 @@ namespace Hazel {
 		m_ColorAttachments.clear();
 		m_DepthAttachment = nullptr;
 
-		for (auto attachment : m_Specification.attachments) {
 
-			if (Utils::IsDepthFormat(attachment.format)) {
+		for (auto attachment : attacments) {
 
-				m_DepthAttachment = Texture2D::Create(attachment.format, m_Specification.width, m_Specification.height, TextureUsage::Attachment);				
+			const auto& attachmentInfo = attachment->GetInfo();
+
+			if (Utils::IsDepthFormat(attachmentInfo.format)) {
+
+				m_DepthAttachment = attachment;
 
 				continue;
 			}
 
-			m_ColorAttachments.emplace_back(Texture2D::Create(attachment.format, m_Specification.width, m_Specification.height, TextureUsage::Attachment));
+			m_ColorAttachments.emplace_back(MakeRef<VulkanTexture2D>(attachmentInfo.format, m_Info.width, m_Info.height, TextureUsage::Attachment));
 			
 		}
 	
-		RenderPassSpecification rdpSpec;
-		rdpSpec.attachmentSpecs = m_Specification.attachments;
+		RenderPassInfo rdpSpec;
+		rdpSpec.attachmentInfos = m_Info.attachments;
 
-		m_RawRenderPass = VulkanRenderPass::GetRawRenderPass(rdpSpec);
+		auto vkRenderPass = renderPass->GetRawRenderPass();
 
 		// cast		
-		std::vector<Ref<VulkanTexture2D>> vulkanAttachments = RefVectorStaticCast<VulkanTexture2D>(m_ColorAttachments);
+		std::vector<Ref<VulkanTexture2D>> vulkanAttachments = m_ColorAttachments;
 
 		std::vector<VkImageView> attachmentImageViews;
 		attachmentImageViews.reserve(vulkanAttachments.size() + (m_DepthAttachment == nullptr ? 0 : 1));
@@ -79,16 +89,16 @@ namespace Hazel {
 			attachmentImageViews.push_back(vulkanAttachments[i]->GetImageView());
 		}
 		if (m_DepthAttachment) {
-			attachmentImageViews.push_back(std::static_pointer_cast<VulkanTexture2D>(m_DepthAttachment)->GetImageView());
+			attachmentImageViews.push_back(m_DepthAttachment->GetImageView());
 		}
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = m_RawRenderPass;
+		framebufferInfo.renderPass = vkRenderPass;
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachmentImageViews.size());
 		framebufferInfo.pAttachments = attachmentImageViews.data();
-		framebufferInfo.width = m_Specification.width;
-		framebufferInfo.height = m_Specification.height;
+		framebufferInfo.width = m_Info.width;
+		framebufferInfo.height = m_Info.height;
 		framebufferInfo.layers = 1;
 
 
@@ -96,142 +106,9 @@ namespace Hazel {
 		HZ_CORE_ASSERT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_Framebuffer) == VK_SUCCESS, "Failed to create framebuffer");
 
 
-		m_Flag = AssetFlag::Valid;
+		m_Info = info;
 
 	}
-
-	void VulkanFramebuffer::Resize(const FramebufferSpecification& spec)
-	{
-		
-		
-	}
-	
-
-	void VulkanFramebuffer::Resize(const glm::vec2 size)
-	{
-		if (size.x == m_Specification.width && size.y == m_Specification.height) {
-			return;
-		}
-		
-		m_Specification.width = size.x;
-		m_Specification.height = size.y;
-
-		Invalidate();
-	}
-
-	void VulkanFramebuffer::WaitRenderFinished()
-	{
-		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
-
-		VK_CHECK(vkWaitForFences(device, 1, &mRenderFinishedFence, VK_TRUE, UINT64_MAX));
-
-		VK_CHECK(vkResetFences(device, 1, &mRenderFinishedFence));
-	}
-
-	void VulkanFramebuffer::ClearAllAttachments()
-	{
-
-		Ref<VulkanCommandBuffer> cmd = std::static_pointer_cast<VulkanCommandBuffer>(CommandBuffer::Create());
-
-
-		for (auto colorAttachment : m_ColorAttachments) {
-			Ref<VulkanTexture2D> vulkanTexture = std::static_pointer_cast<VulkanTexture2D>(colorAttachment);
-			Utils::TransitionImageLayout(vulkanTexture->GetRawImage(),
-				Utils::GetVulkanFormatFromTextureFormat(vulkanTexture->GetTextureFormat()),
-				vulkanTexture->GetLayout(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-		}
-
-		if (m_DepthAttachment) {
-			Ref<VulkanTexture2D> vulkanTexture = std::static_pointer_cast<VulkanTexture2D>(m_DepthAttachment);
-			Utils::TransitionImageLayout(vulkanTexture->GetRawImage(),
-				Utils::GetVulkanFormatFromTextureFormat(vulkanTexture->GetTextureFormat()),
-				vulkanTexture->GetLayout(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-		}
-
-		cmd->Begin();
-		VkCommandBuffer rawCmd = cmd->GetRawCommandBuffer();
-
-		RenderPassSpecification rdpSpec;
-		rdpSpec.attachmentSpecs = m_Specification.attachments;
-		for(auto& attachment : rdpSpec.attachmentSpecs) {
-			attachment.isClearColor = true;
-		}
-		Ref<VulkanRenderPass> vulkanRenderPass = std::static_pointer_cast<VulkanRenderPass>(RenderPass::Create(rdpSpec));
-
-
-		std::vector<VkClearValue> clearValues;
-		clearValues.reserve(m_Specification.attachments.size());
-		for (auto& attachment : m_Specification.attachments) {
-			if (Utils::IsDepthFormat(attachment.format)) {
-				VkClearValue clearValue{};
-				clearValue.depthStencil.depth = attachment.clearValue.depthStencil.depth;
-				clearValue.depthStencil.stencil = attachment.clearValue.depthStencil.stencil;
-				clearValues.push_back(clearValue);
-			}
-			else {
-				VkClearValue clearValue{};
-				clearValue.color = *(VkClearColorValue*)&attachment.clearValue.color;
-				clearValues.push_back(clearValue);
-			}
-		}
-
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.clearValueCount = clearValues.size();
-		renderPassInfo.pClearValues = clearValues.data();
-		renderPassInfo.renderPass = vulkanRenderPass->GetRawRenderPass();
-		renderPassInfo.framebuffer = m_Framebuffer;
-		renderPassInfo.renderArea = VkRect2D{ {0, 0}, {m_Specification.width, m_Specification.height} };
-
-
-		
-
-		std::vector<VkClearAttachment> clearAttachments;
-
-		vkCmdBeginRenderPass(rawCmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdEndRenderPass(rawCmd);		
-
-		cmd->End();
-
-		cmd->Submit();
-
- 		TraceLayout(AfterRender);
-
-	}
-
-	void VulkanFramebuffer::TraceLayout(FramebufferStage stage)
-	{
-		switch (stage) {
-
-		case FramebufferStage::AfterRender:
-		{
-			for (Ref<Texture2D> texture : m_ColorAttachments) {
-				Ref<VulkanTexture2D> vulkanTexture = std::static_pointer_cast<VulkanTexture2D>(texture);
-				vulkanTexture->SetLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-			}
-
-			Ref<VulkanTexture2D> depthAttachment = std::static_pointer_cast<VulkanTexture2D>(m_DepthAttachment);
-			if (depthAttachment)
-				depthAttachment->SetLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-		}
-			break;
-		case FramebufferStage::Initialize:
-			break;
-		case FramebufferStage::Output:
-
-			for (Ref<Texture2D> texture : m_ColorAttachments) {
-				Ref<VulkanTexture2D> vulkanTexture = std::static_pointer_cast<VulkanTexture2D>(texture);
-				vulkanTexture->SetLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			}
-
-			Ref<VulkanTexture2D> depthAttachment = std::static_pointer_cast<VulkanTexture2D>(m_DepthAttachment);
-			if (depthAttachment)
-				depthAttachment->SetLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-			break;
-		}
-
-	}
-
+				
 
 }

@@ -12,15 +12,15 @@ namespace Hazel {
 
 	namespace Utils {
 
-		bool IsDepthFormat(TextureFormat format);
+		bool IsDepthFormat(PixelFormat format);
 
 	}
 
 
-	struct AttachmentSpecification {
+	struct AttachmentInfo {
 		
 		
-		TextureFormat format;
+		PixelFormat format;
 
 		bool isClearColor = false;
 
@@ -37,19 +37,21 @@ namespace Hazel {
 
 		};
 		
+		uint8_t samples = 1;
+
 		ClearValue clearValue;
 
-		AttachmentSpecification(TextureFormat _format) : format(_format){}
+		AttachmentInfo(PixelFormat _format) : format(_format){}
 
 	};
 
-	struct FramebufferSpecification {
+	struct FramebufferInfo {
 
 		uint32_t width;
 		uint32_t height;
 		uint32_t samples = 1;
 		glm::vec4 clearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-		std::vector<AttachmentSpecification> attachments;
+		std::vector<AttachmentInfo> attachments;
 
 		bool swapChainTarget = false;
 	};
@@ -58,35 +60,35 @@ namespace Hazel {
 	class Texture2D;
 	class RenderPass;
 
-	class Framebuffer : public Asset {
+	class Framebuffer {
 	public:
 		
-		virtual const			FramebufferSpecification& GetSpecification() { return m_Specification; };
-		virtual void			Invalidate		() = 0;
-		virtual void			Resize			(const FramebufferSpecification& spec) = 0;
-		virtual void			Resize			(const glm::vec2 size) = 0;
+		virtual const			FramebufferInfo& GetInfo() { return m_Info; };
+		virtual void			Invalidate() {};
+		virtual void			Resize(const FramebufferInfo& spec) {};
+		virtual void			Resize(const glm::vec2 size) {};
 
-		virtual void			WaitRenderFinished() = 0;
+		virtual void			WaitRenderFinished() {};
 
-		virtual void			Bind			() = 0;
-		virtual void			Unbind			() = 0;
+		virtual void			Bind() {};
+		virtual void			Unbind() {};
 		
-		virtual int				ReadPixel			(uint32_t attachmentIndex, int x, int y) = 0;
-		virtual void			ClearAttachment		(uint32_t attachmentIndex, const void* value = nullptr) = 0;
-		virtual void			ClearAllAttachments	() = 0;
-		virtual const void		BindTexture			(uint32_t index, uint32_t slot = 0) = 0;
+		virtual int				ReadPixel(uint32_t attachmentIndex, int x, int y) { return 0; };
+		virtual void			ClearAttachment(uint32_t attachmentIndex, const void* value = nullptr) {};
+		virtual void			ClearAllAttachments() {};
+		virtual const void		BindTexture(uint32_t index, uint32_t slot = 0) {};
 
 		virtual const std::vector<Ref<Texture2D>>	GetColorAttachments()				{ return m_ColorAttachments; }
 		virtual const Ref<Texture2D>				GetColorAttachment(int index = 0)	{ HZ_CORE_ASSERT(index < m_ColorAttachments.size(), "Index out of range");  return m_ColorAttachments[index]; }
 		virtual const Ref<Texture2D>				GetDpethAttachment()				{ return m_DepthAttachment; };
 
 
-		static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
+		static Ref<Framebuffer> Create(const FramebufferInfo& spec);
 
 	protected:
 
 
-		FramebufferSpecification	m_Specification;
+		FramebufferInfo	m_Info;
 
 		Ref<Texture2D>				m_DepthAttachment = nullptr;
 		std::vector<Ref<Texture2D>> m_ColorAttachments;

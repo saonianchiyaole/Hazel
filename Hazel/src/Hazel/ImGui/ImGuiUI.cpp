@@ -9,6 +9,14 @@
 
 namespace ImGui {
 
+	namespace
+	{
+		template<typename To, typename From>
+		Ref<To> AliasCast(const Ref<From>& ptr)
+		{
+			return Ref<To>(ptr, reinterpret_cast<To*>(ptr.get()));
+		}
+	}
 
 
 	void Image(Ref<Texture2D> texture, const ImVec2& textureSize, const ImVec2& uv0, const ImVec2& uv1)
@@ -22,7 +30,7 @@ namespace ImGui {
 			break;
 		}
 		case RendererAPI::API::Vulkan: {
-			Ref<VulkanTexture2D> vulkanTexture = std::static_pointer_cast<VulkanTexture2D>(texture);
+			Ref<VulkanTexture2D> vulkanTexture = AliasCast<VulkanTexture2D>(texture);
 			Image(vulkanTexture, textureSize, uv0, uv1);
 			break;
 		}
@@ -40,10 +48,7 @@ namespace ImGui {
 
 		
 		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);				
-		Renderer::SubmitTask([texture] {
-			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);					
-			});
-		
+				
 		ImGui::Image(descriptorSet, textureSize, uv0, uv1);
 	}
 
@@ -59,7 +64,7 @@ namespace ImGui {
 			break;
 		}
 		case RendererAPI::API::Vulkan: {
-			Ref<VulkanTexture2D> vulkanTexture = std::static_pointer_cast<VulkanTexture2D>(texture);
+			Ref<VulkanTexture2D> vulkanTexture = AliasCast<VulkanTexture2D>(texture);
 			return ImageButton(str_id, vulkanTexture, size, uv0, uv1);
 			break;
 		}
@@ -82,11 +87,7 @@ namespace ImGui {
 		ImGuiID id = ImGui::GetID(str_id);
 		
 		void* descriptorSet = ImGui_ImplVulkan_AddTexture(texture->GetSampler(), texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		Renderer::SubmitTask([texture] {
-			Utils::TransitionImageLayout(texture->GetRawImage(), Utils::GetVulkanFormatFromTextureFormat(texture->GetTextureFormat()), texture->GetLayout(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			});
-
-
+		
 		return ImGui::ImageButtonEx(id, (ImTextureID)descriptorSet, size, uv0, uv1, bgCol, tintCol);
 	}
 

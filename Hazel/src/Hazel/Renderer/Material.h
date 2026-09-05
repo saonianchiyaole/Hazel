@@ -4,7 +4,8 @@
 #include "Hazel/Renderer/ShaderUniform.h"
 #include "Hazel/Renderer/Texture.h"
 #include "Hazel/Core/Buffer.h"
-#include "Hazel/Asset/Asset.h"
+#include "Hazel/Resource/Resource.h"
+#include "Hazel/Resource/ResourceManager.h"
 
 namespace Hazel {
 
@@ -56,7 +57,7 @@ namespace Hazel {
 
 	}
 
-	class Material : public Asset {
+	class Material {
 	public:
 		friend class MaterialSerializer;
 		friend class Mesh;
@@ -66,8 +67,8 @@ namespace Hazel {
 		~Material();
 
 
-		virtual AssetType GetAssetType() override {
-			return AssetType::Material;
+		virtual ResourceType GetResourceType() {
+			return ResourceType::Material;
 		}
 
 		template<typename T>
@@ -83,7 +84,8 @@ namespace Hazel {
 		template<typename T>
 		inline bool SetData(const std::string& name, T data, uint32_t index = 0)
 		{
-			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
+			Ref<Shader> shader = ResourceManager<Shader>::Get(m_Shader);
+			if (!shader || m_Data.find(name) == m_Data.end() || sizeof(T) != shader->GetReflectionDataByName(name)->size)
 				return false;
 
 			m_Data[name].Write(&data, sizeof(T));
@@ -93,7 +95,8 @@ namespace Hazel {
 		template<typename T>
 		inline bool SetData(const std::string& name, T* data, uint32_t index = 0)
 		{
-			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
+			Ref<Shader> shader = ResourceManager<Shader>::Get(m_Shader);
+			if (!shader || m_Data.find(name) == m_Data.end() || sizeof(T) != shader->GetReflectionDataByName(name)->size)
 				return false;
 
 			m_Data[name].Write(data, sizeof(T));
@@ -103,7 +106,8 @@ namespace Hazel {
 		template<typename T>
 		inline bool SetData(const std::string& name, Ref<T> data, uint32_t index = 0)
 		{
-			if (m_Data.find(name) == m_Data.end() || sizeof(T) != m_Shader->GetReflectionDataByName(name)->size)
+			Ref<Shader> shader = ResourceManager<Shader>::Get(m_Shader);
+			if (!shader || m_Data.find(name) == m_Data.end() || sizeof(T) != shader->GetReflectionDataByName(name)->size)
 				return false;
 
 			m_Data[name].Write(data.get(), sizeof(T));
@@ -112,9 +116,16 @@ namespace Hazel {
 		}
 
 		
-		virtual bool SetData(const std::string& name, Ref<Texture2D> data, uint32_t index = 0)
+		virtual bool SetData(const std::string& name, const Handle<Texture2D>& data, uint32_t index = 0)
 		{
-			if (m_Data.find(name) == m_Data.end() || !Utils::IsDataFormatCorrect<Texture2D>(*m_Shader->GetReflectionDataByName(name)))
+			Ref<Shader> shader = ResourceManager<Shader>::Get(m_Shader);
+			Ref<Texture2D> texture = ResourceManager<Texture2D>::Get(data);
+
+			if (!shader || !texture) {
+				return false;
+			}
+
+			if (m_Data.find(name) == m_Data.end() || !Utils::IsDataFormatCorrect<Texture2D>(*shader->GetReflectionDataByName(name)))
 				return false;
 
 			if (!m_Data[name] && m_NameToTextureAndSlot.find(name) == m_NameToTextureAndSlot.end()) {
@@ -124,21 +135,30 @@ namespace Hazel {
 				m_NameToTextureAndSlot[name] = { data, m_NameToTextureAndSlot[name].second };
 			}
 
-			m_Data[name].Write(data.get());
+			m_Data[name].Write(texture.get());
 		
 			return true;
+		}
+
+		virtual bool SetData(const std::string& name, Ref<Texture2D> data, uint32_t index = 0) {
+			if (!data) {
+				return false;
+			}
+			return SetData(name, ResourceManager<Texture2D>::Add(data), index);
 		}
 
 
 		virtual void Submit();
 
-		Ref<Shader>		GetShader();
+		Handle<Shader>	GetShader();
 		std::string		GetName();
 		uint32_t		GetSampleUniformAmount();
 
 		void			ReloadShader();
 
+		void			SetShader	(Handle<Shader> shader);
 		virtual void	SetShader	(Ref<Shader> shader);
+
 		void			SetName		(const std::string& name);
 		void			SetPath		(const std::string& path);
 
@@ -156,8 +176,8 @@ namespace Hazel {
 	protected:
 
 		std::string m_Name = "Main";
-		Ref<Shader> m_Shader;
 		std::string m_Path;
+		Handle<Shader> m_Shader;
 
 		bool m_UseAlbedoTex = false;
 		bool m_UseNormalTex = false;
@@ -165,7 +185,7 @@ namespace Hazel {
 		bool m_UseMetalnessTex = false;
 
 
-		std::unordered_map<std::string, std::pair<Ref<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
+		std::unordered_map<std::string, std::pair<Handle<Texture2D>, uint32_t>> m_NameToTextureAndSlot;
 
 		MaterialDataMap m_Data;
 

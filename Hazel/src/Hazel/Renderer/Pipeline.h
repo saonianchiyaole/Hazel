@@ -2,23 +2,22 @@
 
 
 #include "Hazel/Renderer/Buffer.h"
+#include "Hazel/Renderer/Shader.h"
 
 #include "vulkan/vulkan.h"
 
+
 namespace Hazel {
 
-	class Shader;
-	class Framebuffer;
-
-
+		
 	enum class PrimitiveTopology {
 		None = 0, TriangleList, LineList, PointList
 	};
 
 
-	struct PipelineSpecification {
+	struct PipelineInfo {
 
-		Ref<Shader> shader;
+		Handle<Shader> shader;
 
 		BufferLayout bufferLayout;
 		
@@ -37,20 +36,20 @@ namespace Hazel {
 
 		Pipeline() = default;
 
-		Pipeline(const PipelineSpecification& specification) : m_Specification(specification){}
+		Pipeline(const PipelineInfo& info) : m_Info(info){}
 
 		virtual ~Pipeline() = default; // Ìí¼ÓÐéÎö¹¹º¯Êý
 
-		static Ref<Pipeline>	Create(const PipelineSpecification& specification);
+		static Ref<Pipeline>	Create(const PipelineInfo& specification);
 
-		PipelineSpecification&	GetSpecification()		{ return m_Specification; }
-		float					GetLineWidth()			{ return m_Specification.lineWidth; }
+		PipelineInfo&	GetSpecification()		{ return m_Info; }
+		float					GetLineWidth()			{ return m_Info.lineWidth; }
 
 	private:
 
 	protected:
 
-		PipelineSpecification m_Specification;
+		PipelineInfo m_Info;
 
 
 	};

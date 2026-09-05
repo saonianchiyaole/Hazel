@@ -31,42 +31,50 @@ namespace Hazel {
 
 
 
-	class VulkanTexture2D : public Texture2D {
+	class VulkanTexture2D {
 
 	public:
-		VulkanTexture2D();
-		VulkanTexture2D(const std::string& filePath);
-		VulkanTexture2D(uint32_t width, uint32_t height);
-		VulkanTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureUsage usage = TextureUsage::Texture);
-		virtual ~VulkanTexture2D();
+				
 
-		inline virtual const uint32_t			GetRendererID() override		{ return 0; }
-		inline VkImage							GetRawImage()					{ return m_Image; }
-		inline VkImageView						GetImageView()					{ return m_ImageView; }
-		inline VkSampler						GetSampler()					{ return m_Sampler; }
-		inline VkDescriptorImageInfo			GetDescriptorImageInfo()		{ return m_DescriptorImageInfo; }
-		inline VkImageLayout&					GetLayout()  					{ return m_Layout; }
-		void									SetLayout(VkImageLayout layout) { m_Layout = layout; }
+		VulkanTexture2D(const TextureInfo& info, std::vector<uint8_t> data = {});
+		~VulkanTexture2D();
+		
 
-		virtual void					SetData(const void* data, const uint32_t size) override;
-		virtual void					Bind(uint32_t slot = 0) const override {}		
+		bool Init(const TextureInfo& info);
 
-		virtual bool operator ==(Texture& other) const override {
-			return m_Image == ((VulkanTexture2D&)other).m_Image;
+		const TextureInfo& GetInfo();
+		
+		inline VkImage					GetRawImage()					{ return m_Image; }
+		inline VkImageView				GetImageView()					{ return m_ImageView; }
+		inline VkSampler				GetSampler()					{ return m_Sampler; }
+		inline VkDescriptorImageInfo	GetDescriptorImageInfo()		{ return m_DescriptorImageInfo; }
+		inline VkImageLayout&			GetLayout()  					{ return m_Layout; }
+		void							SetLayout(VkImageLayout layout) { m_Layout = layout; }
+
+		void							SetData(const void* data, const uint32_t size);	
+		void							Bind(uint32_t slot = 0) const {}
+
+		bool operator ==(const VulkanTexture2D& other) const {
+			return m_Image == other.m_Image;
 		}
 
 	private:
 
-		VkImage m_Image;
-		VkImageView m_ImageView;
-		VkDeviceMemory m_Memory;
-		VkSampler m_Sampler;
-		VkDescriptorImageInfo m_DescriptorImageInfo;
-		VkImageLayout m_Layout;
-		void* m_MappedData;		
+		TextureInfo m_Info;
+
+		VkImage					m_Image;
+		VkImageView				m_ImageView;
+		VkDeviceMemory			m_Memory;
+		VkSampler				m_Sampler;
+		VkDescriptorImageInfo	m_DescriptorImageInfo;
+		VkImageLayout			m_Layout;
+		void*					m_MappedData;
+
+
+		
 	};
 
-	class VulkanTextureCube : public TextureCube {
+	class VulkanTextureCube {
 
 
 	};

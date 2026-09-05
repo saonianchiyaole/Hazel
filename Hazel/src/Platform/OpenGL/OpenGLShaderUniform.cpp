@@ -120,9 +120,7 @@ namespace Hazel {
 		case GL_SAMPLER_2D: {
 			if (!data)
 				break;
-			OpenGLTexture2D* texture = static_cast<OpenGLTexture2D*>(data);
-			if (!texture->IsLoaded())
-				break;
+			OpenGLTexture2D* texture = static_cast<OpenGLTexture2D*>(data);			
 			uint8_t slot = texture->GetSlot();
 			glUniform1i(location, slot);
 			texture->Bind(slot);

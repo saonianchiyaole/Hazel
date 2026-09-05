@@ -14,6 +14,18 @@ namespace Hazel
 			ZeroInitialize();
 		}
 
+		Buffer(const Buffer& other) {
+			Allocate(other.m_Size);
+			CopyFrom(other.m_Data, m_Size);
+		}
+
+		Buffer(Buffer&& other) noexcept {
+			this->m_Data = other.m_Data;
+			this->m_Size = other.m_Size;
+			other.m_Data = nullptr;
+			other.m_Size = 0;
+		}
+
 		~Buffer() {
 			Free();
 		}
@@ -48,6 +60,7 @@ namespace Hazel
 		inline void Free() {
 			if (m_Size != 0 && m_Data)
 				free(m_Data);
+			m_Data = nullptr;
 			m_Size = 0;
 		}
 
@@ -58,7 +71,7 @@ namespace Hazel
 
 		inline void Write(const void* data, uint64_t size, uint64_t offset = 0) {
 			HZ_CORE_ASSERT(offset + size <= m_Size, "Buffer overflow!");
-			memcpy((char*)this->m_Data + offset, data, m_Size);
+			memcpy((char*)this->m_Data + offset, data, size);
 		}
 
 		// directly copy the input pointer's value to buffer's, don't suggest to use this

@@ -1,9 +1,7 @@
-
-
-#include "Hazel/Renderer/Buffer.h"
-
+#pragma once
 
 #include "vulkan/vulkan.h"
+#include "Hazel/Renderer/Buffer.h"
 
 namespace Hazel {
 
@@ -38,98 +36,90 @@ namespace Hazel {
 	class VulkanBuffer {
 
 
-	private:
+	protected:
 
-		
+		VulkanBuffer() = default;
 
-		VkBuffer	GetRawBuffer() const { return m_Buffer; }
-		
-		static void Create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		VulkanBuffer(size_t size) : m_Size(size) {};
 
-
-	private:
+		VkBuffer GetRawBuffer() const { return m_Buffer; }
+				
+	protected:
 
 
 		VkBuffer m_Buffer;
-
-
-		friend class VulkanVertexBuffer;
+		size_t m_Size = 0;
 
 	};
 
 
-	class VulkanVertexBuffer : public VertexBuffer {
+	class VulkanVertexBuffer : public VulkanBuffer{
 
 	public:
-
-		VulkanVertexBuffer(float* vertices, uint32_t size);
-		VulkanVertexBuffer(void* vertices, uint32_t size);
-		VulkanVertexBuffer(uint32_t size);
+		
+		VulkanVertexBuffer(size_t size, std::vector<uint8_t> data);
 		~VulkanVertexBuffer();
 
 		VkVertexInputBindingDescription						GetBindingDescription();
 		std::vector<VkVertexInputAttributeDescription>		GetAttributeDescriptions();		
 		inline VkBuffer										GetRawBuffer() { return m_Buffer; }
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		void Bind() const;
+		void Unbind() const;
 
-		virtual void SetData(const void* data, const uint32_t size) override;
+		void SetData(const void* data, const uint32_t size);
+		void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
+		const BufferLayout& GetLayout() const { return m_Layout; }
 
 
 
 	private:
-
-		VkBuffer m_Buffer;
+		
 		VkDeviceMemory m_Memory;
-		void* m_MappedData;
+		void* m_MappedData;		
+		BufferLayout m_Layout;
+
 	};
 
 
-	class VulkanIndexBuffer : public IndexBuffer {
-
-
+	class VulkanIndexBuffer : VulkanBuffer {
 	public:
 
 		VulkanIndexBuffer();
 
-		VulkanIndexBuffer(uint32_t* indices, uint32_t count);
-		VulkanIndexBuffer(void* indices, uint32_t count);
+		VulkanIndexBuffer(size_t size, std::vector<uint8_t> data = {});
+				
 		~VulkanIndexBuffer();
+		
+		uint32_t GetCount() const { return m_Count; }
+		VkBuffer GetRawBuffer() const { return m_Buffer; }
 
-		virtual void Bind() const override {}
-		virtual void Unbind() const override {}
-
-		virtual uint32_t GetCount() const override { return m_Count; }
-		virtual VkBuffer GetRawBuffer() const { return m_Buffer; }
-
-		virtual void SetData(uint32_t* indices, uint32_t count) override;
+		void SetData(uint32_t* indices, uint32_t count);
 
 	private:
-		VkBuffer m_Buffer;
+		
 		VkDeviceMemory m_Memory;
 		uint32_t m_Count;
 
 	};
 
-	class VulkanUniformBuffer : public UniformBuffer {
+	class VulkanUniformBuffer : VulkanBuffer{
 
 	public:
-		VulkanUniformBuffer(uint32_t size, uint32_t binding);
+		VulkanUniformBuffer(size_t size, std::vector<uint8_t> data);
 		~VulkanUniformBuffer();		
 		
-		virtual void							SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
+		void									SetData(const void* data, size_t size, size_t offset = 0);
 		inline	VkBuffer						GetRawBuffer()				const	{ return m_Buffer; }
 
 		inline void*							GetMappedData()				const	{ return m_MappedData; };
 		inline			VkDescriptorBufferInfo	GetDescriptorBufferInfo()			{ return m_DescriptorBufferInfo; }
 
 	private:
-
-		VkBuffer m_Buffer;
+		
 		VkDeviceMemory m_Memory;
 		VkDescriptorBufferInfo m_DescriptorBufferInfo;
-		void* m_MappedData;
+		void* m_MappedData;		
 
 	};
 

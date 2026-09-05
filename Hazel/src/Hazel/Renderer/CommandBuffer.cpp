@@ -13,7 +13,7 @@ namespace Hazel {
 		case RendererAPI::API::OpenGL:
 			return nullptr;
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanCommandBuffer>();
+			return MakeRef<CommandBuffer>();
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "Invalid Render API!");
 			return nullptr;

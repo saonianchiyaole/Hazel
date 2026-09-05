@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "Hazel/Asset/Asset.h"
+#include "Hazel/Resource/Resource.h"
 
 namespace Hazel {
 
@@ -20,7 +20,7 @@ namespace Hazel {
 		None, Albedo, Roughness, Metalness, Normal, Other
 	};
 
-	enum class TextureFormat {
+	enum class PixelFormat {
 		None,
 		R,   //R8
 		RG,  //R8G8
@@ -32,6 +32,8 @@ namespace Hazel {
 		Depth = DEPTH24STENCIL8,
 	};
 
+	using TextureFormat = PixelFormat;
+
 	enum class TextureUsage {
 		None,
 		Attachment,
@@ -39,14 +41,29 @@ namespace Hazel {
 	};
 
 
-	class Texture : public Asset{
+	struct TextureInfo {
+
+		uint32_t width = 0;
+		uint32_t height = 0;
+		uint32_t depth = 0;
+		PixelFormat format = PixelFormat::RGBA;
+		TextureUsage usage = TextureUsage::Texture;
+		bool isHDR = false;		
+	};
+
+	namespace Utils {
+		uint32_t GetPixelFormatChannelCount(PixelFormat format);
+		uint32_t GetPixelFormatSourceBytesPerChannel(PixelFormat format);
+		bool LoadTextureDataFromFile(const std::filesystem::path& path, TextureInfo& textureInfo, std::vector<uint8_t>& data);
+	}
+
+
+	class Texture {
 	public:
 		Texture() = default;
 		~Texture() = default;
 		virtual uint32_t GetWidth() const = 0;
-		virtual uint32_t GetHeight() const = 0;
-
-		virtual void Bind(uint32_t slot = 0) const = 0;
+		virtual uint32_t GetHeight() const = 0;		
 
 		virtual bool operator ==(Texture& other) const = 0;
 	};
@@ -62,20 +79,17 @@ namespace Hazel {
 		~Texture2D() = default;
 		//static Ref<Texture2D> Create(const std::string& path);
 
-		static Ref<Texture2D> Create(const uint32_t width, const uint32_t height);
-		static Ref<Texture2D> Create(TextureFormat format, const uint32_t width, const uint32_t height, TextureUsage usage = TextureUsage::Texture);
+		static Ref<Texture2D> Create(TextureInfo textureInfo, std::vector<uint8_t> data = {});
 		static Ref<Texture2D> Create(std::filesystem::path path);
 		// Pre create to allocate memory
-		static Ref<Texture2D> PreCreate();
-		static Texture2D* PreCreateNakedPointer();
-
+		
 		//Get
 		virtual uint32_t GetWidth() const override;
 		virtual uint32_t GetHeight() const override;
 		std::string GetPath() const;
 
 		TextureType GetType();
-		TextureFormat GetTextureFormat() { return m_TextureFormat; }
+		PixelFormat GetTextureFormat() { return m_TextureFormat; }
 		unsigned int GetDataFormat() { return m_DataFormat; }
 		unsigned int GetInternalFormat() { return m_InternalFormat; }
 		unsigned int GetDataType() { return m_DataType; }
@@ -88,41 +102,38 @@ namespace Hazel {
 		void SetSlot(uint32_t slot);
 
 		virtual const uint32_t GetRendererID() = 0;
-		bool IsLoaded() { return m_IsLoaded; }
-
+		
 		virtual bool operator == (Texture2D& other) const {
 			return this->m_Path == other.m_Path;
 		}
 
 	protected:
-
-		void SetIsLoaded(bool value) { m_IsLoaded = value; }
+		
+		TextureInfo m_Info;
 
 		std::string m_Path;
 		uint32_t m_Width, m_Height;
 		TextureType m_Type = TextureType::None;
 		uint32_t m_Slot = 0;
 		//Format
-		TextureFormat m_TextureFormat;
+		PixelFormat m_TextureFormat;
+		TextureUsage m_Usage;
 		unsigned int m_InternalFormat = 0;
 		unsigned int m_DataFormat = 0;
 		unsigned int m_DataType = 0;
-		
-		TextureUsage m_Usage;
-
-		bool m_IsLoaded = false;
+						
 		bool m_IsHDR = false;
 	};
 
 
-	class TextureCube : public Asset{
+	class TextureCube {
 	public:
 		friend class Environment;
 		friend class OpenGLEnvironment;
 
 		static Ref<TextureCube> Create(std::vector<Ref<Texture2D>> textures);
 		static Ref<TextureCube> Create(const std::string& path);
-		static Ref<TextureCube> Create(TextureFormat format, const uint32_t width, const uint32_t height);
+		static Ref<TextureCube> Create(PixelFormat format, const uint32_t width, const uint32_t height);
 		static Ref<TextureCube> Create();
 
 		//Get 
@@ -144,7 +155,7 @@ namespace Hazel {
 
 		std::vector<Ref<Texture2D>> m_Textures;
 
-		TextureFormat m_TextureFormat;
+		PixelFormat m_TextureFormat;
 		unsigned int m_InternalFormat = 0;
 		unsigned int m_DataFormat = 0;
 		unsigned int m_DataType = 0;

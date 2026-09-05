@@ -46,11 +46,7 @@ namespace Hazel {
 		Ref<TextureCube> m_SkyboxTextureCube;
 
 		Ref<Environment> m_Environment;
-
-
-		Hazel::Ref<Hazel::Framebuffer> m_Framebuffer;
-		Hazel::FramebufferSpecification m_FramebufferSpecification;
-
+				
 		Ref<Scene> m_EditorScene;
 		Ref<Scene> m_RuntimeScene;
 		Ref<Scene> m_ActiveScene;

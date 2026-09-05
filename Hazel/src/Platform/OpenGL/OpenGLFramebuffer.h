@@ -7,11 +7,11 @@ namespace Hazel {
 	class OpenGLFramebuffer : public Framebuffer{
 	public:
 
-		OpenGLFramebuffer(const FramebufferSpecification& spec);	
+		OpenGLFramebuffer(const FramebufferInfo& info);
 		~OpenGLFramebuffer();
-		virtual const FramebufferSpecification& GetSpecification() override;
+		virtual const FramebufferInfo& GetInfo() override;
 		virtual void Invalidate		() override;
-		virtual void Resize			(const FramebufferSpecification& spec) override;
+		virtual void Resize			(const FramebufferInfo& info) override;
 		virtual void Resize			(const glm::vec2 size) override;
 
 		virtual void		WaitRenderFinished() override;
@@ -30,9 +30,9 @@ namespace Hazel {
 	private:
 		uint32_t m_RendererID;
 				
-		std::vector<TextureFormat> m_ColorAttachmentFormats;
+		std::vector<PixelFormat> m_ColorAttachmentFormats;
 		std::vector<uint32_t> m_ColorAttachmentIDs; 
 		uint32_t m_DepthAttachmentID = 0;
-		TextureFormat m_DepthAttachmentFormat = TextureFormat::None;
+		PixelFormat m_DepthAttachmentFormat = PixelFormat::None;
 	};
 }

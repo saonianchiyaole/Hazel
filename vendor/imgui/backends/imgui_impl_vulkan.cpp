@@ -95,8 +95,9 @@
 #define IM_MAX(A, B)    (((A) >= (B)) ? (A) : (B))
 #endif
 
-#include "Platform/Vulkan/VulkanRendererAPI.h"
 #include "Platform/Vulkan/VulkanContext.h"
+#include "Platform/Vulkan/VulkanDevice.h"
+
 
 // Visual Studio warnings
 #ifdef _MSC_VER
@@ -1242,7 +1243,7 @@ VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image
         alloc_info.descriptorSetCount = 1;
         alloc_info.pSetLayouts = &bd->DescriptorSetLayout;
 
-        descriptor_set = Hazel::VulkanRendererAPI::AllocateImGuiDescriptorSet(alloc_info);
+        descriptor_set = Hazel::VulkanContext::GetCurrentContext()->GetDevice()->AllocateDescriptorSet(alloc_info);
     }
     
 

@@ -1,6 +1,6 @@
 #include "hzpch.h"
 
-#include "Hazel/Asset/AssimpImporter.h"
+#include "Hazel/Resource/AssimpImporter.h"
 
 namespace Hazel {
 

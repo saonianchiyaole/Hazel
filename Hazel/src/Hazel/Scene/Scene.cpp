@@ -399,7 +399,7 @@ namespace Hazel {
 				Entity entity = { entityID, this };
 
 				auto [transform, mesh] = meshGroup.get<TransformComponent, MeshComponent>(entityID);
-				if (mesh.mesh && mesh.mesh->GetFlag())
+				if (mesh.mesh)
 				{
 					Entity entity = { entityID, this };
 					if (!entity.HasComponent<MaterialComponent>())

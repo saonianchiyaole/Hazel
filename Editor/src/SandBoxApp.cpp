@@ -52,7 +52,7 @@ public:
 		m_VertexArray->SetIndexBuffer(indexBuffer);
 
 		Hazel::ShaderLibrary::Load("assets/Shaders/Shader.glsl");
-		m_Shader = Hazel::ShaderLibrary::Get("Shader");
+		//m_Shader = Hazel::ShaderLibrary::Get("Shader");
 
 		m_Texture = Hazel::Texture2D::Create("assets/ChernoLogo.png");
 
@@ -74,10 +74,7 @@ public:
 		std::dynamic_pointer_cast<Hazel::OpenGLShader>(m_Shader)->UploadUniformInt("u_Texture", 0);
 
 		glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_ObjectPosition);
-
-		m_Texture->Bind();
-
-
+		
 		//glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_ObjectPosition);
 
 		//HZ_INFO("ExampleLayer::Update");

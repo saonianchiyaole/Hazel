@@ -13,6 +13,7 @@
 //#include "Hazel/Utils/PlatformUtils.h"
 #include "Platform/Windows/WindowsUtils.cpp"
 #include "Hazel/ImGui/ImGuiUI.h"
+#include "Hazel/Resource/ResourceManager.h"
 
 namespace Hazel {
 
@@ -198,15 +199,16 @@ namespace Hazel {
 		ImGui::End();
 
 		ImGui::Begin("Shader");
-		for (const auto& shader : ShaderLibrary::s_Shaders) {
+		for (const auto& iter : ShaderLibrary::s_ShaderHandles) {
 
+			auto shader = ResourceManager<Shader>::Get(iter.second);			
 
-			ImGui::Text("%s", shader.second->GetName().c_str());
+			ImGui::Text("%s", shader->GetName().c_str());
 			ImGui::SameLine();
 
-			std::string buttonName = "Reload##" + shader.first;
+			std::string buttonName = "Reload##" + iter.first;
 			if (ImGui::Button(buttonName.c_str())) {
-				shader.second->Reload();
+				shader->Reload();
 			}
 		}
 

@@ -46,7 +46,7 @@ namespace Hazel {
 				*(T*)m_Value = data;
 		}*/
 
-		virtual void Submit(int32_t shaderID, void* data) = 0;
+		virtual void Submit(int32_t shaderID, void* data) {}
 
 
 		ShaderDataType GetType();

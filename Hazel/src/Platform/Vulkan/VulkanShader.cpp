@@ -304,7 +304,7 @@ namespace Hazel {
 				HZ_CORE_ASSERT(type == "vertex" || type == "fragment" || type == "pixel" || type == "compute", "Invaild shader type specified!");
 
 				/*if (type == "vertex" || type == "fragment" || type == "pixel") {
-					m_Type = ShaderType::VertAndFragShader;
+					m_Type = ShaderType::Normal;
 				}
 				else if (type == "compute") {
 					m_Type = ShaderType::ComputeShader;
@@ -383,19 +383,9 @@ namespace Hazel {
 	}
 
 
-	VulkanShader::VulkanShader(const std::string& filePath) {
-
-
-		m_Path = filePath;
-		m_Name = Utils::GetShaderName(filePath);
-
-		int lastSlash = filePath.find_last_of("/\\");
-		lastSlash = lastSlash == std::string::npos ? 0 : lastSlash;
-		int lastDot = filePath.find_last_of('.');
-		int count = lastDot == std::string::npos ? filePath.size() - lastSlash - 1 : lastDot - lastSlash - 1;
-		m_Name = filePath.substr(lastSlash + 1, count);
-		
-		Reload();		
+	VulkanShader::VulkanShader(Ref<const ShaderSnapshot> snapShot) : m_SnapShot(snapShot) {
+									
+		Reload();
 	}
 
 
@@ -411,11 +401,8 @@ namespace Hazel {
 
 	bool VulkanShader::Reload()
 	{
-		m_ShaderCodes.clear();
-
-		std::string shaderSource = Utils::ReadShaderFile(m_Path);
-		m_ShaderCodes = Utils::PreprocessShaderFile(shaderSource);
-
+		
+		
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
 		for(auto [ShaderType, shaderModule] : m_ShaderModules)
@@ -423,26 +410,9 @@ namespace Hazel {
 			vkDestroyShaderModule(device, shaderModule, nullptr);
 		}
 
-		m_ShaderModules.clear();
-		m_RelectionData.clear();
-		
-		m_DescriptorSetLayouts.clear();
-		m_SPIRVBinarys.clear();
-
-		for (auto& [shaderType, code] : m_ShaderCodes) {
-			m_SPIRVBinarys.emplace(shaderType, std::vector<uint32_t>());
-			Compile(m_SPIRVBinarys.at(shaderType), shaderType);
-		}
-
-		CreateShaderModules();
-
-		for (const auto& [shaderType, binary] : m_SPIRVBinarys) {
-
-			if (binary.size() == 0) {
-				HZ_CORE_ASSERT(false, "SPIRV Binary is empty for shader type {}", Utils::GetShaderCKindFormShaderType(shaderType));
-			}
-			Reflect(shaderType, binary);
-		}
+		m_ShaderModules.clear();	
+	
+		CreateShaderModules();		
 
 		CreateDescriptorSetLayout();
 
@@ -450,13 +420,7 @@ namespace Hazel {
 		
 	}
 
-	void VulkanShader::Submit(std::unordered_map<std::string, Buffer>& data)
-	{		
-
-		
-
-	}
-
+	
 
 	void VulkanShader::CreateShaderModules() {
 
@@ -471,138 +435,33 @@ namespace Hazel {
 
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
-		for (auto& [shaderType, binary] : m_SPIRVBinarys) {
+		for (auto& [shaderType, binary] : m_SnapShot->spirvBinarys) {
 
 			m_ShaderModules.emplace(shaderType, Utils::CreateShaderModuleFromBinary(binary, device));
 
 		}
 
 	}
-
-	bool VulkanShader::Compile(std::vector<uint32_t>& outputBinary, ShaderType type)
-	{
-
-		std::string sourceCode = m_ShaderCodes.at(type);
-
-		static shaderc::Compiler compiler;
-		shaderc::CompileOptions shaderCOptions;
-		shaderCOptions.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-		shaderCOptions.SetWarningsAsErrors();
-		shaderCOptions.SetOptimizationLevel(shaderc_optimization_level_zero);
-
-		const shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(sourceCode, Utils::GetShaderCKindFormShaderType(type), m_Path.c_str());
-
-		if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
-			HZ_CORE_WARN("{} while compiling shader file : {}", module.GetErrorMessage(), m_Path);
-			return false;
-		}
-
-		outputBinary = std::vector<uint32_t>(module.begin(), module.end());
-		return true;
-
-	}
-
-	void VulkanShader::Reflect(ShaderType stage, const std::vector<uint32_t>& spirvBinary)
-	{
-
-		spirv_cross::Compiler compiler(spirvBinary);
-		auto resources = compiler.get_shader_resources();
-		// uniform buffers
-		for (const auto& resource : resources.uniform_buffers) {
-
-			auto activeBuffers = compiler.get_active_buffer_ranges(resource.id);
-			if (activeBuffers.size()) {
-
-				const auto& name = resource.name;
-				auto& baseType = compiler.get_type(resource.base_type_id);
-				auto& type = compiler.get_type(resource.type_id);
-				int memberCount = baseType.member_types.size();
-				uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-				uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-				uint32_t size = (uint32_t)compiler.get_declared_struct_size(baseType);
-				uint32_t arraySize = type.array.size() > 0 ? type.array[0] : 1;
-				
-				ShaderReflectionData reflectionData;
-				reflectionData.name = name;
-				reflectionData.binding = binding;
-				reflectionData.descriptorSet = descriptorSet;
-				reflectionData.size = size;
-				reflectionData.stage = stage;
-				reflectionData.type = DescriptorType::UniformBuffer;
-				reflectionData.arraySize = arraySize;
-				reflectionData.dimension = 1;
-				
-				if (m_RelectionData.find(descriptorSet) == m_RelectionData.end()) {
-					m_RelectionData[descriptorSet] = std::unordered_map<uint32_t, ShaderReflectionData>();
-				}				
-
-				m_RelectionData[descriptorSet][binding] = reflectionData;
-				m_RelectionDataByName[name] = reflectionData;
-
-			}
-
-		}
-		// sampling images
-		for (const auto& resource : resources.sampled_images) {
-
-			const auto& name = resource.name;
-			auto& baseType = compiler.get_type(resource.base_type_id);
-			auto& type = compiler.get_type(resource.type_id);
-			int memberCount = baseType.member_types.size();
-			uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-			uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);						
-			uint32_t arraySize = type.array.size() > 0 ? type.array[0] : 1;
-
-			ShaderReflectionData reflectionData;
-			reflectionData.name = name;
-			reflectionData.binding = binding;
-			reflectionData.size = 8; // For raw pointer			
-			reflectionData.descriptorSet = descriptorSet;			
-			reflectionData.stage = stage;
-			reflectionData.dimension = baseType.image.dim + 1;
-			reflectionData.arraySize = arraySize;
-			switch (reflectionData.dimension)
-			{
-			case 1:
-				reflectionData.type = DescriptorType::Sampler2D;
-				break;
-			case 2:
-				reflectionData.type = DescriptorType::Sampler2D;
-				break;
-			case 3:
-				reflectionData.type = DescriptorType::Sampler3D;
-				break;
-			case 4:				
-				reflectionData.type = DescriptorType::SamplerCube;
-				break;
-			}
-
-			if (m_RelectionData.find(descriptorSet) == m_RelectionData.end()) {
-				m_RelectionData[descriptorSet] = std::unordered_map<uint32_t, ShaderReflectionData>();
-			}
-
-			m_RelectionData[descriptorSet][binding] = reflectionData;
-			m_RelectionDataByName[name] = reflectionData;
-
-		}
-	}
+		
 
 	void VulkanShader::CreateDescriptorSetLayout()
 	{
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 
-		m_DescriptorSetLayouts.resize(m_RelectionData.size());
+		auto refectionData = m_SnapShot->relectionData;
 
-		for (uint32_t set = 0; set < m_RelectionData.size(); set++) {
+		m_DescriptorSetLayouts.resize(refectionData.size());
+
+		for (uint32_t set = 0; set < refectionData.size(); set++) {
 
 
 			std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-			layoutBindings.resize(m_RelectionData[set].size());
+			layoutBindings.resize(refectionData[set].size());
 
-			for (uint32_t binding = 0; binding < m_RelectionData[set].size(); binding++) {
+			for (uint32_t binding = 0; binding < refectionData[set].size(); binding++) {
 
 				VkDescriptorSetLayoutBinding& layoutBinding = layoutBindings[binding];
-				const ShaderReflectionData& reflectData = m_RelectionData[set][binding];
+				const ShaderReflectionData& reflectData = refectionData[set][binding];
 				layoutBinding.binding = reflectData.binding;
 				layoutBinding.descriptorType = Utils::GetVulkanDescriptorTypeFromDescriptorType(reflectData.type);
 				layoutBinding.descriptorCount = reflectData.arraySize;

@@ -5,10 +5,11 @@
 
 namespace Hazel{
 
-	void VulkanVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
+	void VulkanVertexArray::AddVertexBuffer(const Handle<VertexBuffer>& vertexBuffer)
 	{
 		m_VertexBuffers.push_back(vertexBuffer);
-		m_RawBuffers.push_back(std::dynamic_pointer_cast<VulkanVertexBuffer>(vertexBuffer)->GetRawBuffer());
+		HZ_CORE_ASSERT(false, "VulkanVertexArray needs a VulkanVertexBuffer proxy or a handle-backed lookup path");
 	}
 
+	
 }

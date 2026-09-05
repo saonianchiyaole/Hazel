@@ -14,31 +14,34 @@ namespace Hazel {
 
 		VkPrimitiveTopology GetVulkanPrimitiveTopology(PrimitiveTopology type);		
 
-		ByteKey GetRenderPipelineByteKey(const PipelineSpecification& spec, VkRenderPass renderPass);
+		ByteKey GetRenderPipelineByteKey(const PipelineInfo& spec, VkRenderPass renderPass);
 
 
 	}
 
 
-	class VulkanPipeline : public Pipeline{
+	class VulkanPipeline{
 
 	public:
 
-		VulkanPipeline(const PipelineSpecification& specification);
+		VulkanPipeline() = default;
 
 		
-		bool						Init(VkRenderPass renderPass);
+		bool						Init(const PipelineInfo& specification, VkRenderPass renderPass);
+
 		inline VkPipeline			GetRawPipeline()	{ return m_GraphicsPipeline; }
 
 		inline VkPipelineLayout		GetPipelineLayout() { return m_Layout; }
 
+		inline const PipelineInfo&	GetPipelineInfo() { return m_Info; }
 
-		static Ref<VulkanPipeline>	CreateVulkanPipeline(const PipelineSpecification& spec, const VkRenderPass renderPass);		
+		static Ref<VulkanPipeline>	CreateVulkanPipeline(const PipelineInfo& spec, const VkRenderPass renderPass);		
 
 	private:
+				
 
-		Ref<VulkanShader> m_Shader;
-		
+		PipelineInfo m_Info;
+
 		VkPipeline m_GraphicsPipeline;
 
 		VkPipelineLayout m_Layout;

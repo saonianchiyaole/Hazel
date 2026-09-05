@@ -3,8 +3,6 @@
 
 #include "Hazel/Renderer/RendererAPI.h"
 #include "Platform/OpenGL/OpenGLRendererAPI.h"
-#include "Platform/Vulkan/VulkanRendererAPI.h"
-
 namespace Hazel {
 
 	class RenderCommand {
@@ -18,7 +16,7 @@ namespace Hazel {
 				s_RendererAPI = MakeScope<OpenGLRendererAPI>();
 				break;
 			case RendererAPI::API::Vulkan:
-				s_RendererAPI = MakeScope<VulkanRendererAPI>();
+				s_RendererAPI = nullptr;
 				break;
 			case RendererAPI::API::None:
 				HZ_CORE_ASSERT(false, "Not Valid Render API!");

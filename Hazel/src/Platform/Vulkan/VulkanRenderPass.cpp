@@ -17,51 +17,18 @@
 
 namespace Hazel {
 
-	namespace Utils {
-
-		ByteKey GetRawRenderPassByteKey(const RenderPassSpecification& spec) {
-
-			auto attachmentSpec = spec.attachmentSpecs;
-
-			ByteKey byteKey;
-			for (auto& spec : attachmentSpec) {
-				byteKey.AddBytes(spec.format);
-				byteKey.AddBytes(spec.isClearColor);
-				byteKey.AddBytes(spec.clearValue.color);
-			}
-
-			return byteKey;
-
-		}		
-
-	}
-
-
-	VulkanRenderPass::VulkanRenderPass(const RenderPassSpecification& specification) : RenderPass(specification) {
-				
-
-		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();
 		
-		m_RenderPass = VulkanRenderPass::GetRawRenderPass(m_Specification);
-
-		if (m_Specification.pipeline != nullptr) {
-
-			VulkanRendererAPI::RegisterRenderPipeline(m_Specification.pipeline, m_RenderPass);
-			DescriptorSetManagerSpecification descriptorSetManagerSpec;
-			descriptorSetManagerSpec.usage = DescriptorSetManagerUsage::RenderPass;
-			descriptorSetManagerSpec.shader = m_Specification.pipeline->GetSpecification().shader;
-
-			m_DescriptorSetManager = DescriptorSetManager::Create(descriptorSetManagerSpec);
-		}
+	VulkanRenderPass::VulkanRenderPass(const RenderPassInfo& specification) {
 				
+		Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
+		VkDevice rawDevice = device->GetRawDevice();
+		
+		m_RenderPass = VulkanRenderPass::CreateRawRenderPass(specification);						
 	}
+	
+	
 
-	VkRenderPass VulkanRenderPass::GetRawRenderPass(const RenderPassSpecification& spec)
-	{
-		return VulkanRendererAPI::GetRawRenderPass(spec);
-	}
-
-	VkRenderPass VulkanRenderPass::CreateRawRenderPass(const RenderPassSpecification& spec)
+	VkRenderPass VulkanRenderPass::CreateRawRenderPass(const RenderPassInfo& spec)
 	{
 
 		Ref<VulkanDevice> device = VulkanContext::GetCurrentContext()->GetDevice();
@@ -76,7 +43,7 @@ namespace Hazel {
 
 		uint32_t attachmentIndex = 0;
 
-		for (auto attachment : spec.attachmentSpecs) {
+		for (auto attachment : spec.attachmentInfos) {
 
 			if (Utils::IsDepthFormat(attachment.format)) {
 
@@ -91,7 +58,7 @@ namespace Hazel {
 				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-				depthAttachmentRef.attachment = spec.attachmentSpecs.size() - 1;
+				depthAttachmentRef.attachment = spec.attachmentInfos.size() - 1;
 				depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 				hasDepth = true;
@@ -100,19 +67,14 @@ namespace Hazel {
 			}
 
 
-			VkAttachmentDescription& attachemnt = attachmentDescriptions.emplace_back();
-			attachemnt.format = Utils::GetVulkanFormatFromTextureFormat(attachment.format);
-			if (spec.pipeline != nullptr) {
-				attachemnt.samples = VkSampleCountFlagBits(spec.pipeline->GetSpecification().multiSampleCount);
-			}
-			else {
-				attachemnt.samples = VkSampleCountFlagBits(1);
-			}
+			VkAttachmentDescription& attachemntDescription = attachmentDescriptions.emplace_back();
+			attachemntDescription.format = Utils::GetVulkanFormatFromTextureFormat(attachment.format);
+			attachemntDescription.samples = VkSampleCountFlagBits(attachment.samples);
 			
-			attachemnt.loadOp = attachment.isClearColor ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachemnt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			attachemnt.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			attachemnt.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			attachemntDescription.loadOp = attachment.isClearColor ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+			attachemntDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			attachemntDescription.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			attachemntDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			VkAttachmentReference& colorAttachmentRef = colorAttachmentRefs.emplace_back();
 			colorAttachmentRef.attachment = attachmentIndex;
@@ -154,47 +116,6 @@ namespace Hazel {
 
 		return vkRenderPass;
 		
-	}
-
-	void VulkanRenderPass::SetPipeline(Ref<Pipeline> pipeline)
-	{
-		m_Specification.pipeline = pipeline;
-
-		VulkanRendererAPI::GetRenderPipeline(pipeline->GetSpecification(), this->m_RenderPass);
-
-	}
-
-	void VulkanRenderPass::SetPipelineState(const PipelineSpecification& spec)
-	{
-		m_Specification.pipeline = VulkanRendererAPI::GetRenderPipeline(spec, this->m_RenderPass);
-	}
-
-	bool VulkanRenderPass::SetData(const std::string& name, Ref<UniformBufferSet> uniformBufferSet, uint32_t index) {
-		return m_DescriptorSetManager->SetData(name, uniformBufferSet, index);
-	}
-
-	bool VulkanRenderPass::SetData(const std::string& name, Ref<UniformBuffer> uniformBuffer, uint32_t index)
-	{
-		return m_DescriptorSetManager->SetData(name, uniformBuffer, index);
-	}
-
-
-	bool VulkanRenderPass::SetData(const std::string& name, Ref<Texture2D> texture, uint32_t index)
-	{
-		return m_DescriptorSetManager->SetData(name, texture, index);
-	}
-
-	void VulkanRenderPass::Submit()
-	{
-		m_DescriptorSetManager->Submit();
-	}
-
-
-	const std::unordered_map<uint32_t, VkDescriptorSet>& VulkanRenderPass::GetDescriptorSets()
-	{
-		return m_DescriptorSetManager->GetDescriptorSets();
-	}
-
-	
+	}	
 
 }

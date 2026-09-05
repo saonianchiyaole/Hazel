@@ -530,8 +530,8 @@ namespace Hazel {
 						}
 
 						//Shader Info
-						if (material->GetFlag())
-							strcpy_s(buffer, sizeof(buffer), material->GetShader()->GetName().c_str());
+						if (material)
+							strcpy_s(buffer, sizeof(buffer), "");
 						else
 							strcpy_s(buffer, sizeof(buffer), "");
 
@@ -549,12 +549,13 @@ namespace Hazel {
 						}
 
 
-						if (!material->GetFlag()) {
+						if (!material) {
 							ImGui::TreePop();
 							continue;
 						}
+						// todo
 						// Draw Uniform 
-						Ref<Shader> shader = material->GetShader();
+						/*Handle<Shader> shader = material->GetShader();
 
 						for (const auto& uniform : shader->GetUniforms()) {
 
@@ -645,7 +646,7 @@ namespace Hazel {
 
 
 
-						}
+						}*/
 
 						ImGui::TreePop();
 					}

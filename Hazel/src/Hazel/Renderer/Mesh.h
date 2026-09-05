@@ -13,7 +13,7 @@
 
 #include "assimp/matrix4x4.h"
 #include "assimp/Importer.hpp"
-#include "Hazel/Asset/Asset.h"
+#include "Hazel/Resource/Resource.h"
 
 struct aiNode;
 struct aiScene;
@@ -104,7 +104,7 @@ namespace Hazel {
 		Vertex v0, v1, v2;
 	};
 
-	class Mesh : public Asset{
+	class Mesh {
 	public:
 		friend class Animation;
 		friend class Renderer;
@@ -115,8 +115,8 @@ namespace Hazel {
 
 		std::string GetFilePath() { return m_FilePath; }
 
-		virtual AssetType GetAssetType() override{
-			return AssetType::Mesh;
+		virtual ResourceType GetResourceType() {
+			return ResourceType::Mesh;
 		}
 
 		bool IsAnimated() { return m_IsAnimated; }

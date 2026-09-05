@@ -95,7 +95,7 @@ namespace Hazel {
 			HZ_CORE_ASSERT(type == "vertex" || type == "fragment" || type == "pixel" || type == "compute", "Invaild shader type specified!");
 
 			if (type == "vertex" || type == "fragment" || type == "pixel") {
-				m_Type == ShaderType::VertAndFragShader;
+				m_Type == ShaderType::Normal;
 			}
 			else if (type == "compute") {
 				m_Type = ShaderType::ComputeShader;
@@ -275,14 +275,9 @@ namespace Hazel {
 				break;
 			}			
 		}
-		
+				
 
-
-		
-
-
-		HZ_CORE_INFO("Load Shader {0} Succesfully", m_Path);
-		m_Flag = Valid;
+		HZ_CORE_INFO("Load Shader {0} Succesfully", m_Path);		
 		return true;
 	}
 

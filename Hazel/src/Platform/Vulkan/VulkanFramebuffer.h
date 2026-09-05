@@ -10,6 +10,7 @@
 namespace Hazel {
 	
 	class VulkanRenderPass;
+	class VulkanTexture2D;
 
 
 	enum FramebufferStage {
@@ -20,39 +21,37 @@ namespace Hazel {
 
 	};
 
-	class VulkanFramebuffer : public Framebuffer {
+	class VulkanFramebuffer {
 	public:
 
-		VulkanFramebuffer(const FramebufferSpecification& specification);
+		VulkanFramebuffer(const FramebufferInfo& info, const Ref<VulkanRenderPass> renderPass);
+		VulkanFramebuffer(const FramebufferInfo& info, const Ref<VulkanRenderPass> renderPass, std::vector<Ref<VulkanTexture2D>> attacments);
 
-		virtual void			Invalidate() override;
-		virtual void			Resize(const FramebufferSpecification& spec) override;
-		virtual void			Resize(const glm::vec2 size) override;
+		const FramebufferInfo&						GetSpecification() { return m_Info; }
+		const std::vector<Ref<VulkanTexture2D>>		GetColorAttachments() { return m_ColorAttachments; }
+		const Ref<VulkanTexture2D>					GetColorAttachment(int index = 0){
+			HZ_CORE_ASSERT(index < m_ColorAttachments.size(), "Index out of range");
+			return m_ColorAttachments[index];
+		}	
+		const Ref<VulkanTexture2D>					GetDpethAttachment() { return m_DepthAttachment; }
 
-		virtual void			WaitRenderFinished() override;
+		void										Update(const FramebufferInfo& info, const Ref<VulkanRenderPass> renderPass, std::vector<Ref<VulkanTexture2D>> attachments);
+												
+		inline VkFramebuffer						GetRawFramebuffer() const { return m_Framebuffer; }
 
-		virtual void			Bind() {};
-		virtual void			Unbind() {};
-
-		virtual int				ReadPixel(uint32_t attachmentIndex, int x, int y) override { return 0; }
-		virtual void			ClearAttachment(uint32_t attachmentIndex, const void* value) override {}
-		virtual void			ClearAllAttachments() override;
-		virtual const void		BindTexture(uint32_t index, uint32_t slot = 0) {};
-
-		inline VkFramebuffer	GetRawFramebuffer() const { return m_Framebuffer; }
-		inline VkRenderPass		GetRawRenderPass() const { return m_RawRenderPass; }
-
-		void TraceLayout(FramebufferStage stage);
-
-
+		
 	private:
 
-
+		FramebufferInfo m_Info;
+		
 		VkFramebuffer m_Framebuffer = nullptr;
-		VkRenderPass m_RawRenderPass = nullptr;		
+		
 
-		VkFence mRenderFinishedFence;
-
+		// strong ref 
+		Ref<VulkanTexture2D>				m_DepthAttachment = nullptr;
+		std::vector<Ref<VulkanTexture2D>>	m_ColorAttachments;
+		
+		
 	};
 
 }

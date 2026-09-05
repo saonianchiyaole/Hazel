@@ -7,7 +7,7 @@
 namespace Hazel {
 
 
-	class VulkanCommandBuffer : public CommandBuffer
+	class VulkanCommandBuffer
 	{
 
 
@@ -19,11 +19,11 @@ namespace Hazel {
 		VulkanCommandBuffer(VkCommandBuffer commandBuffer);		
 		~VulkanCommandBuffer();
 
-		virtual void Begin() override;
+		void Begin();
 
-		virtual void Submit() override;
+		void Submit();
 
-		virtual void End() override;
+		void End();
 		
 		inline	VkCommandBuffer&		GetRawCommandBuffer()		{ return m_CommandBuffer; }
 

@@ -4,20 +4,60 @@
 namespace Hazel {
 
 
+
+	enum class RenderCommandType {
+
+
+		// Create
+		CreateTexture,
+		CreateFramebuffer,
+		CreateVertexBuffer,
+		CreateIndexBuffer,
+		CreateUniformBuffer,
+		CreateProgram,
+
+
+		// Update
+
+		UpdateTexture,
+		UpdateFramebuffer,
+		UpdateVertexBuffer,
+		UpdateIndexBuffer,
+		UpdateUniformBuffer,
+		UpdateProgram,
+
+		// Destroy
+		
+		DestroyTexture,
+		DestroyFramebuffer,
+		DestroyVertexBuffer,
+		DestroyIndexBuffer,
+		DestroyUniformBuffer,
+		DestroyProgram,
+
+		Count
+
+	};
+
+
 	class CommandBuffer
 	{
 
 	public:
 
-		virtual void Begin() = 0;
+		void Begin();
 
-		virtual void Submit() = 0;
+		void Submit();
 
-		virtual void End() = 0;
+		void End();
+
+		void Execute();
 
 		static Ref<CommandBuffer> Create();
 
 	private:
+
+
 
 	};
 

@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "Hazel/Utils/YAML.h"
+#include "Hazel/Resource/ResourceManager.h"
 
 namespace Hazel {
 
@@ -16,16 +17,21 @@ namespace Hazel {
 		bool MaterialSerializer::Serialize(const std::string& filepath)
 		{
 
+			// todo
+			return false;
+
 			if (!m_Material)
 				return false;
 
 			YAML::Emitter out;
 			out << YAML::BeginMap;
 			out << YAML::Key << "Material" << YAML::Value << m_Material->GetName();
-			out << YAML::Key << "Shader" << YAML::Value << m_Material->GetShader()->GetPath();
+			/*Ref<Shader> shader = ResourceManager<Shader>::Get(m_Material->GetShaderHandle());
+			HZ_CORE_ASSERT(shader, "Material shader handle is invalid");
+			out << YAML::Key << "Shader" << YAML::Value << shader->GetPath();
 			out << YAML::Key << "Uniforms" << YAML::BeginSeq;
 
-			for (const auto& uniform : m_Material->GetShader()->GetUniforms()) {
+			for (const auto& uniform : shader->GetUniforms()) {
 				void* data = m_Material->GetData<void*>(uniform->GetName());
 				if (data)
 					SerializeUniform(out, uniform, data);
@@ -35,9 +41,9 @@ namespace Hazel {
 			out << YAML::EndMap;
 
 			std::ofstream fout(filepath);
-			fout << out.c_str();
+			fout << out.c_str();*/
 
-			return true;
+			return false;
 		}
 
 		bool MaterialSerializer::Deserialize(const std::string& filepath)
@@ -54,7 +60,8 @@ namespace Hazel {
 
 			//Shader
 			std::string shaderPath = data["Shader"].as<std::string>();
-			Ref<Shader> shader = ShaderLibrary::Load(shaderPath);
+			Handle<Shader> shaderHandle = ShaderLibrary::Load(shaderPath);
+			Ref<Shader> shader = ResourceManager<Shader>::Get(shaderHandle);
 
 			m_Material->SetPath(filepath);
 			//Set Data
@@ -147,6 +154,8 @@ namespace Hazel {
 
 
 			}
+
+			return true;
 		}
 
 		bool MaterialSerializer::SerializeUniform(YAML::Emitter& out, Ref<ShaderUniform> shaderUniform, void* data)

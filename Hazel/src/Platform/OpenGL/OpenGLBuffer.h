@@ -6,10 +6,8 @@ namespace Hazel {
 
 	class OpenGLVertexBuffer : public VertexBuffer {
 	public:
-		virtual ~OpenGLVertexBuffer();
-		OpenGLVertexBuffer(float* vertices, uint32_t size);
-		OpenGLVertexBuffer(void* vertices, uint32_t size);
-		OpenGLVertexBuffer(uint32_t size);
+		virtual ~OpenGLVertexBuffer();		
+		OpenGLVertexBuffer(size_t size, std::vector<uint8_t> data = {});
 
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
@@ -22,11 +20,9 @@ namespace Hazel {
 
 	class OpenGLIndexBuffer : public IndexBuffer {
 	public:
-		OpenGLIndexBuffer(){}
+		OpenGLIndexBuffer(size_t size, std::vector<uint8_t> data = {});
 		virtual ~OpenGLIndexBuffer();
-		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
-		OpenGLIndexBuffer(void* indices, uint32_t count);
-
+		
 		virtual void Bind() const override;
 		virtual void Unbind() const override;
 
@@ -44,7 +40,7 @@ namespace Hazel {
 		OpenGLUniformBuffer(uint32_t size, uint32_t binding);
 		virtual ~OpenGLUniformBuffer();
 
-		virtual void SetData(const void* data, uint32_t size, uint32_t offset) override;
+		virtual void SetData(const void* data, size_t size, size_t offset = 0) override;
 	private:
 		uint32_t m_RendererID;
 	};

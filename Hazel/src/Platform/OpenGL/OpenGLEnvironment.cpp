@@ -7,6 +7,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
+#include "Hazel/Resource/ResourceManager.h"
+
 namespace Hazel {
 
 
@@ -15,7 +17,7 @@ namespace Hazel {
 	OpenGLEnvironment::OpenGLEnvironment(std::string filepath)
 	{
 		if (!Environment::s_EquirectangularConversionShader) {
-			s_EquirectangularConversionShader = ShaderLibrary::Load("assets/Shaders/EquirectangularToCubeMap.glsl");
+			s_EquirectangularConversionShader = ResourceManager<Shader>::Get(ShaderLibrary::Load("assets/Shaders/EquirectangularToCubeMap.glsl")) ;
 		}
 		Ref<Texture2D> envEquirect = TextureLibrary::Load(filepath);
 
@@ -33,8 +35,7 @@ namespace Hazel {
 		Ref<TextureCube> envUnfiltered = TextureCube::Create(TextureFormat::Float16, cubemapSize, cubemapSize);
 
 		{
-			envEquirect->Bind();
-			s_EquirectangularConversionShader->Bind();
+						
 			glBindImageTexture(0, envUnfiltered->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
 			glDispatchCompute(cubemapSize / 32, cubemapSize / 32, 6);
 			glGenerateTextureMipmap(envUnfiltered->GetRendererID());
@@ -62,7 +63,7 @@ namespace Hazel {
 
 
 		if (!s_EnvFilteringShader) {
-			s_EnvFilteringShader = ShaderLibrary::Load("assets/Shaders/EnvironmentMipFilter.glsl");
+			s_EnvFilteringShader = ResourceManager<Shader>::Get(ShaderLibrary::Load("assets/Shaders/EnvironmentMipFilter.glsl"));
 		}
 
 
@@ -82,7 +83,7 @@ namespace Hazel {
 		//Environment Irradiance
 
 		if (!s_EnvIrradianceShader) {
-			s_EnvIrradianceShader = ShaderLibrary::Load("assets/Shaders/EnvironmentIrradiance.glsl");
+			s_EnvIrradianceShader = ResourceManager<Shader>::Get(ShaderLibrary::Load("assets/Shaders/EnvironmentIrradiance.glsl"));
 		}
 
 
@@ -101,23 +102,25 @@ namespace Hazel {
 
 
 		//BRDFLUT
-		if (!s_BRDFLUT || !s_BRDFLUT->IsLoaded()) {
+		if (!s_BRDFLUT) {
 			
 			s_BRDFLUT = Texture2D::Create("assets/environment/BRDFLUT.hdr");
 			
-			if (!s_BRDFLUT || !s_BRDFLUT->IsLoaded())
+			if (!s_BRDFLUT)
 			{
-				s_BRDFLUT = Texture2D::Create(TextureFormat::Float16, BRDFLUTSize, BRDFLUTSize);
+				TextureInfo brdfLutInfo;
+				brdfLutInfo.width = BRDFLUTSize;
+				brdfLutInfo.height = BRDFLUTSize;
+				brdfLutInfo.format = TextureFormat::Float16;
+				s_BRDFLUT = Texture2D::Create(brdfLutInfo);
 				if (!s_GenerateBRDFLUTShader) {
-					s_GenerateBRDFLUTShader = ShaderLibrary::Load("assets/Shaders/GenerateBRDFLUT.glsl");
+					s_GenerateBRDFLUTShader = ResourceManager<Shader>::Get(ShaderLibrary::Load("assets/Shaders/GenerateBRDFLUT.glsl"));
 				}
 				//submit
 				{
 					s_GenerateBRDFLUTShader->Bind();
 					glBindImageTexture(0, s_BRDFLUT->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-					glDispatchCompute(s_BRDFLUT->GetWidth() / 32, s_BRDFLUT->GetHeight() / 32, 1);
-					s_BRDFLUT->SetIsLoaded(true);
-
+					glDispatchCompute(s_BRDFLUT->GetWidth() / 32, s_BRDFLUT->GetHeight() / 32, 1);					
 
 					uint64_t size = BRDFLUTSize * BRDFLUTSize * 4 * 4;
 					void* data = malloc(size);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Hazel/Core/CommandQueue.h"
+
 #include <functional>
 #include <mutex>
 #include <queue>
@@ -7,12 +9,13 @@
 
 namespace Hazel {
 
+	using CommandQueueMT = CommandQueue;
 
 
-	class CommandQueue {
+	class UniversalCommandQueue {
 	public:
-		CommandQueue() = default;
-		~CommandQueue() = default;
+		UniversalCommandQueue() = default;
+		~UniversalCommandQueue() = default;
 
 
 		template<typename FuncT, typename ...Args>
@@ -32,7 +35,7 @@ namespace Hazel {
 				m_Tasks.emplace([task]() {(*task)(); });
 			}
 
-			m_Condition.notify_one();			
+			m_Condition.notify_one();
 								
 			
 			return res;

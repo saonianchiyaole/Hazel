@@ -1,14 +1,20 @@
 #pragma once
 
+
 namespace Hazel {
 
 
 
-	class GPUBuffer {
+	class GPUBuffer{
+
+	public:
+
+		GPUBuffer() = default;
+		GPUBuffer(size_t size) : m_Size(size){}
 
 	protected:
 
-		uint64_t m_Size;
+		uint64_t m_Size = 0;
 
 	};
 
@@ -99,22 +105,24 @@ namespace Hazel {
 
 	class VertexBuffer : public GPUBuffer{
 	public:
+		VertexBuffer() = default;
+		VertexBuffer(size_t size) : GPUBuffer(size){}
 		virtual ~VertexBuffer();
 
 
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
+		virtual void Bind() const {}
+		virtual void Unbind() const {}
 
 
-		virtual void SetData(const void* data, const uint32_t size) = 0;
+		virtual void SetData(const void* data, const uint32_t size) {}
 
 		virtual void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
 		virtual const BufferLayout& GetLayout() const { return m_Layout; }
 
+		static Ref<VertexBuffer> Create(size_t size, std::vector<uint8_t> data = std::vector<uint8_t>{});
 		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(void* vertices, uint32_t size);
 		static Ref<VertexBuffer> Create(uint32_t size);
-
 
 	protected:
 	 
@@ -123,27 +131,37 @@ namespace Hazel {
 
 	class IndexBuffer : public GPUBuffer {
 	public:
+		IndexBuffer() = default;
+		IndexBuffer(size_t size) : GPUBuffer(size), m_Count(static_cast<uint32_t>(size / sizeof(uint32_t))) {}
+
 		virtual ~IndexBuffer();
 
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
+		virtual void Bind() const {}
+		virtual void Unbind() const {}
 
-		virtual uint32_t GetCount() const = 0;
+		virtual uint32_t GetCount() const { return m_Count; }
 
+		static Ref<IndexBuffer> Create(size_t size, std::vector<uint8_t> data = std::vector<uint8_t>{});
 		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
 		static Ref<IndexBuffer> Create(void* indices, uint32_t count);
 
-		virtual void SetData(uint32_t* indices, uint32_t count) = 0;
+	protected:
+		uint32_t m_Count = 0;
+
 	};
 
 	class UniformBuffer : public GPUBuffer {
 	public:
-		static Ref<UniformBuffer> Create(uint32_t size, uint32_t binding);
-
-		virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
-	
-	protected:
+		UniformBuffer() = default;
+		UniformBuffer(size_t size, uint32_t binding) : GPUBuffer(size), m_Binding(binding) {}
 		virtual ~UniformBuffer() = default;
+
+		static Ref<UniformBuffer> Create(size_t size, uint32_t binding);
+
+		virtual void SetData(const void* data, size_t size, size_t offset = 0) {}
+
+	protected:
+		uint32_t m_Binding = 0;
 	
 	};
 
@@ -160,7 +178,7 @@ namespace Hazel {
 		Ref<UniformBuffer> Get(uint32_t frameIndex);
 
 		inline uint32_t GetUniformBufferAmount() {
-			return m_UniformBuffers.size();
+			return static_cast<uint32_t>(m_UniformBuffers.size());
 		}
 
 	//private:

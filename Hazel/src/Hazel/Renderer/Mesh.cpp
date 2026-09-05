@@ -4,7 +4,7 @@
 #include "Hazel/Renderer/Material.h"
 #include "Hazel/Renderer/Renderer.h"
 
-#include "Hazel/Asset/AssetManager.h"
+#include "Hazel/Resource/ResourceManager.h"
 
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
@@ -166,8 +166,10 @@ namespace Hazel {
 			for (size_t i = 0; i < scene->mNumMaterials; i++) {
 
 
-				Ref<Material> material = AssetManager::Create<Material>(Renderer::GetDefaultPBRShader());
-				
+				Ref<Material> material = MakeRef<Material>(Renderer::GetDefaultPBRShader());				
+
+				ResourceManager<Material>::Add(material);
+
 				material->m_IsFromMesh = true;
 
 				auto aiMaterial = scene->mMaterials[i];
@@ -205,7 +207,7 @@ namespace Hazel {
 					std::string texturePath = parentPath.string();
 					HZ_CORE_INFO("Mesh : Albedo map path = {0}", texturePath);
 					auto texture = TextureLibrary::Load(texturePath);
-					if (texture->IsLoaded()) {
+					if (texture) {
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Albedo);
 					}
@@ -225,7 +227,7 @@ namespace Hazel {
 					std::string texturePath = parentPath.string();
 					HZ_CORE_INFO("Mesh : Normal map path = {0}", texturePath);
 					auto texture = TextureLibrary::Load(texturePath);
-					if (texture->IsLoaded()) {
+					if (texture) {
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Normal);
 
@@ -250,7 +252,7 @@ namespace Hazel {
 					std::string texturePath = parentPath.string();
 					HZ_CORE_INFO("Mesh : Roughness map path = {0}", texturePath);
 					auto texture = TextureLibrary::Load(texturePath);
-					if (texture->IsLoaded())
+					if (texture)
 					{
 						m_Textures.push_back(texture);
 						texture->SetType(TextureType::Roughness);
@@ -300,8 +302,6 @@ namespace Hazel {
 		}
 
 		
-		m_Flag = AssetFlag::Valid;
-
 	}
 
 

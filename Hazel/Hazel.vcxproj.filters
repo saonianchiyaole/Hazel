@@ -10,9 +10,6 @@
     <Filter Include="src\Hazel\Animation">
       <UniqueIdentifier>{DF9C39E7-4BFE-16F5-D46B-5DA740CC4DB4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Hazel\Asset">
-      <UniqueIdentifier>{7F20ACB2-EBAB-1977-F4BC-9C6B60C77577}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Hazel\Async">
       <UniqueIdentifier>{1D3BACB2-89C6-1977-92D7-9C6BFEE17577}</UniqueIdentifier>
     </Filter>
@@ -30,6 +27,9 @@
     </Filter>
     <Filter Include="src\Hazel\Renderer">
       <UniqueIdentifier>{9669EB43-824D-AC99-EBAD-A6ECD7B0961B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Hazel\Resource">
+      <UniqueIdentifier>{07086550-F3EB-25A6-5C4C-20F9484F1028}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Hazel\Scene">
       <UniqueIdentifier>{0DD9E8B3-7964-5678-8275-D96CEE7FB278}</UniqueIdentifier>
@@ -87,28 +87,28 @@
     <ClInclude Include="src\Hazel\Animation\Skeleton.h">
       <Filter>src\Hazel\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="src\Hazel\Asset\Asset.h">
-      <Filter>src\Hazel\Asset</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Hazel\Asset\AssetManager.h">
-      <Filter>src\Hazel\Asset</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Hazel\Asset\AssimpImporter.h">
-      <Filter>src\Hazel\Asset</Filter>
-    </ClInclude>
     <ClInclude Include="src\Hazel\Async\CommandQueue.h">
       <Filter>src\Hazel\Async</Filter>
     </ClInclude>
-    <ClInclude Include="src\Hazel\Async\RenderThread.h">
+    <ClInclude Include="src\Hazel\Async\Task.h">
       <Filter>src\Hazel\Async</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Async\Thread.h">
+      <Filter>src\Hazel\Async</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Async\ThreadPool.h">
       <Filter>src\Hazel\Async</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Core\Application.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Core\Buffer.h">
+      <Filter>src\Hazel\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Core\ByteKey.h">
+      <Filter>src\Hazel\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Core\CommandQueue.h">
       <Filter>src\Hazel\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Core\Core.h">
@@ -186,6 +186,9 @@
     <ClInclude Include="src\Hazel\Renderer\ComputePass.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\DeviceResourceTable.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\EditorCamera.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
@@ -225,6 +228,9 @@
     <ClInclude Include="src\Hazel\Renderer\RenderCommand.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Hazel\Renderer\RenderDevice.h">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\RenderPass.h">
       <Filter>src\Hazel\Renderer</Filter>
     </ClInclude>
@@ -254,6 +260,15 @@
     </ClInclude>
     <ClInclude Include="src\Hazel\Renderer\VertexArray.h">
       <Filter>src\Hazel\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Resource\AssimpImporter.h">
+      <Filter>src\Hazel\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Resource\Resource.h">
+      <Filter>src\Hazel\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Hazel\Resource\ResourceManager.h">
+      <Filter>src\Hazel\Resource</Filter>
     </ClInclude>
     <ClInclude Include="src\Hazel\Scene\Component.h">
       <Filter>src\Hazel\Scene</Filter>
@@ -324,9 +339,6 @@
     <ClInclude Include="src\Platform\Vulkan\DescriptorSetManager.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\RenderPassDSM.h">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\Vulkan.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
@@ -351,9 +363,6 @@
     <ClInclude Include="src\Platform\Vulkan\VulkanImGuiLayer.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\VulkanMaterial.h">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanPipeline.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
@@ -361,9 +370,6 @@
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanRenderer.h">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\VulkanRendererAPI.h">
       <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Vulkan\VulkanShader.h">
@@ -390,10 +396,6 @@
     <ClInclude Include="src\hzpch.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Hazel\Async\Task.h" />
-    <ClInclude Include="src\Hazel\Core\ByteKey.h">
-      <Filter>src\Hazel\Core</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\ImGuizmo\ImGuizmo.cpp">
@@ -414,25 +416,25 @@
     <ClCompile Include="src\Hazel\Animation\Skeleton.cpp">
       <Filter>src\Hazel\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="src\Hazel\Asset\Asset.cpp">
-      <Filter>src\Hazel\Asset</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hazel\Asset\AssetManager.cpp">
-      <Filter>src\Hazel\Asset</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hazel\Asset\AssimpImporter.cpp">
-      <Filter>src\Hazel\Asset</Filter>
-    </ClCompile>
     <ClCompile Include="src\Hazel\Async\CommandQueue.cpp">
       <Filter>src\Hazel\Async</Filter>
     </ClCompile>
-    <ClCompile Include="src\Hazel\Async\RenderThread.cpp">
+    <ClCompile Include="src\Hazel\Async\Task.cpp">
       <Filter>src\Hazel\Async</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Async\Thread.cpp">
       <Filter>src\Hazel\Async</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\Async\ThreadPool.cpp">
+      <Filter>src\Hazel\Async</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Core\Application.cpp">
+      <Filter>src\Hazel\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Core\ByteKey.cpp">
+      <Filter>src\Hazel\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Core\CommandQueue.cpp">
       <Filter>src\Hazel\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Core\Layer.cpp">
@@ -522,6 +524,9 @@
     <ClCompile Include="src\Hazel\Renderer\RenderCommand.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Hazel\Renderer\RenderDevice.cpp">
+      <Filter>src\Hazel\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\RenderPass.cpp">
       <Filter>src\Hazel\Renderer</Filter>
     </ClCompile>
@@ -551,6 +556,15 @@
     </ClCompile>
     <ClCompile Include="src\Hazel\Renderer\VertexArray.cpp">
       <Filter>src\Hazel\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Resource\AssimpImporter.cpp">
+      <Filter>src\Hazel\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Resource\Resource.cpp">
+      <Filter>src\Hazel\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Hazel\Resource\ResourceManager.cpp">
+      <Filter>src\Hazel\Resource</Filter>
     </ClCompile>
     <ClCompile Include="src\Hazel\Scene\Entity.cpp">
       <Filter>src\Hazel\Scene</Filter>
@@ -612,9 +626,6 @@
     <ClCompile Include="src\Platform\Vulkan\DescriptorSetManager.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\RenderPassDSM.cpp">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\Vulkan.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
@@ -639,9 +650,6 @@
     <ClCompile Include="src\Platform\Vulkan\VulkanImGuiLayer.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanMaterial.cpp">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanPipeline.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
@@ -649,9 +657,6 @@
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanRenderer.cpp">
-      <Filter>src\Platform\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VulkanRendererAPI.cpp">
       <Filter>src\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Vulkan\VulkanShader.cpp">
@@ -677,10 +682,6 @@
     </ClCompile>
     <ClCompile Include="src\hzpch.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Hazel\Async\Task.cpp" />
-    <ClCompile Include="src\Hazel\Core\ByteKey.cpp">
-      <Filter>src\Hazel\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -46,10 +46,10 @@ namespace Hazel {
 		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, const glm::vec4& color);
 		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, const glm::vec4& color);
 
-		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, Ref<Texture2D>& texture);
-		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, Ref<Texture2D>& texture);
-		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, Ref<Texture2D>& texture);
-		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, Ref<Texture2D>& texture);
+		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, Handle<Texture2D>& texture);
+		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, Handle<Texture2D>& texture);
+		static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, Handle<Texture2D>& texture);
+		static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, Handle<Texture2D>& texture);
 
 		static void DrawCircle(const glm::mat4& transform, const glm::vec4& color, const float thickness, const float fade, const int entityID = -1);
 		static void DrawSprite(const glm::mat4& transform, const SpriteComponent& sprite, const int entityID);

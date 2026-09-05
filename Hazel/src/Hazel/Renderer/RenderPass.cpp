@@ -11,20 +11,40 @@
 namespace Hazel {
 	
 	
-	RenderPass::RenderPass(const RenderPassSpecification& spec) : m_Specification(spec)
+
+	namespace Utils {
+
+		ByteKey GetRenderPassByteKey(const RenderPassInfo& spec) {
+
+			auto attachmentSpec = spec.attachmentInfos;
+
+			ByteKey byteKey;
+			for (auto& spec : attachmentSpec) {
+				byteKey.AddBytes(spec.format);
+				byteKey.AddBytes(spec.isClearColor);
+				byteKey.AddBytes(spec.clearValue.color);
+			}
+
+			return byteKey;
+
+		}
+
+	}
+
+	RenderPass::RenderPass(const RenderPassInfo& spec) : m_Info(spec)
 	{
 		
 	}
 
 
 
-	Ref<RenderPass> RenderPass::Create(const RenderPassSpecification& spec)
+	Ref<RenderPass> RenderPass::Create(const RenderPassInfo& spec)
 	{
 
 		switch (RendererAPI::GetAPI()) {
 
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanRenderPass>(spec);
+			return MakeRef<RenderPass>(spec);
 		case RendererAPI::API::OpenGL:
 			return MakeRef<OpenGLRenderPass>(spec);
 		case RendererAPI::API::None:

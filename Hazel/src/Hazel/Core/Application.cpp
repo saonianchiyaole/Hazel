@@ -26,6 +26,9 @@ namespace Hazel {
 		WindowProps props;
 		props.Title = windowName;
 
+		m_RenderDevice = Scope<RenderDevice>(RenderDevice::Create());
+		RenderDevice::SetCurrent(m_RenderDevice.get());
+
 		m_Window = Scope<Window>(Window::Create(props));
 
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));

@@ -8,8 +8,7 @@
 #include "Platform/Vulkan/VulkanBuffer.h"
 
 namespace Hazel {
-	
-
+		
 	namespace Utils {
 
 
@@ -46,85 +45,88 @@ namespace Hazel {
 	}
 
 
-	Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size) {
+	Ref<VertexBuffer> VertexBuffer::Create(size_t size, std::vector<uint8_t> data) {
 
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return MakeRef<OpenGLVertexBuffer>(vertices, size);
+			return MakeRef<OpenGLVertexBuffer>(size, data);
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanVertexBuffer>(vertices, size);
+			return MakeRef<VertexBuffer>(size);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 		return nullptr;
 	}
 
+	Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size)
+	{
+		std::vector<uint8_t> data;
+		if (vertices && size > 0) {
+			const uint8_t* begin = reinterpret_cast<const uint8_t*>(vertices);
+			data.assign(begin, begin + size);
+		}
+
+		return Create(static_cast<size_t>(size), std::move(data));
+	}
+
 	Ref<VertexBuffer> VertexBuffer::Create(void* vertices, uint32_t size)
 	{
-		switch (Renderer::GetAPI()) {
-		case RendererAPI::API::None:
-			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
-		case RendererAPI::API::OpenGL:
-			return MakeRef<OpenGLVertexBuffer>(vertices, size);
-		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanVertexBuffer>(vertices, size);
-
+		std::vector<uint8_t> data;
+		if (vertices && size > 0) {
+			const uint8_t* begin = static_cast<const uint8_t*>(vertices);
+			data.assign(begin, begin + size);
 		}
-		HZ_CORE_ASSERT(false, "Can't recognize the API!")
-			return nullptr;
-	}
-	
-	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size) {
 
-		switch (Renderer::GetAPI()) {
-		case RendererAPI::API::None:
-			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
-		case RendererAPI::API::OpenGL:
-			return MakeRef<OpenGLVertexBuffer>(size);
-		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanVertexBuffer>(size);
-			break;
-		}
-		HZ_CORE_ASSERT(false, "Can't recognize the API!")
-			return nullptr;
+		return Create(static_cast<size_t>(size), std::move(data));
 	}
 
+	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size)
+	{
+		return Create(static_cast<size_t>(size));
+	}
 
 	VertexBuffer::~VertexBuffer() {
 
 	}
 
-	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count) {
+	Ref<IndexBuffer> IndexBuffer::Create(size_t size, std::vector<uint8_t> data) {
+
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return MakeRef<OpenGLIndexBuffer>(indices, count);
+			return MakeRef<OpenGLIndexBuffer>(size, data);
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanIndexBuffer>(indices, count);
-			break;
-
+			return MakeRef<IndexBuffer>(size);
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;
 	}
 
+	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count)
+	{
+		const size_t size = static_cast<size_t>(count) * sizeof(uint32_t);
+		std::vector<uint8_t> data;
+		if (indices && count > 0) {
+			const uint8_t* begin = reinterpret_cast<const uint8_t*>(indices);
+			data.assign(begin, begin + size);
+		}
+
+		return Create(size, std::move(data));
+	}
+
 	Ref<IndexBuffer> IndexBuffer::Create(void* indices, uint32_t count)
 	{
-		switch (Renderer::GetAPI()) {
-		case RendererAPI::API::None:
-			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
-		case RendererAPI::API::OpenGL:
-			return MakeRef<OpenGLIndexBuffer>(indices, count);
-		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanIndexBuffer>(indices, count);
-			break;
-
+		const size_t size = static_cast<size_t>(count) * sizeof(uint32_t);
+		std::vector<uint8_t> data;
+		if (indices && count > 0) {
+			const uint8_t* begin = static_cast<const uint8_t*>(indices);
+			data.assign(begin, begin + size);
 		}
-		HZ_CORE_ASSERT(false, "Can't recognize the API!")
-			return nullptr;
+
+		return Create(size, std::move(data));
 	}
 
 	IndexBuffer::~IndexBuffer() {
@@ -132,7 +134,7 @@ namespace Hazel {
 	}
 
 	// param binding is useless for vulkan api for now
-	Ref<UniformBuffer> UniformBuffer::Create(uint32_t size, uint32_t binding)
+	Ref<UniformBuffer> UniformBuffer::Create(size_t size, uint32_t binding)
 	{
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
@@ -140,7 +142,7 @@ namespace Hazel {
 		case RendererAPI::API::OpenGL:
 			return MakeRef<OpenGLUniformBuffer>(size, binding);
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanUniformBuffer>(size, binding);
+			return MakeRef<UniformBuffer>(size, binding);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

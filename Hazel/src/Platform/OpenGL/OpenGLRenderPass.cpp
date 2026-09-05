@@ -7,7 +7,7 @@ namespace Hazel {
 
 
 
-	Hazel::OpenGLRenderPass::OpenGLRenderPass(const RenderPassSpecification& spec) : RenderPass(spec)
+	Hazel::OpenGLRenderPass::OpenGLRenderPass(const RenderPassInfo& spec) : RenderPass(spec)
 	{
 
 	}

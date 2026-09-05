@@ -57,9 +57,9 @@ namespace Hazel {
 		Ref<Pipeline> linePipeline;
 		Ref<RenderPass> lineRenderPass;
 
-		Ref<Shader> textureShader;
-		Ref<Shader> circleShader;
-		Ref<Shader> lineShader;
+		Handle<Shader> textureShader;
+		Handle<Shader> circleShader;
+		Handle<Shader> lineShader;
 
 		const uint32_t maxQuad = 10000;
 		const uint32_t maxQuadVetices = maxQuad * 4;
@@ -173,7 +173,7 @@ namespace Hazel {
 		
 		// framebuffer
 		{
-			FramebufferSpecification fbSpec;
+			FramebufferInfo fbSpec;
 			fbSpec.width = Application::GetInstance().GetWindow().GetWidth();
 			fbSpec.height = Application::GetInstance().GetWindow().GetHeight();
 			fbSpec.attachments = { TextureFormat::RGBA, TextureFormat::DEPTH24STENCIL8};		
@@ -198,15 +198,14 @@ namespace Hazel {
 			s_Data->quadVertexArray->AddVertexBuffer(s_Data->quadVertexBuffer);
 			s_Data->quadVertexArray->SetIndexBuffer(quadIndexBuffer);
 
-			PipelineSpecification pipelineSpec;
+			PipelineInfo pipelineSpec;
 			pipelineSpec.bufferLayout = layout;
 			pipelineSpec.shader = s_Data->textureShader;			
 			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->texturePipeline = Pipeline::Create(pipelineSpec);
 
-			RenderPassSpecification renderPassSpec;
-			renderPassSpec.pipeline = s_Data->texturePipeline;
-			renderPassSpec.attachmentSpecs = s_Data->framebuffer->GetSpecification().attachments;
+			RenderPassInfo renderPassSpec;			
+			renderPassSpec.attachmentInfos = s_Data->framebuffer->GetInfo().attachments;
 			s_Data->textureRenderPass = RenderPass::Create(renderPassSpec);
 
 			s_Data->textureRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
@@ -231,15 +230,14 @@ namespace Hazel {
 			s_Data->circleVertexArray->AddVertexBuffer(s_Data->circleVertexBuffer);
 			s_Data->circleVertexArray->SetIndexBuffer(quadIndexBuffer);
 
-			PipelineSpecification pipelineSpec;
+			PipelineInfo pipelineSpec;
 			pipelineSpec.bufferLayout = circleLayout;
 			pipelineSpec.shader = s_Data->circleShader;			
 			pipelineSpec.topology = PrimitiveTopology::TriangleList;
 			s_Data->circlePipeline = Pipeline::Create(pipelineSpec);
 
-			RenderPassSpecification renderPassSpec;
-			renderPassSpec.pipeline = s_Data->texturePipeline;
-			renderPassSpec.attachmentSpecs = s_Data->framebuffer->GetSpecification().attachments;
+			RenderPassInfo renderPassSpec;			
+			renderPassSpec.attachmentInfos = s_Data->framebuffer->GetInfo().attachments;
 			s_Data->circleRenderPass = RenderPass::Create(renderPassSpec);
 
 
@@ -263,15 +261,14 @@ namespace Hazel {
 			s_Data->lineVertexArray->AddVertexBuffer(s_Data->lineVertexBuffer);
 
 
-			PipelineSpecification pipelineSpec;
+			PipelineInfo pipelineSpec;
 			pipelineSpec.bufferLayout = lineLayout;
 			pipelineSpec.shader = s_Data->lineShader;			
 			pipelineSpec.topology = PrimitiveTopology::LineList;
 			s_Data->linePipeline = Pipeline::Create(pipelineSpec);
 
-			RenderPassSpecification renderPassSpec;
-			renderPassSpec.pipeline = s_Data->texturePipeline;
-			renderPassSpec.attachmentSpecs = s_Data->framebuffer->GetSpecification().attachments;
+			RenderPassInfo renderPassSpec;			
+			renderPassSpec.attachmentInfos = s_Data->framebuffer->GetInfo().attachments;
 			s_Data->lineRenderPass = RenderPass::Create(renderPassSpec);
 
 			s_Data->lineRenderPass->SetData("Camera", s_Data->cameraUniformBufferSet);
@@ -282,17 +279,21 @@ namespace Hazel {
 
 		//Default white texture
 		{
-			s_Data->whiteTexture = Texture2D::Create(1, 1);
+			TextureInfo whiteTextureInfo;
+			whiteTextureInfo.width = 1;
+			whiteTextureInfo.height = 1;
+			whiteTextureInfo.format = PixelFormat::RGBA;
+			s_Data->whiteTexture = Texture2D::Create(whiteTextureInfo);
 			uint32_t whiteTextureData = 0xffffffff;
 			s_Data->whiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 			s_Data->textureSlots[0] = s_Data->whiteTexture;
 			//Allocate slot
-			s_Data->textureShader->Bind();
+			//s_Data->textureShader->Bind();
 			int* indexArray = new int[s_Data->maxTextureSlot];
 			for (int i = 0; i < s_Data->maxTextureSlot; i++) {
 				indexArray[i] = i;
 			}
-			s_Data->textureShader->SetIntArray("u_Textures", indexArray, s_Data->maxTextureSlot);
+			//s_Data->textureShader->SetIntArray("u_Textures", indexArray, s_Data->maxTextureSlot);
 		}
 
 
@@ -328,8 +329,8 @@ namespace Hazel {
 			}
 			
 			
-			s_Data->framebuffer->ClearAllAttachments();				
-			s_Data->textureRenderPass->SetFramebuffer(s_Data->framebuffer);
+			/*s_Data->framebuffer->ClearAllAttachments();				
+			s_Data->textureRenderPass->SetFramebuffer(s_Data->framebuffer);*/
 
 			});
 		
@@ -415,14 +416,12 @@ namespace Hazel {
 		Renderer::SubmitTask([]() {
 
 			for (uint32_t i = s_Data->textureSlotIndex; i < s_Data->maxTextureSlot; i++) {
-				s_Data->textureSlots[i] = s_Data->whiteTexture;
-				s_Data->textureSlots[i]->Bind();
+				s_Data->textureSlots[i] = s_Data->whiteTexture;				
 				s_Data->textureRenderPass->SetData("u_Textures", s_Data->whiteTexture, i);
 
 			}
 
-			for (uint32_t i = 0; i < s_Data->textureSlotIndex; i++) {
-				s_Data->textureSlots[i]->Bind(i);
+			for (uint32_t i = 0; i < s_Data->textureSlotIndex; i++) {								
 				s_Data->textureRenderPass->SetData("u_Textures", s_Data->textureSlots[i], i);
 			}
 
@@ -451,9 +450,7 @@ namespace Hazel {
 				Ref<CommandBuffer> commandBuffer = CommandBuffer::Create();
 				
 				RenderCommand::BeginRenderPass(commandBuffer, s_Data->circleRenderPass);
-
-				s_Data->circleShader->Bind();
-				s_Data->circleVertexArray->Bind();
+				
 				RenderCommand::DrawIndexed(commandBuffer, s_Data->circleVertexArray, s_Data->circleIndexCount);
 
 				RenderCommand::EndRenderPass(commandBuffer, s_Data->circleRenderPass);				
@@ -472,9 +469,7 @@ namespace Hazel {
 
 				uint32_t dataSize = s_Data->lineVertexBuffePtr - s_Data->lineVertexBuffeBase;
 				s_Data->lineVertexBuffer->SetData(s_Data->lineVertexBuffeBase, dataSize * sizeof(LineVertex));
-
-				s_Data->lineShader->Bind();
-				s_Data->lineVertexArray->Bind();
+				
 				RenderCommand::SetLineWidth(s_Data->lineWidth);
 				RenderCommand::DrawLines(s_Data->lineVertexArray, s_Data->lineIndexCount);
 
@@ -664,17 +659,17 @@ namespace Hazel {
 		
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, Ref<Texture2D>& texture)
+	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, Handle<Texture2D>& texture)
 	{
 		DrawQuad(glm::vec3{ position, 0.0f }, size, texture);
 	}
 
-	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, Ref<Texture2D>& texture)
+	void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, Handle<Texture2D>& texture)
 	{
 
 		Renderer::SubmitTask([=]() {
 
-			glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+			/*glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
 				glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
 
 			int textureSlotIndex = 0;
@@ -707,24 +702,24 @@ namespace Hazel {
 			s_Data->QuadIndexCount += 6;
 			m_RendererState.quadAmount += 1;
 			m_RendererState.vertexAmount += 4;
-			m_RendererState.indexAmount += 6;
+			m_RendererState.indexAmount += 6;*/
 
 			});
 
 
 		
 	}
-	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, Ref<Texture2D>& texture)
+	void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, const float angle, Handle<Texture2D>& texture)
 	{
 		DrawRotatedQuad(glm::vec3(position, 0.0f), size, angle, texture);
 	}
-	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, Ref<Texture2D>& texture)
+	void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, const float angle, Handle<Texture2D>& texture)
 	{
 
 		Renderer::SubmitTask([=]() {
 
 
-			glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+			/*glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
 				glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)) *
 				glm::scale(glm::mat4(1.0f), glm::vec3(size, 0));
 
@@ -756,7 +751,7 @@ namespace Hazel {
 			s_Data->QuadIndexCount += 6;
 			m_RendererState.quadAmount += 1;
 			m_RendererState.vertexAmount += 4;
-			m_RendererState.indexAmount += 6;
+			m_RendererState.indexAmount += 6;*/
 
 			});
 

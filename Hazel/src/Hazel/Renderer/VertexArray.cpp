@@ -7,6 +7,17 @@
 
 namespace Hazel {
 
+	namespace {
+
+		class VertexArrayResource : public VertexArray {
+		public:
+			void Bind() const override {}
+			void Unbind() const override {}
+			uint32_t GetRendererID() const override { return 0; }
+		};
+
+	}
+
 
 	Ref<VertexArray> VertexArray::Create() {
 		switch (Renderer::GetAPI()) {
@@ -15,7 +26,7 @@ namespace Hazel {
 		case RendererAPI::API::OpenGL:
 			return std::make_shared<OpenGLVertexArray>();
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanVertexArray>();
+			return MakeRef<VertexArrayResource>();
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;

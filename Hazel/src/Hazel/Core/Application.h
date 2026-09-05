@@ -8,7 +8,7 @@
 #include "Hazel/ImGui/ImGuiLayer.h"
 #include "Hazel/Core/Timestep.h"
 
-#include "Hazel/Async/RenderThread.h"
+#include "Hazel/Renderer/RenderDevice.h"
 
 namespace Hazel {
 
@@ -60,7 +60,9 @@ namespace Hazel {
 	private:
 		
 		Scope<Window> m_Window;
-	
+
+		Scope<RenderDevice> m_RenderDevice;
+
 		Ref<ImGuiLayer> m_ImGuiLayer;
 		bool m_Running = true;
 		

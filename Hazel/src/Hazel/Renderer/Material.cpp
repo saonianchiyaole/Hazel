@@ -4,7 +4,7 @@
 
 #include "Hazel/Utils/MaterialSerializer.h"
 #include "Hazel/Renderer/Renderer.h"
-#include "Hazel/Asset/AssetManager.h"
+#include "Hazel/Resource/ResourceManager.h"
 
 namespace Hazel {
 
@@ -35,19 +35,22 @@ namespace Hazel {
 	void Material::Submit()
 	{
 		SetTexturesSlot();
-
-		m_Shader->Submit(m_Data);
+		auto shader = ResourceManager<Shader>::Get(m_Shader);
+		shader->Submit(m_Data);
 	}
 
 	void Material::SetTexturesSlot()
 	{
 		for (auto it : m_NameToTextureAndSlot) {
-			auto [texture, slot] = it.second;
-			texture->SetSlot(slot);
+			auto [textureHandle, slot] = it.second;
+			if (ResourceManager<Texture2D>::Has(textureHandle)) {
+				Ref<Texture2D> texture = ResourceManager<Texture2D>::Get(textureHandle);
+				texture->SetSlot(slot);
+			}
 		}
 	}
 
-	Ref<Shader> Material::GetShader()
+	Handle<Shader> Material::GetShader()
 	{
 		return m_Shader;
 	}
@@ -55,9 +58,11 @@ namespace Hazel {
 	void Material::ReloadShader()
 	{
 		//m_Data Check
+		
+		Ref<Shader> shader = ResourceManager<Shader>::Get(m_Shader);
 
 		for (auto it = m_Data.begin(); it != m_Data.end(); ) {
-			if (!m_Shader->GetUniform(it->first)) {
+			if (!shader->GetUniform(it->first)) {
 				it = m_Data.erase(it);  
 			}
 			else {
@@ -68,7 +73,7 @@ namespace Hazel {
 
 		//m_Shader
 
-		for (auto& uniform : m_Shader->GetUniforms()) {
+		for (auto& uniform : shader->GetUniforms()) {
 
 			if (m_Data.find(uniform->GetName()) == m_Data.end()) {
 				m_Data[uniform->GetName()].Allocate(Utils::GetAllocatedMemoryByShaderDataType(uniform->GetType()));
@@ -78,36 +83,48 @@ namespace Hazel {
 
 	}
 
-	void Material::SetShader(Ref<Shader> shader)
+	void Material::SetShader(Handle<Shader> shaderHandle)
 	{
-		if (!m_Shader || m_Shader->GetPath() != shader->GetPath())
+		Ref<Shader> shader = ResourceManager<Shader>::Get(shaderHandle);
+		SetShader(shader);		
+	}
+
+	void Material::SetShader(Ref<Shader> shader) {
+		
+		if (shader)
 		{
-			m_Shader = shader;
+
+			Handle<Shader> shaderHandle = ResourceManager<Shader>::Add(shader);
+			m_Shader = shaderHandle;
 			FreeMemory();
 			m_Data.clear();
 			m_NameToTextureAndSlot.clear();
 
-			for (auto uniform : m_Shader->GetUniforms()) {
+			for (auto uniform : shader->GetUniforms()) {
 				//m_Data[uniform->GetName()] = Utils::AllocateMemoryByShaderDataType(uniform->GetType());
 				m_Data[uniform->GetName()].Allocate(Utils::GetAllocatedMemoryByShaderDataType(uniform->GetType()));
 				m_Data[uniform->GetName()].ZeroInitialize();
 			}
 
 			//deal with texture
-			for (auto uniform : m_Shader->GetUniforms()) {
+			for (auto uniform : shader->GetUniforms()) {
 				if (uniform->GetType() == ShaderDataType::Sampler2D) {
 					//  todo Should I store the address of the shared pointer or the raw pointer's ?
-					m_Data[uniform->GetName()].Write(Renderer::GetDefaultBlackQuadTexture().get());
-					m_NameToTextureAndSlot[uniform->GetName()] = std::pair(Renderer::GetDefaultBlackQuadTexture(), m_NameToTextureAndSlot.size());
+					Ref<Texture2D> defaultTexture = Renderer::GetDefaultBlackQuadTexture();
+					Handle<Texture2D> defaultTextureHandle = ResourceManager<Texture2D>::Add(defaultTexture);
+					m_Data[uniform->GetName()].Write(defaultTexture.get());
+					m_NameToTextureAndSlot[uniform->GetName()] = std::pair(defaultTextureHandle, m_NameToTextureAndSlot.size());
 				}
 			}
 
-			
-			ShaderLibrary::LinkMaterial(shader->GetHandle(), this->GetHandle());			
 
-			m_Flag = shader->GetFlag();
+			//ShaderLibrary::LinkMaterial(shader->GetHandle(), this->GetHandle());
+			
 		}
+
+
 	}
+
 
 	void Material::SetPath(const std::string& path)
 	{

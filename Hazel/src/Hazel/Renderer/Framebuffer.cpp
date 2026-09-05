@@ -7,25 +7,25 @@
 
 namespace Hazel {
 
-
+	
 	namespace Utils {
 
-		bool IsDepthFormat(TextureFormat format) {
+		bool IsDepthFormat(PixelFormat format) {
 
-			return format == TextureFormat::DEPTH24STENCIL8;
+			return format == PixelFormat::DEPTH24STENCIL8;
 
 		}
 
 	}
 
-	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec) {
+	Ref<Framebuffer> Framebuffer::Create(const FramebufferInfo& info) {
 		switch (Renderer::GetAPI()) {
 		case RendererAPI::API::None:
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
-			return MakeRef<OpenGLFramebuffer>(spec);
+			return MakeRef<OpenGLFramebuffer>(info);
 		case RendererAPI::API::Vulkan:
-			return MakeRef<VulkanFramebuffer>(spec);
+			return MakeRef<Framebuffer>(info);
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")
 			return nullptr;

@@ -6,6 +6,22 @@
 
 namespace Hazel {
 
+	namespace {
+
+		class EnvironmentResource : public Environment {
+		public:
+			EnvironmentResource(std::string filepath)
+				: m_Filepath(std::move(filepath))
+			{
+				m_IsLoaded = true;
+			}
+
+		private:
+			std::string m_Filepath;
+		};
+
+	}
+
 	Ref<Shader> Environment::s_EquirectangularConversionShader = nullptr;
 	Ref<Shader> Environment::s_EnvFilteringShader = nullptr;
 	Ref<Shader> Environment::s_EnvIrradianceShader = nullptr;
@@ -19,6 +35,8 @@ namespace Hazel {
 			HZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported")
 		case RendererAPI::API::OpenGL:
 			return MakeRef<OpenGLEnvironment>(filepath);
+		case RendererAPI::API::Vulkan:
+			return MakeRef<EnvironmentResource>(filepath);
 
 		}
 		HZ_CORE_ASSERT(false, "Can't recognize the API!")

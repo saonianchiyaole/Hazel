@@ -19,10 +19,24 @@ namespace Hazel {
 		static GLenum HazelToOpenGLTextureFormat(TextureFormat format) {
 			switch (format)
 			{
-			case Hazel::TextureFormat::RG:		return GL_RG;
-			case Hazel::TextureFormat::RGB:     return GL_RGB;
+			case Hazel::TextureFormat::R:		return GL_R8;
+			case Hazel::TextureFormat::RG:		return GL_RG8;
+			case Hazel::TextureFormat::RGB:     return GL_RGB8;
 			case Hazel::TextureFormat::RGBA:    return GL_RGBA8;
 			case Hazel::TextureFormat::Float16: return GL_RGBA16F;
+			}
+			HZ_CORE_ASSERT(false, "Unknown texture format!");
+			return 0;
+		}
+
+		static GLenum HazelToOpenGLDataFormat(TextureFormat format) {
+			switch (format)
+			{
+			case Hazel::TextureFormat::R:		return GL_RED;
+			case Hazel::TextureFormat::RG:		return GL_RG;
+			case Hazel::TextureFormat::RGB:     return GL_RGB;
+			case Hazel::TextureFormat::RGBA:    return GL_RGBA;
+			case Hazel::TextureFormat::Float16: return GL_RGBA;
 			}
 			HZ_CORE_ASSERT(false, "Unknown texture format!");
 			return 0;
@@ -102,10 +116,34 @@ namespace Hazel {
 
 
 		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, m_DataType, data);
-
-		m_IsLoaded = true;
-
+		
 		stbi_image_free(data);
+	}
+	OpenGLTexture2D::OpenGLTexture2D(TextureInfo textureInfo, std::vector<uint8_t> data)
+	{
+		m_Width = textureInfo.width;
+		m_Height = textureInfo.height;
+		m_TextureFormat = textureInfo.format;
+		m_Usage = textureInfo.usage;
+		m_IsHDR = textureInfo.format == TextureFormat::Float16;
+
+		m_InternalFormat = Utils::HazelToOpenGLTextureFormat(textureInfo.format);
+		m_DataFormat = Utils::HazelToOpenGLDataFormat(textureInfo.format);
+		m_DataType = textureInfo.format == TextureFormat::Float16 ? GL_FLOAT : GL_UNSIGNED_BYTE;
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
+
+		glTexParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexParameteri(m_RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(m_RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (!data.empty()) {
+			glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, m_DataType, data.data());
+		}
+		
 	}
 	OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height)
 	{
@@ -158,8 +196,7 @@ namespace Hazel {
 	{
 		uint32_t bpp = m_DataFormat == GL_RGBA ? 4 : 3;
 		HZ_CORE_ASSERT(size == m_Width * m_Height * bpp, "Data must be entire texture");
-		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
-		m_IsLoaded = true;
+		glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);		
 	}
 
 
@@ -270,7 +307,7 @@ namespace Hazel {
 	void OpenGLTextureCube::SetTexture(Ref<Texture2D> texture, uint32_t slot)
 	{
 
-		if (!texture->IsLoaded() || texture.get() == m_Textures[slot].get() || (slot > 5 || slot < 0)) {
+		if (texture.get() == m_Textures[slot].get() || (slot > 5 || slot < 0)) {
 			return;
 		}
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);

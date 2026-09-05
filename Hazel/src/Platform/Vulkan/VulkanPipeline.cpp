@@ -29,11 +29,12 @@ namespace Hazel {
 
 		}
 
-		ByteKey GetRenderPipelineByteKey(const PipelineSpecification& spec, VkRenderPass renderPass) {
+		ByteKey GetRenderPipelineByteKey(const PipelineInfo& spec, VkRenderPass renderPass) {
 
 			ByteKey key;
 
-			key.AddBytes(spec.shader.get());
+			key.AddBytes(spec.shader.GetIndex());
+			key.AddBytes(spec.shader.GetGeneration());
 			
 			const auto& elements = spec.bufferLayout.GetElements();
 			for (auto& element : elements) {				
@@ -57,22 +58,20 @@ namespace Hazel {
 
 	}
 
-
-	VulkanPipeline::VulkanPipeline(const PipelineSpecification& specification) : Pipeline(specification)
+	
+	bool VulkanPipeline::Init(const PipelineInfo& specification, VkRenderPass renderPass)
 	{		
-	}
-
-	bool VulkanPipeline::Init(VkRenderPass renderPass)
-	{		
+		m_Info = specification;
 
 		Ref<VulkanSwapchain> swapchain = VulkanContext::GetCurrentContext()->GetSwapchain();
 		VkDevice device = VulkanContext::GetCurrentContext()->GetDevice()->GetRawDevice();		
 
-		Ref<VulkanShader> shader = std::static_pointer_cast<VulkanShader>(m_Specification.shader);
+		Ref<VulkanDevice> vulkanDevice = VulkanContext::GetCurrentContext()->GetDevice();
+		Ref<VulkanShader> shader = vulkanDevice ? vulkanDevice->GetProxy(specification.shader) : nullptr;
+		HZ_CORE_ASSERT(shader, "Invalid Vulkan shader handle in VulkanPipeline");
 
 		VkShaderModule vertexShaderModule = shader->GetShaderModule(ShaderType::VertexShader);
 		VkShaderModule fragmentShaderModule = shader->GetShaderModule(ShaderType::FragmentShader);
-
 
 		VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
 		vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -91,8 +90,8 @@ namespace Hazel {
 		//---------------------------------------------------------------------------------------------
 
 
-		VkVertexInputBindingDescription bindingDescription = Utils::GetBindingDescription(m_Specification.bufferLayout);
-		std::vector<VkVertexInputAttributeDescription>  attributeDescriptions = Utils::GetAttributeDescriptions(m_Specification.bufferLayout);
+		VkVertexInputBindingDescription bindingDescription = Utils::GetBindingDescription(specification.bufferLayout);
+		std::vector<VkVertexInputAttributeDescription>  attributeDescriptions = Utils::GetAttributeDescriptions(specification.bufferLayout);
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -103,7 +102,7 @@ namespace Hazel {
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = Utils::GetVulkanPrimitiveTopology(m_Specification.topology);
+		inputAssembly.topology = Utils::GetVulkanPrimitiveTopology(specification.topology);
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		//---------------------------------------------------------------------------------------
@@ -143,10 +142,10 @@ namespace Hazel {
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
-		rasterizer.polygonMode = m_Specification.isWireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+		rasterizer.polygonMode = specification.isWireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		rasterizer.lineWidth = m_Specification.lineWidth;
+		rasterizer.lineWidth = specification.lineWidth;
 
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;
@@ -238,12 +237,12 @@ namespace Hazel {
 	}
 
 
-	Ref<VulkanPipeline> VulkanPipeline::CreateVulkanPipeline(const PipelineSpecification& spec, const VkRenderPass renderPass)
+	Ref<VulkanPipeline> VulkanPipeline::CreateVulkanPipeline(const PipelineInfo& spec, const VkRenderPass renderPass)
 	{
 	
-		Ref<VulkanPipeline> vulkanPipeline = MakeRef<VulkanPipeline>(spec);
+		Ref<VulkanPipeline> vulkanPipeline = MakeRef<VulkanPipeline>();
 
-		vulkanPipeline->Init(renderPass);
+		vulkanPipeline->Init(spec, renderPass);
 
 		return vulkanPipeline;
 

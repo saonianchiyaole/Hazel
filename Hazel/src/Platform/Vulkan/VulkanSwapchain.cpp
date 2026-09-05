@@ -5,8 +5,6 @@
 #include "Platform/Vulkan/VulkanDevice.h"
 #include "Platform/Vulkan/VulkanRenderPass.h"
 #include "Platform/Vulkan/VulkanFramebuffer.h"
-#include "Platform/Vulkan/VulkanRendererAPI.h"
-
 
 #include "Hazel/Renderer/RenderPass.h"
 #include "Hazel/Renderer/Framebuffer.h"
@@ -120,7 +118,7 @@ namespace Hazel {
 
 		for (auto imageView : m_ImageViews) {
 			vkDestroyImageView(device, imageView, nullptr);
-		}			
+		}
 
 		for (uint32_t i = 0; i < frameInFlight; i++) {
 			vkDestroyFence(device, m_InFlightFences[i], nullptr);
@@ -128,13 +126,13 @@ namespace Hazel {
 			vkDestroySemaphore(device, m_RenderFinishedSemaphores[i], nullptr);
 		}
 
-	
+
 		vkDestroySwapchainKHR(device, m_Swapchain, nullptr);
 		m_Swapchain = VK_NULL_HANDLE;
-		
+
 	}
 
-	
+
 
 	void VulkanSwapchain::WaitFrameFence()
 	{
@@ -150,8 +148,8 @@ namespace Hazel {
 	void VulkanSwapchain::BeginFrame()
 	{
 
-		AcquireNextImage();		
-				
+		AcquireNextImage();
+
 
 	}
 
@@ -160,7 +158,7 @@ namespace Hazel {
 
 	}
 
-	
+
 
 	void VulkanSwapchain::Create(uint32_t width, uint32_t height, bool isVsync) {
 
@@ -198,7 +196,7 @@ namespace Hazel {
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-		std::vector<uint32_t> queueFamilyIndices(m_VisibleQueueFamily.begin(), m_VisibleQueueFamily.end());		
+		std::vector<uint32_t> queueFamilyIndices(m_VisibleQueueFamily.begin(), m_VisibleQueueFamily.end());
 
 		if (queueFamilyIndices.size() == 1) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -211,22 +209,22 @@ namespace Hazel {
 			createInfo.queueFamilyIndexCount = m_VisibleQueueFamily.size();
 			createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
 		}
-		
-		VkSwapchainKHR oldSwapchain = m_Swapchain;		
+
+		VkSwapchainKHR oldSwapchain = m_Swapchain;
 
 		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE;		
-		
+		createInfo.clipped = VK_TRUE;
+
 		VkResult result = vkCreateSwapchainKHR(m_Device->GetRawDevice(), &createInfo, nullptr, &m_Swapchain);
 		if (result != VK_SUCCESS)
 			throw std::runtime_error("failed to create swap chain!");
 
-		
-		if(oldSwapchain)
+
+		if (oldSwapchain)
 			vkDestroySwapchainKHR(m_Device->GetRawDevice(), oldSwapchain, nullptr);
-		
+
 		m_Images.clear();
 		vkGetSwapchainImagesKHR(m_Device->GetRawDevice(), m_Swapchain, &m_ImageCount, nullptr);
 		m_Images.resize(m_ImageCount);
@@ -234,7 +232,7 @@ namespace Hazel {
 
 		CreateImageViews();
 		CreateFramebuffers();
-		CreateSyncObjects();		
+		CreateSyncObjects();
 	}
 
 
@@ -244,12 +242,12 @@ namespace Hazel {
 
 		Destroy();
 
-		Create(width, height, isVsync);		
+		Create(width, height, isVsync);
 
-		vkDeviceWaitIdle(m_Device->GetRawDevice());		
+		vkDeviceWaitIdle(m_Device->GetRawDevice());
 
 		m_IsRebuilt = true;
-				
+
 	}
 
 	void VulkanSwapchain::InitializeSurface(VkInstance instance, GLFWwindow* window) {
@@ -274,8 +272,8 @@ namespace Hazel {
 
 
 		Ref<VulkanPhysicalDevice> physicalDevice = context->GetPhysicalDevice();
-		QueueFamilyIndices& indices = physicalDevice->GetQueueFamilyIndices();		
-		
+		QueueFamilyIndices& indices = physicalDevice->GetQueueFamilyIndices();
+
 		Utils::PickPresentFamilyIndex(indices, physicalDevice->GetRawPhysicalDevice(), m_Surface);
 
 		m_Device->CreatePresentQueue(indices);
@@ -330,7 +328,7 @@ namespace Hazel {
 	}*/
 
 	void VulkanSwapchain::CreateSyncObjects() {
-		
+
 		uint32_t frameInFilght = Renderer::GetFrameInFlight();
 		m_RenderFinishedSemaphores.resize(frameInFilght);
 		m_ImageAvailableSemaphores.resize(frameInFilght);
@@ -405,7 +403,7 @@ namespace Hazel {
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;	
+		renderPassInfo.pDependencies = &dependency;
 
 
 		if (vkCreateRenderPass(m_Device->GetRawDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
@@ -427,7 +425,7 @@ namespace Hazel {
 			framebufferInfo.pAttachments = attachments;
 			framebufferInfo.width = m_Details.swapChainExtent.width;
 			framebufferInfo.height = m_Details.swapChainExtent.height;
-			framebufferInfo.layers = 1;			
+			framebufferInfo.layers = 1;
 
 			if (vkCreateFramebuffer(m_Device->GetRawDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create framebuffer!");
@@ -440,43 +438,35 @@ namespace Hazel {
 
 	uint32_t VulkanSwapchain::AcquireNextImage()
 	{
+		
+		vkWaitForFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex], VK_TRUE, UINT64_MAX);
 
-		Renderer::SubmitTask([this]() {
+		VkResult result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
 
+		if (!Application::GetInstance().GetWindow().IsMinimized() && (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)) {
 
-			m_CurrentFrameIndex;
+			Recreate(Application::GetInstance().GetWindow().GetWidth(), Application::GetInstance().GetWindow().GetHeight(), Application::GetInstance().GetWindow().IsVSync());
 
-			vkWaitForFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex], VK_TRUE, UINT64_MAX);
-			
+			result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR && !Application::GetInstance().GetWindow().IsMinimized()) {
 
-			VkResult result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
+			throw std::runtime_error("failed to acquire swap chain image");
+		}
 
-			if (!Application::GetInstance().GetWindow().IsMinimized() && (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)) {
+		vkResetFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex]);
 
-				Recreate(Application::GetInstance().GetWindow().GetWidth(), Application::GetInstance().GetWindow().GetHeight(), Application::GetInstance().GetWindow().IsVSync());
+		m_IsRebuilt = false;
 
-				result = vkAcquireNextImageKHR(m_Device->GetRawDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrameIndex], VK_NULL_HANDLE, &m_CurrentImageIndex);
-			}
-			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR && !Application::GetInstance().GetWindow().IsMinimized()) {
+		vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer(), 0);
 
-				throw std::runtime_error("failed to acquire swap chain image");
-			}
-
-			vkResetFences(m_Device->GetRawDevice(), 1, &m_InFlightFences[m_CurrentFrameIndex]);
-
-			m_IsRebuilt = false;
-
-			vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrameIndex]->GetRawCommandBuffer(), 0);
-
-
-			});
 
 		return m_CurrentImageIndex;
 
 	}
 
 	void VulkanSwapchain::Present() {
-				
+
 		Renderer::SubmitTask([this]() {
 
 			VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -518,7 +508,7 @@ namespace Hazel {
 			Application::GetInstance().NextRenderFrame();
 
 			m_IsRebuilt = false;
-			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();			
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
 
 			});
 

@@ -5,6 +5,8 @@
 
 #include "Hazel/Renderer/Framebuffer.h"
 #include "Hazel/Renderer/Pipeline.h"
+#include "Hazel/Resource/Resource.h"
+#include "Hazel/Resource/ResourceManager.h"
 
 namespace Hazel {
 
@@ -14,46 +16,48 @@ namespace Hazel {
 	class Texture2D;
 	class Framebuffer;
 
-	struct RenderPassSpecification {
+	struct RenderPassInfo {
 
-		// todo : shoudn't be used, should be move to pipeline
+		std::vector<AttachmentInfo> attachmentInfos;
 
-		std::vector<AttachmentSpecification> attachmentSpecs;
-		
-		std::shared_ptr<Pipeline> pipeline = nullptr;
+		Handle<Framebuffer> framebuffer;
 
-		std::shared_ptr<Framebuffer> framebuffer = nullptr;
+		glm::vec4 renderArea;
 
 	};
 
-	
+
 	class RenderPass {
-	public:		
+	public:
 		RenderPass() = default;
-		RenderPass(const RenderPassSpecification& spec);
-		virtual ~RenderPass() = default;		
-		
-		RenderPassSpecification&	GetSpecification()		{ return m_Specification; }	
+		RenderPass(const RenderPassInfo& info);
+		virtual ~RenderPass() = default;
 
-		static Ref<RenderPass> Create(const RenderPassSpecification& spec);
+		RenderPassInfo& GetInfo() { return m_Info; }
 
-
+		static Ref<RenderPass> Create(const RenderPassInfo& info);
 
 		// Render pass input can't not be set by direct value
-		virtual bool SetData		(const std::string& name, Ref<UniformBufferSet> uniformBufferSet, uint32_t index = 0) = 0;
-		virtual bool SetData		(const std::string& name, Ref<UniformBuffer> uniformBuffer, uint32_t index = 0) = 0;
-		virtual bool SetData		(const std::string& name, Ref<Texture2D> texture, uint32_t index = 0) = 0;
+		virtual bool SetData(const std::string& name, Ref<UniformBufferSet> uniformBufferSet, uint32_t index = 0) = 0;
+		virtual bool SetData(const std::string& name, Ref<UniformBuffer> uniformBuffer, uint32_t index = 0) = 0;
+		virtual bool SetData(const std::string& name, const Handle<Texture2D>& texture, uint32_t index = 0) = 0;
+		virtual bool SetData(const std::string& name, Ref<Texture2D> texture, uint32_t index = 0) = 0;
 
-		virtual void SetFramebuffer		(Ref<Framebuffer> framebuffer)		{ m_Specification.framebuffer = framebuffer; }
-		virtual void SetPipeline		(Ref<Pipeline> pipeline)			{ m_Specification.pipeline = pipeline; }
-		virtual void SetPipelineState	(const PipelineSpecification& spec)	{ m_Specification.pipeline = MakeRef<Pipeline>(spec); };
+		virtual void SetFramebuffer(const Handle<Framebuffer>& framebuffer, glm::vec4 renderArea = {}) {
+			auto framebufferRef = ResourceManager<Framebuffer>::Get(framebuffer);
+			m_Info.framebuffer = framebuffer;
+			if (renderArea == glm::vec4()) {
+				m_Info.renderArea = { 0.0f, 0.0f, framebufferRef->GetInfo().width, framebufferRef->GetInfo().height };
+			}
+		}
+
 
 		// submit data to descriptor
 		virtual void Submit() = 0;
 
 	protected:
 
-		RenderPassSpecification m_Specification;
+		RenderPassInfo m_Info;
 	};
 
 }

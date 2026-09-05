@@ -32,7 +32,7 @@ namespace Hazel {
 		
 
 		for (int i = 0; i < frameInFlight; i++) {
-			m_CommandBuffers[i] = VulkanContext::GetCurrentContext()->GetDevice()->CreateSecondaryCommandBuffer();
+			m_CommandBuffers[i] = VulkanContext::GetCurrentContext()->GetDevice()->CreateSecondaryCommandBufferRef();
 		}
 
 
